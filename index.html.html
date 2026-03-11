@@ -190,6 +190,8 @@ const ST_CLR   = {
   'Obsolete':           {bg:'rgba(100,116,139,.10)',text:'#64748b',bd:'rgba(100,116,139,.2)'},
 };
 const SIL_CLR  = {'SIL 4':'#ff6b35','SIL 3':'#ff6b35','SIL 2':'#ffd166','SIL 1':'#ffd166','SIL 0':'#7fff6b','N/A':'#64748b'};
+const VS       = ['Not Started','In Progress','Verified','Failed'];
+const VS_CLR   = {'Not Started':{bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},'In Progress':{bg:'rgba(255,209,102,.12)',text:'#ffd166',bd:'rgba(255,209,102,.25)'},'Verified':{bg:'rgba(127,255,107,.12)',text:'#7fff6b',bd:'rgba(127,255,107,.25)'},'Failed':{bg:'rgba(255,107,53,.12)',text:'#ff6b35',bd:'rgba(255,107,53,.25)'}};
 const VERIFY   = ['Test','Analysis','Inspection','Demonstration'];
 const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
 const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
@@ -735,6 +737,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const [comment,setComment]    = useState('');
   const [submitting,setSubmitting] = useState(false);
   const [tab,setTab]            = useState('details');
+  const [evidence,setEvidence]  = useState([]);
+  const [evProfiles,setEvProfiles] = useState({});
 
   const lc=LEVEL_CLR[req.level]||'#64748b';
   const sc=ST_CLR[req.status]||ST_CLR['Draft'];
@@ -758,11 +762,19 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     if(pp)setAllProfiles(pp);
   }
 
-  useEffect(()=>{loadComments();loadAssignments();},[req.id]);
+  async function loadEvidence() {
+    const {data}=await db.from('evidence').select('*').eq('requirement_id',req.id).order('created_at',{ascending:false});
+    if(data)setEvidence(data);
+    const ids=[...new Set((data||[]).map(e=>e.added_by).filter(Boolean))];
+    if(ids.length){const {data:pp}=await db.from('profiles').select('*').in('id',ids);const m={};pp?.forEach(p=>m[p.id]=p);setEvProfiles(m);}
+  }
+  useEffect(()=>{loadComments();loadAssignments();loadEvidence();},[req.id]);
 
   const isDesigner = profile?.role==='Designer'||profile?.role==='Admin';
   const isApprover = profile?.role==='Approver'||profile?.role==='Admin';
   const isVerifier = profile?.role==='Verifier'||profile?.role==='Admin';
+  const vs = req.verification_status||'Not Started';
+  const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
   const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
   const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
@@ -815,7 +827,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
   const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
 
-  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Sign-off'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`}];
+  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Sign-off'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`}];
 
   return (
     <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
@@ -827,6 +839,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             <Badge bg={`${lc}18`} color={lc} bd={`${lc}33`}>{req.level}</Badge>
             <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{req.status}</Badge>
             {req.sil_level&&req.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[req.sil_level]}18`} color={SIL_CLR[req.sil_level]} bd={`${SIL_CLR[req.sil_level]}33`}>{req.sil_level}</Badge>}
+            <Badge bg={vsc.bg} color={vsc.text} bd={vsc.bd}>{vs}</Badge>
           </div>
           <div style={{fontWeight:700,fontSize:15,lineHeight:1.3}}>{req.title}</div>
         </div>
@@ -944,6 +957,9 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           </div>
         </>}
 
+        {/* ── VERIFICATION TAB ── */}
+        {tab==='verification'&&<VerificationTab req={req} evidence={evidence} evProfiles={evProfiles} isVerifier={isVerifier} onRefresh={loadEvidence} vs={vs} vsc={vsc}/>}
+
         {/* ── COMMENTS TAB ── */}
         {tab==='comments'&&<>
           <div style={{marginBottom:16}}>
@@ -983,6 +999,98 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
 }
 
 // ── REQUIREMENT MODAL ─────────────────────────────────────────────────────────
+
+// -- VERIFICATION TAB --
+function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,vs,vsc}) {
+  const {profile} = useApp();
+  const [showForm,setShowForm] = useState(false);
+  const [saving,setSaving]     = useState(false);
+  const [form,setForm]         = useState({title:'',description:'',method:'Test',evidence_url:''});
+  const [updatingStatus,setUpdatingStatus] = useState(false);
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+
+  async function updateStatus(newStatus) {
+    setUpdatingStatus(true);
+    await db.from('requirements').update({verification_status:newStatus}).eq('id',req.id);
+    setUpdatingStatus(false);
+    onRefresh();
+  }
+
+  async function addEvidence() {
+    if (!form.title.trim()) return;
+    setSaving(true);
+    await db.from('evidence').insert([{requirement_id:req.id,added_by:profile.id,title:form.title.trim(),description:form.description,method:form.method,evidence_url:form.evidence_url}]);
+    setForm({title:'',description:'',method:'Test',evidence_url:''});
+    setShowForm(false);setSaving(false);onRefresh();
+  }
+
+  async function delEvidence(id) {
+    if (!confirm('Delete this evidence entry?')) return;
+    await db.from('evidence').delete().eq('id',id);
+    onRefresh();
+  }
+
+  const methodColor = {Test:'#00d4ff',Analysis:'#c77dff',Inspection:'#ffd166',Demonstration:'#7fff6b'};
+
+  return (
+    <div>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Verification Status</div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+          {VS.map(s=>{
+            const c=VS_CLR[s];const isActive=vs===s;
+            return(<button key={s} onClick={()=>isVerifier&&!updatingStatus&&updateStatus(s)} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${isActive?c.bd:'var(--border)'}`,background:isActive?c.bg:'transparent',color:isActive?c.text:'var(--text2)',fontSize:12,fontWeight:600,cursor:isVerifier?'pointer':'default',transition:'all .15s',fontFamily:'var(--sans)'}}>
+              {s==='Not Started'?'Not Started':s==='In Progress'?'In Progress':s==='Verified'?'Verified':'Failed'}
+            </button>);
+          })}
+        </div>
+        {!isVerifier && <div style={{fontSize:12,color:'var(--text3)',fontStyle:'italic'}}>Only Verifiers and Admins can update verification status.</div>}
+      </div>
+      <div style={{height:1,background:'var(--border)',marginBottom:20}}/>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+        <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4}}>Evidence ({evidence.length})</div>
+        {isVerifier && <button className="btn btn-ghost btn-sm" onClick={()=>setShowForm(v=>!v)}><IPlus s={11}/> Add Evidence</button>}
+      </div>
+      {showForm && (
+        <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:16,marginBottom:16}}>
+          <div className="form-group"><label className="form-label">Title *</label><input className="form-input" placeholder="e.g. Bench test report #42" value={form.title} onChange={e=>set('title',e.target.value)} autoFocus/></div>
+          <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" style={{minHeight:60}} placeholder="What was tested, how, results summary..." value={form.description} onChange={e=>set('description',e.target.value)}/></div>
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">Method</label><select className="form-select" value={form.method} onChange={e=>set('method',e.target.value)}>{['Test','Analysis','Inspection','Demonstration'].map(m=><option key={m}>{m}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Evidence Link (URL)</label><input className="form-input" placeholder="https://drive... or sharepoint..." value={form.evidence_url} onChange={e=>set('evidence_url',e.target.value)}/></div>
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:4}}>
+            <button className="btn btn-primary btn-sm" onClick={addEvidence} disabled={saving||!form.title.trim()}>{saving?'Saving...':'Save Evidence'}</button>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setShowForm(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+      {evidence.length===0&&!showForm&&<div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic',padding:'12px 0'}}>No evidence recorded yet.</div>}
+      {evidence.map(ev=>{
+        const p=evProfiles[ev.added_by];const mc=methodColor[ev.method]||'#64748b';
+        return(
+          <div key={ev.id} style={{background:'var(--raised)',border:'1px solid var(--border)',borderRadius:10,padding:'12px 14px',marginBottom:10}}>
+            <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:6}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:3}}>
+                  <span style={{fontWeight:700,fontSize:13}}>{ev.title}</span>
+                  <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 8px',borderRadius:4,background:`${mc}18`,color:mc,border:`1px solid ${mc}33`}}>{ev.method}</span>
+                </div>
+                {ev.description&&<div style={{fontSize:12,color:'var(--text2)',lineHeight:1.5,marginBottom:6}}>{ev.description}</div>}
+                {ev.evidence_url&&<a href={ev.evidence_url} target="_blank" rel="noopener noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:12,color:'var(--c1)',textDecoration:'none'}}>Open evidence file</a>}
+              </div>
+              {isVerifier&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>delEvidence(ev.id)} style={{color:'var(--c4)',opacity:.6,flexShrink:0}}><ITrash s={11}/></button>}
+            </div>
+            <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',borderTop:'1px solid var(--border)',paddingTop:6,marginTop:4}}>
+              Added by {p?.full_name||'Unknown'} - {new Date(ev.created_at).toLocaleDateString()}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
   const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
