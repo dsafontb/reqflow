@@ -716,6 +716,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
         <span style={{fontSize:13,fontWeight:500,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{node.title}</span>
         <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{node.status}</Badge>
         {node.sil_level&&node.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[node.sil_level]}18`} color={SIL_CLR[node.sil_level]} bd={`${SIL_CLR[node.sil_level]}33`}>{node.sil_level}</Badge>}
+        {(()=>{const vs2=node.verification_status||'Not Started';const vc=VS_CLR[vs2];return vs2!=='Not Started'?<Badge bg={vc.bg} color={vc.text} bd={vc.bd}>{vs2}</Badge>:null;})()}
         {canEdit&&<div style={{display:'flex',gap:2,flexShrink:0,marginLeft:4}} onClick={e=>e.stopPropagation()}>
           <button className="btn btn-ghost btn-sm btn-icon" title="Add child" onClick={()=>onAddChild(node.id)} style={{opacity:.4}}><IPlus s={11}/></button>
           <button className="btn btn-ghost btn-sm btn-icon" title="Edit" onClick={e=>onEdit(node,e)} style={{opacity:.4}}><IEdit s={11}/></button>
@@ -1009,7 +1010,17 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,vs,vsc}) 
   const [updatingStatus,setUpdatingStatus] = useState(false);
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
 
+  const VS_ORDER = ['Not Started','In Progress','Verified','Failed'];
+  const notApproved = req.status !== 'Approved';
+
   async function updateStatus(newStatus) {
+    if (notApproved) return;
+    const currentIdx = VS_ORDER.indexOf(vs);
+    const newIdx = VS_ORDER.indexOf(newStatus);
+    const goingBack = newIdx < currentIdx && vs === 'Verified';
+    if (goingBack) {
+      if (!confirm(`Move verification back from "${vs}" to "${newStatus}"? This means the requirement is no longer considered verified.`)) return;
+    }
     setUpdatingStatus(true);
     await db.from('requirements').update({verification_status:newStatus}).eq('id',req.id);
     setUpdatingStatus(false);
@@ -1039,12 +1050,17 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,vs,vsc}) 
         <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
           {VS.map(s=>{
             const c=VS_CLR[s];const isActive=vs===s;
-            return(<button key={s} onClick={()=>isVerifier&&!updatingStatus&&updateStatus(s)} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${isActive?c.bd:'var(--border)'}`,background:isActive?c.bg:'transparent',color:isActive?c.text:'var(--text2)',fontSize:12,fontWeight:600,cursor:isVerifier?'pointer':'default',transition:'all .15s',fontFamily:'var(--sans)'}}>
+            return(<button key={s} onClick={()=>isVerifier&&!updatingStatus&&updateStatus(s)} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${isActive?c.bd:'var(--border)'}`,background:isActive?c.bg:'transparent',color:isActive?c.text:'var(--text2)',fontSize:12,fontWeight:600,cursor:(isVerifier&&!notApproved)?'pointer':'default',opacity:notApproved?0.4:1,transition:'all .15s',fontFamily:'var(--sans)'}}>
               {s==='Not Started'?'Not Started':s==='In Progress'?'In Progress':s==='Verified'?'Verified':'Failed'}
             </button>);
           })}
         </div>
-        {!isVerifier && <div style={{fontSize:12,color:'var(--text3)',fontStyle:'italic'}}>Only Verifiers and Admins can update verification status.</div>}
+        {notApproved && (
+        <div style={{padding:'10px 14px',borderRadius:8,background:'rgba(255,209,102,.08)',border:'1px solid rgba(255,209,102,.2)',fontSize:13,color:'var(--c3)',marginBottom:8}}>
+          Verification is locked until this requirement is <strong>Approved</strong>. Current status: <strong>{req.status}</strong>.
+        </div>
+      )}
+      {!isVerifier && !notApproved && <div style={{fontSize:12,color:'var(--text3)',fontStyle:'italic'}}>Only Verifiers and Admins can update verification status.</div>}
       </div>
       <div style={{height:1,background:'var(--border)',marginBottom:20}}/>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
