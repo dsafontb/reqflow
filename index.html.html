@@ -1034,35 +1034,43 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
 // -- VERIFICATION TAB --
 function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusChanged,vs,vsc}) {
   const {profile, isReadOnly} = useApp();
-  const [activity, setActivity]         = useState(null);
-  const [loadingAct, setLoadingAct]     = useState(true);
+  const [activity, setActivity]             = useState(null);
+  const [loadingAct, setLoadingAct]         = useState(true);
   const [showDefineForm, setShowDefineForm] = useState(false);
   const [showPlanForm, setShowPlanForm]     = useState(false);
   const [showFinishForm, setShowFinishForm] = useState(false);
   const [showVerifyForm, setShowVerifyForm] = useState(false);
   const [pendingStatus, setPendingStatus]   = useState(null);
-  const [saving, setSaving]             = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [saving, setSaving]                 = useState(false);
 
-  const [defineForm, setDefineForm] = useState({description:'',method:'Test',activity_document_url:''});
-  const [planForm, setPlanForm]     = useState({planned_date:''});
-  const [finishForm, setFinishForm] = useState({actual_date:''});
+  const [defineForm, setDefineForm]     = useState({description:'',method:'Test',activity_document_url:''});
+  const [planForm, setPlanForm]         = useState({planned_date:''});
+  const [finishForm, setFinishForm]     = useState({actual_date:''});
   const [evidenceForm, setEvidenceForm] = useState({title:'',description:'',method:'Test',evidence_url:''});
 
   const ACT_STATUSES = ['Not Defined','Defined','Planned','In Progress','Finished'];
   const ACT_CLR = {
-    'Not Defined':  {bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},
-    'Defined':      {bg:'rgba(0,212,255,.10)',  text:'#00d4ff',bd:'rgba(0,212,255,.25)'},
-    'Planned':      {bg:'rgba(255,209,102,.12)',text:'#ffd166',bd:'rgba(255,209,102,.25)'},
-    'In Progress':  {bg:'rgba(199,125,255,.12)',text:'#c77dff',bd:'rgba(199,125,255,.25)'},
-    'Finished':     {bg:'rgba(127,255,107,.12)',text:'#7fff6b',bd:'rgba(127,255,107,.25)'},
+    'Not Defined': {bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},
+    'Defined':     {bg:'rgba(0,212,255,.10)',  text:'#00d4ff',bd:'rgba(0,212,255,.25)'},
+    'Planned':     {bg:'rgba(255,209,102,.12)',text:'#ffd166',bd:'rgba(255,209,102,.25)'},
+    'In Progress': {bg:'rgba(199,125,255,.12)',text:'#c77dff',bd:'rgba(199,125,255,.25)'},
+    'Finished':    {bg:'rgba(127,255,107,.12)',text:'#7fff6b',bd:'rgba(127,255,107,.25)'},
   };
   const methodColor = {Test:'#00d4ff',Analysis:'#c77dff',Inspection:'#ffd166',Demonstration:'#7fff6b'};
 
-  const notApproved   = req.status !== 'Approved';
-  const actStatus     = activity?.activity_status || 'Not Defined';
-  const actFinished   = actStatus === 'Finished';
-  const canAct        = isVerifier && !isReadOnly;
+  const notApproved = req.status !== 'Approved';
+  const actStatus   = activity?.activity_status || 'Not Defined';
+  const actFinished = actStatus === 'Finished';
+  const canAct      = isVerifier && !isReadOnly;
+
+  function fmtDate(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    const day = String(dt.getUTCDate()).padStart(2,'0');
+    const mon = String(dt.getUTCMonth()+1).padStart(2,'0');
+    const yr  = dt.getUTCFullYear();
+    return `${day}/${mon}/${yr}`;
+  }
 
   async function loadActivity() {
     setLoadingAct(true);
@@ -1070,18 +1078,14 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
     setActivity(data||null);
     setLoadingAct(false);
   }
-
   React.useEffect(()=>{loadActivity();},[req.id]);
 
   async function saveDefine() {
     if (!defineForm.description.trim()) return;
     setSaving(true);
     const payload = {requirement_id:req.id,description:defineForm.description.trim(),method:defineForm.method,activity_document_url:defineForm.activity_document_url||null,activity_status:'Defined',created_by:profile.id,updated_by:profile.id};
-    if (activity) {
-      await db.from('verification_activities').update({...payload,updated_by:profile.id}).eq('id',activity.id);
-    } else {
-      await db.from('verification_activities').insert([payload]);
-    }
+    if (activity) await db.from('verification_activities').update({...payload,updated_by:profile.id}).eq('id',activity.id);
+    else await db.from('verification_activities').insert([payload]);
     setSaving(false); setShowDefineForm(false); loadActivity();
   }
 
@@ -1105,12 +1109,6 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
     setSaving(false); setShowFinishForm(false); loadActivity();
   }
 
-  async function handleVerifyClick(newStatus) {
-    if (notApproved || updatingStatus || isReadOnly || !actFinished) return;
-    setPendingStatus(newStatus);
-    setShowVerifyForm(true);
-  }
-
   async function submitVerification() {
     if (!evidenceForm.title.trim()) return;
     setSaving(true);
@@ -1121,17 +1119,6 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
     onRefresh(); if(onStatusChanged) onStatusChanged();
   }
 
-  async function handleStatusClick(newStatus) {
-    if (notApproved||updatingStatus||isReadOnly) return;
-    if (newStatus==='Verified'||newStatus==='Failed') { handleVerifyClick(newStatus); return; }
-    if (vs==='Verified'||vs==='Failed') {
-      if (!confirm(`Move verification back from "${vs}" to "${newStatus}"?`)) return;
-    }
-    setUpdatingStatus(true);
-    await db.from('requirements').update({verification_status:newStatus}).eq('id',req.id);
-    setUpdatingStatus(false); onRefresh(); if(onStatusChanged) onStatusChanged();
-  }
-
   async function delEvidence(id) {
     if (!confirm('Delete this evidence entry?')) return;
     await db.from('evidence').delete().eq('id',id);
@@ -1139,13 +1126,10 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
   }
 
   const ac = ACT_CLR[actStatus];
-
-  // Progress bar steps
   const stepIdx = ACT_STATUSES.indexOf(actStatus);
 
   return (
     <div>
-
       {/* ── ACTIVITY SECTION ── */}
       <div style={{marginBottom:20}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
@@ -1153,22 +1137,29 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
           <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'3px 9px',borderRadius:5,background:ac.bg,color:ac.text,border:`1px solid ${ac.bd}`}}>{actStatus}</span>
         </div>
 
-        {/* Progress steps */}
-        <div style={{display:'flex',alignItems:'center',gap:0,marginBottom:16}}>
+        {/* Progress bar */}
+        <div style={{display:'flex',alignItems:'flex-start',gap:0,marginBottom:16}}>
           {ACT_STATUSES.map((s,i)=>{
-            const done = i < stepIdx; const active = i === stepIdx;
-            const sc = ACT_CLR[s];
-            return (
+            const done=i<stepIdx; const active=i===stepIdx;
+            const sc=ACT_CLR[s];
+            return(
               <React.Fragment key={s}>
-                {i>0&&<div style={{flex:1,height:2,background:done?'var(--c2)':'var(--border)',transition:'background .3s'}}/>}
-                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-                  <div style={{width:12,height:12,borderRadius:'50%',background:active?sc.text:done?'var(--c2)':'var(--border)',border:`2px solid ${active?sc.text:done?'var(--c2)':'var(--border)'}`,transition:'all .3s',flexShrink:0}}/>
-                  <div style={{fontSize:9,fontFamily:'var(--mono)',color:active?sc.text:done?'var(--c2)':'var(--text3)',whiteSpace:'nowrap'}}>{s}</div>
+                {i>0&&<div style={{flex:1,height:2,background:done?'var(--c2)':'var(--border)',marginTop:5,transition:'background .3s'}}/>}
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,minWidth:0}}>
+                  <div style={{width:12,height:12,borderRadius:'50%',background:active?sc.text:done?'var(--c2)':'var(--border)',border:`2px solid ${active?sc.text:done?'var(--c2)':'var(--border)'}`,flexShrink:0}}/>
+                  <div style={{fontSize:9,fontFamily:'var(--mono)',color:active?sc.text:done?'var(--c2)':'var(--text3)',textAlign:'center',whiteSpace:'nowrap'}}>{s}</div>
                 </div>
               </React.Fragment>
             );
           })}
         </div>
+
+        {/* Requirement not approved warning */}
+        {notApproved && (
+          <div style={{padding:'10px 14px',borderRadius:8,background:'rgba(255,209,102,.08)',border:'1px solid rgba(255,209,102,.2)',fontSize:13,color:'var(--c3)',marginBottom:12}}>
+            Verification is locked until this requirement is <strong>Approved</strong>. Current status: <strong>{req.status}</strong>.
+          </div>
+        )}
 
         {/* Completed step records */}
         {activity && actStatus !== 'Not Defined' && (
@@ -1181,45 +1172,58 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
               </div>
               <div style={{fontSize:13,color:'var(--text)',lineHeight:1.6,marginBottom:activity.activity_document_url?6:0}}>{activity.description}</div>
               {activity.activity_document_url&&<a href={activity.activity_document_url} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:'var(--c1)',textDecoration:'none'}}>Open activity document</a>}
-              {canAct && <button className="btn btn-ghost btn-sm" style={{marginTop:8,opacity:.6}} onClick={()=>{setDefineForm({description:activity.description||'',method:activity.method||'Test',activity_document_url:activity.activity_document_url||''});setShowDefineForm(true);}}>Edit</button>}
+              {canAct&&<button className="btn btn-ghost btn-sm" style={{marginTop:8,opacity:.6}} onClick={()=>{setDefineForm({description:activity.description||'',method:activity.method||'Test',activity_document_url:activity.activity_document_url||''});setShowDefineForm(true);}}>Edit</button>}
             </div>
 
             {/* Planned record */}
-            {['Planned','In Progress','Finished'].includes(actStatus) && activity.planned_date && (
+            {['Planned','In Progress','Finished'].includes(actStatus)&&activity.planned_date&&(
               <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:9,padding:'10px 14px',marginBottom:8}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                   <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:'rgba(255,209,102,.08)',color:'var(--c3)',border:'1px solid rgba(255,209,102,.2)'}}>PLANNED</span>
                 </div>
-                <div style={{fontSize:13,color:'var(--text)'}}>Forecast date: <strong>{new Date(activity.planned_date).toLocaleDateString('es-ES')}</strong></div>
-                {canAct && actStatus==='Planned' && <button className="btn btn-ghost btn-sm" style={{marginTop:8,opacity:.6}} onClick={()=>{setPlanForm({planned_date:activity.planned_date||''});setShowPlanForm(true);}}>Edit</button>}
+                <div style={{fontSize:13,color:'var(--text)'}}>Forecast date: <strong>{fmtDate(activity.planned_date)}</strong></div>
+                {canAct&&actStatus==='Planned'&&<button className="btn btn-ghost btn-sm" style={{marginTop:8,opacity:.6}} onClick={()=>{setPlanForm({planned_date:activity.planned_date||''});setShowPlanForm(true);}}>Edit</button>}
               </div>
             )}
 
-            {/* Finished record */}
-            {actStatus==='Finished' && (
+            {/* Finished record + Verified/Failed buttons */}
+            {actStatus==='Finished'&&(
               <div style={{background:'rgba(127,255,107,.04)',border:'1px solid rgba(127,255,107,.2)',borderRadius:9,padding:'10px 14px',marginBottom:8}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                   <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:'rgba(127,255,107,.1)',color:'var(--c2)',border:'1px solid rgba(127,255,107,.2)'}}>FINISHED</span>
                 </div>
-                {activity.actual_date&&<div style={{fontSize:13,color:'var(--text)'}}>Completed: <strong>{new Date(activity.actual_date).toLocaleDateString('es-ES')}</strong></div>}
-                {!activity.actual_date&&<div style={{fontSize:13,color:'var(--text2)'}}>No actual date recorded.</div>}
+                {activity.actual_date&&<div style={{fontSize:13,color:'var(--text)',marginBottom:10}}>Completed: <strong>{fmtDate(activity.actual_date)}</strong></div>}
+                {!activity.actual_date&&<div style={{fontSize:13,color:'var(--text2)',marginBottom:10}}>No actual date recorded.</div>}
+                {/* Verified / Failed outcome buttons */}
+                {!notApproved && canAct && !showVerifyForm && (
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                    <button className="btn btn-success btn-sm" onClick={()=>{setPendingStatus('Verified');setShowVerifyForm(true);}}>
+                      + evidence &nbsp;Verified
+                    </button>
+                    <button className="btn btn-danger btn-sm" onClick={()=>{setPendingStatus('Failed');setShowVerifyForm(true);}}>
+                      + reason &nbsp;Failed
+                    </button>
+                    {(vs==='Verified'||vs==='Failed')&&<span style={{fontSize:12,color:vs==='Verified'?'var(--c2)':'var(--c4)',alignSelf:'center',fontWeight:600}}>Currently: {vs}</span>}
+                  </div>
+                )}
+                {notApproved&&<div style={{fontSize:12,color:'var(--text3)',fontStyle:'italic'}}>Approve the requirement first to set outcome.</div>}
               </div>
             )}
           </div>
         )}
 
-        {/* Action buttons */}
-        {canAct && !showDefineForm && !showPlanForm && !showFinishForm && (
+        {/* Action buttons for current step */}
+        {canAct && !showDefineForm && !showPlanForm && !showFinishForm && !showVerifyForm && (
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            {actStatus==='Not Defined' && <button className="btn btn-ghost btn-sm" onClick={()=>setShowDefineForm(true)}>Define Activity</button>}
-            {actStatus==='Defined' && <button className="btn btn-warn btn-sm" onClick={()=>setShowPlanForm(true)}>Plan Activity</button>}
-            {actStatus==='Planned' && <button className="btn btn-ghost btn-sm" onClick={markInProgress}>Mark In Progress</button>}
-            {actStatus==='In Progress' && <button className="btn btn-success btn-sm" onClick={()=>setShowFinishForm(true)}>Mark Finished</button>}
+            {actStatus==='Not Defined'&&<button className="btn btn-ghost btn-sm" onClick={()=>setShowDefineForm(true)}>Define Activity</button>}
+            {actStatus==='Defined'&&<button className="btn btn-warn btn-sm" onClick={()=>setShowPlanForm(true)}>Plan Activity</button>}
+            {actStatus==='Planned'&&<button className="btn btn-ghost btn-sm" onClick={markInProgress}>Mark In Progress</button>}
+            {actStatus==='In Progress'&&<button className="btn btn-success btn-sm" onClick={()=>setShowFinishForm(true)}>Mark Finished</button>}
           </div>
         )}
 
         {/* Define form */}
-        {showDefineForm && canAct && (
+        {showDefineForm&&canAct&&(
           <div style={{background:'var(--bg)',border:'2px solid rgba(0,212,255,.2)',borderRadius:10,padding:16,marginTop:8}}>
             <div style={{fontSize:13,fontWeight:700,color:'var(--c1)',marginBottom:12}}>Define Verification Activity</div>
             <div className="form-group">
@@ -1246,7 +1250,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
         )}
 
         {/* Plan form */}
-        {showPlanForm && canAct && (
+        {showPlanForm&&canAct&&(
           <div style={{background:'var(--bg)',border:'2px solid rgba(255,209,102,.2)',borderRadius:10,padding:16,marginTop:8}}>
             <div style={{fontSize:13,fontWeight:700,color:'var(--c3)',marginBottom:12}}>Plan Verification Activity</div>
             <div className="form-group">
@@ -1261,7 +1265,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
         )}
 
         {/* Finish form */}
-        {showFinishForm && canAct && (
+        {showFinishForm&&canAct&&(
           <div style={{background:'var(--bg)',border:'2px solid rgba(127,255,107,.2)',borderRadius:10,padding:16,marginTop:8}}>
             <div style={{fontSize:13,fontWeight:700,color:'var(--c2)',marginBottom:12}}>Mark Activity as Finished</div>
             <div className="form-group">
@@ -1274,84 +1278,42 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
             </div>
           </div>
         )}
-      </div>
 
-      <div style={{height:1,background:'var(--border)',marginBottom:20}}/>
-
-      {/* ── VERIFICATION STATUS ── */}
-      <div style={{marginBottom:20}}>
-        <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Verification Status</div>
-        {notApproved && (
-          <div style={{padding:'10px 14px',borderRadius:8,background:'rgba(255,209,102,.08)',border:'1px solid rgba(255,209,102,.2)',fontSize:13,color:'var(--c3)',marginBottom:12}}>
-            Locked until this requirement is <strong>Approved</strong>. Current status: <strong>{req.status}</strong>.
-          </div>
-        )}
-        {!notApproved && !actFinished && (
-          <div style={{padding:'10px 14px',borderRadius:8,background:'rgba(199,125,255,.08)',border:'1px solid rgba(199,125,255,.2)',fontSize:13,color:'var(--c5)',marginBottom:12}}>
-            Locked until the verification activity is <strong>Finished</strong>. Current activity: <strong>{actStatus}</strong>.
-          </div>
-        )}
-        <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:8}}>
-          {VS.map(s=>{
-            const c=VS_CLR[s]; const isActive=vs===s;
-            const needsForm = s==='Verified'||s==='Failed';
-            const locked = notApproved || !actFinished;
-            return(
-              <button key={s} onClick={()=>handleStatusClick(s)}
-                style={{padding:'7px 14px',borderRadius:8,border:`1px solid ${isActive?c.bd:'var(--border)'}`,
-                  background:isActive?c.bg:'transparent',color:isActive?c.text:'var(--text2)',
-                  fontSize:12,fontWeight:600,cursor:locked?'not-allowed':'pointer',
-                  opacity:locked?0.4:1,transition:'all .15s',fontFamily:'var(--sans)',
-                  display:'flex',alignItems:'center',gap:5}}>
-                {needsForm && <span style={{fontSize:10,opacity:.7}}>{s==='Verified'?'+evidence':'+reason'}</span>}
-                {s}
+        {/* Evidence/failure form */}
+        {showVerifyForm&&canAct&&(
+          <div style={{background:'var(--bg)',border:`2px solid ${pendingStatus==='Verified'?'rgba(127,255,107,.3)':'rgba(255,107,53,.3)'}`,borderRadius:12,padding:18,marginTop:8}}>
+            <div style={{fontSize:13,fontWeight:700,color:pendingStatus==='Verified'?'var(--c2)':'var(--c4)',marginBottom:12}}>
+              {pendingStatus==='Verified'?'Submit Verification Evidence':'Record Failure Reason'}
+            </div>
+            <div className="form-group">
+              <label className="form-label">Title *</label>
+              <input className="form-input" placeholder={pendingStatus==='Verified'?'e.g. Test report v1.2':'e.g. Threshold exceeded'} value={evidenceForm.title} onChange={e=>setEvidenceForm(f=>({...f,title:e.target.value}))} autoFocus/>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Description</label>
+              <textarea className="form-textarea" style={{minHeight:70}} placeholder="Summary of results, observations..." value={evidenceForm.description} onChange={e=>setEvidenceForm(f=>({...f,description:e.target.value}))}/>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Method</label>
+                <select className="form-select" value={evidenceForm.method} onChange={e=>setEvidenceForm(f=>({...f,method:e.target.value}))}>
+                  {['Test','Analysis','Inspection','Demonstration'].map(m=><option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Evidence Link (URL)</label>
+                <input className="form-input" placeholder="Link to report or document..." value={evidenceForm.evidence_url} onChange={e=>setEvidenceForm(f=>({...f,evidence_url:e.target.value}))}/>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8,marginTop:8}}>
+              <button className={`btn ${pendingStatus==='Verified'?'btn-success':'btn-danger'}`} onClick={submitVerification} disabled={saving||!evidenceForm.title.trim()}>
+                {saving?'Submitting...':pendingStatus==='Verified'?'Submit & Mark Verified':'Submit & Mark Failed'}
               </button>
-            );
-          })}
-        </div>
-        {vs==='Verified' && <div style={{fontSize:12,color:'var(--c2)',marginTop:4}}>Verified with {evidence.length} evidence {evidence.length===1?'entry':'entries'}.</div>}
-        {vs==='Failed' && <div style={{fontSize:12,color:'var(--c4)',marginTop:4}}>Failed — {evidence.length} {evidence.length===1?'reason':'reasons'} recorded.</div>}
+              <button className="btn btn-ghost" onClick={()=>{setShowVerifyForm(false);setPendingStatus(null);}}>Cancel</button>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Evidence/failure submission form */}
-      {showVerifyForm && (
-        <div style={{background:'var(--bg)',border:`2px solid ${pendingStatus==='Verified'?'rgba(127,255,107,.3)':'rgba(255,107,53,.3)'}`,borderRadius:12,padding:18,marginBottom:20}}>
-          <div style={{fontSize:13,fontWeight:700,color:pendingStatus==='Verified'?'var(--c2)':'var(--c4)',marginBottom:12}}>
-            {pendingStatus==='Verified'?'Submit Verification Evidence':'Record Failure Reason'}
-          </div>
-          <div style={{fontSize:12,color:'var(--text2)',marginBottom:14,lineHeight:1.6}}>
-            {pendingStatus==='Verified'
-              ? <span>Provide evidence before marking as <strong style={{color:'var(--c2)'}}>Verified</strong>.</span>
-              : <span>Provide a reason before marking as <strong style={{color:'var(--c4)'}}>Failed</strong>.</span>}
-          </div>
-          <div className="form-group">
-            <label className="form-label">Title *</label>
-            <input className="form-input" placeholder={pendingStatus==='Verified'?'e.g. Brake system bench test report v1.2':'e.g. Requirement not met — threshold exceeded'} value={evidenceForm.title} onChange={e=>setEvidenceForm(f=>({...f,title:e.target.value}))} autoFocus/>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Description</label>
-            <textarea className="form-textarea" style={{minHeight:70}} placeholder="Summary of results, pass/fail criteria, observations..." value={evidenceForm.description} onChange={e=>setEvidenceForm(f=>({...f,description:e.target.value}))}/>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Method</label>
-              <select className="form-select" value={evidenceForm.method} onChange={e=>setEvidenceForm(f=>({...f,method:e.target.value}))}>
-                {['Test','Analysis','Inspection','Demonstration'].map(m=><option key={m}>{m}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Evidence Link (URL)</label>
-              <input className="form-input" placeholder="Link to report, document or file..." value={evidenceForm.evidence_url} onChange={e=>setEvidenceForm(f=>({...f,evidence_url:e.target.value}))}/>
-            </div>
-          </div>
-          <div style={{display:'flex',gap:8,marginTop:8}}>
-            <button className={`btn ${pendingStatus==='Verified'?'btn-success':'btn-danger'}`} onClick={submitVerification} disabled={saving||!evidenceForm.title.trim()}>
-              {saving?'Submitting...':pendingStatus==='Verified'?'Submit & Mark Verified':'Submit & Mark Failed'}
-            </button>
-            <button className="btn btn-ghost" onClick={()=>{setShowVerifyForm(false);setPendingStatus(null);}}>Cancel</button>
-          </div>
-        </div>
-      )}
 
       <div style={{height:1,background:'var(--border)',marginBottom:16}}/>
 
@@ -1373,7 +1335,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
                 {ev.description&&<div style={{fontSize:12,color:'var(--text2)',lineHeight:1.6,marginBottom:6}}>{ev.description}</div>}
                 {ev.evidence_url&&<a href={ev.evidence_url} target="_blank" rel="noopener noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:12,color:'var(--c1)',textDecoration:'none'}}>Open evidence file</a>}
                 <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',marginTop:6}}>
-                  {p?.full_name||'Unknown'} - {new Date(ev.created_at).toLocaleDateString('es-ES')}
+                  {p?.full_name||'Unknown'} — {new Date(ev.created_at).toLocaleDateString('es-ES')}
                 </div>
               </div>
               {isVerifier&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>delEvidence(ev.id)} style={{color:'var(--c4)',opacity:.5,flexShrink:0}}><ITrash s={11}/></button>}
@@ -1778,7 +1740,7 @@ function AdminPanel({onBack}) {
                           </select>
                         )}
                       </td>
-                      <td style={{color:'var(--text3)',fontSize:12,fontFamily:'var(--mono)'}}>{new Date(u.created_at).toLocaleDateString()}</td>
+                      <td style={{color:'var(--text3)',fontSize:12,fontFamily:'var(--mono)'}}>{new Date(u.created_at).toLocaleDateString('es-ES')}</td>
                     </tr>
                   );
                 })}
