@@ -198,7 +198,8 @@ const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
 const SAFECAT  = ['Quality','Functional Safety','Security','Dependability','RAMS'];
 const PHASES   = ['Concept','Development','Qualification','Production'];
 const REGS     = ['EN 50126','EN 50128','EN 50129','EN 50155','ISO 22163','ISO 9001','ISO 13485','FDA 21 CFR','ESA / ECSS','DO-178C','DO-254'];
-const ROLES    = ['Unassigned','Designer','Reviewer','Approver','Verifier','Admin'];
+const ROLES    = ['Unassigned','User','Admin'];
+const PROJECT_ROLES = ['Designer','Reviewer','Approver','Verifier','Admin'];
 const ROLE_CLR = {Unassigned:'#64748b',Designer:'#00d4ff',Reviewer:'#ffd166',Approver:'#7fff6b',Verifier:'#c77dff',Admin:'#ff6b35'};
 const PHASE_CLR= {Concept:'#00d4ff',Development:'#ffd166',Qualification:'#ff6b35',Production:'#7fff6b'};
 
@@ -481,18 +482,34 @@ function ProjectList({onOpen, onAdmin, onQueue}) {
   const [loading, setLoading]   = useState(true);
   const [showNew, setShowNew]   = useState(false);
 
+  const [myRoles, setMyRoles] = useState({});
+
   async function load() {
     setLoading(true);
-    const {data} = await db.from('projects').select('*').order('created_at',{ascending:false});
-    if (data) {
-      setProjects(data);
-      if (data.length) {
-        const ids = data.map(p=>p.id);
-        const {data:rr} = await db.from('requirements').select('project_id').in('project_id',ids);
-        const c={};ids.forEach(id=>c[id]=0);
-        rr?.forEach(r=>c[r.project_id]=(c[r.project_id]||0)+1);
-        setCounts(c);
+    let projData = [];
+    if (profile.role === 'Admin') {
+      const {data} = await db.from('projects').select('*').order('created_at',{ascending:false});
+      projData = data || [];
+    } else {
+      const {data:mem} = await db.from('project_members').select('project_id, role').eq('user_id', profile.id);
+      const roles = {};
+      (mem||[]).forEach(m => roles[m.project_id] = m.role);
+      setMyRoles(roles);
+      if (Object.keys(roles).length) {
+        const {data} = await db.from('projects').select('*').in('id', Object.keys(roles)).order('created_at',{ascending:false});
+        projData = data || [];
       }
+    }
+    setProjects(projData);
+    if (projData.length) {
+      const {data:mem2} = await db.from('project_members').select('project_id,role').eq('user_id',profile.id);
+      const roles2={};(mem2||[]).forEach(m=>roles2[m.project_id]=m.role);
+      setMyRoles(roles2);
+      const ids = projData.map(p=>p.id);
+      const {data:rr} = await db.from('requirements').select('project_id').in('project_id',ids);
+      const c={};ids.forEach(id=>c[id]=0);
+      rr?.forEach(r=>c[r.project_id]=(c[r.project_id]||0)+1);
+      setCounts(c);
     }
     setLoading(false);
   }
@@ -506,15 +523,15 @@ function ProjectList({onOpen, onAdmin, onQueue}) {
     load();
   }
 
-  const canCreate = ['Designer','Admin'].includes(profile?.role);
+  const isAdmin = profile?.role === 'Admin';
 
   return (
     <div style={{minHeight:'100vh'}}>
       <Topbar actions={
         <>
           <button className="btn btn-ghost btn-sm" onClick={onQueue}><IList s={13}/> My Queue</button>
-          {profile?.role==='Admin' && <button className="btn btn-ghost btn-sm" onClick={onAdmin}><IUsers s={13}/> Users</button>}
-          {canCreate && <button className="btn btn-primary btn-sm" onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
+          {isAdmin && <button className="btn btn-ghost btn-sm" onClick={onAdmin}><IUsers s={13}/> Users</button>}
+          {isAdmin && <button className="btn btn-primary btn-sm" onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
         </>
       }/>
       <div style={{padding:'28px 24px',maxWidth:960,margin:'0 auto'}}>
@@ -526,29 +543,32 @@ function ProjectList({onOpen, onAdmin, onQueue}) {
         {!loading && projects.length===0 && (
           <div className="empty">
             <div className="empty-icon">📂</div>
-            <h3>No projects yet</h3>
-            {canCreate && <button className="btn btn-primary" onClick={()=>setShowNew(true)}><IPlus s={13}/> Create Project</button>}
+            <h3>{isAdmin ? 'No projects yet' : 'No projects assigned'}</h3>
+            <p>{isAdmin ? '' : 'Ask an Admin to add you to a project'}</p>
+            {isAdmin && <button className="btn btn-primary" onClick={()=>setShowNew(true)}><IPlus s={13}/> Create Project</button>}
           </div>
         )}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:14}}>
           {projects.map(p=>{
             const pc=PHASE_CLR[p.phase]||'#00d4ff';
+            const myRole = myRoles[p.id];
+            const rc = myRole ? (ROLE_CLR[myRole]||'#64748b') : null;
             return (
-              <div key={p.id} className="card" onClick={()=>onOpen(p)} style={{cursor:'pointer',transition:'all .2s'}}
+              <div key={p.id} className="card" onClick={()=>onOpen({...p, myProjectRole: myRole||'Admin'})} style={{cursor:'pointer',transition:'all .2s'}}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--border2)';e.currentTarget.style.transform='translateY(-2px)'}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='none'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                   <div style={{width:38,height:38,borderRadius:9,background:`${pc}18`,border:`1px solid ${pc}33`,display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <IFolder s={16}/>
                   </div>
-                  {['Admin','Designer'].includes(profile?.role) &&
-                    <button className="btn btn-ghost btn-sm btn-icon" onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
+                  {isAdmin && <button className="btn btn-ghost btn-sm btn-icon" onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
                 </div>
                 <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
-                {p.description && <div style={{color:'var(--text2)',fontSize:12,marginBottom:10,lineHeight:1.5}}>{p.description.slice(0,80)}{p.description.length>80?'…':''}</div>}
+                {p.description && <div style={{color:'var(--text2)',fontSize:12,marginBottom:10,lineHeight:1.5}}>{p.description.slice(0,80)}{p.description.length>80?'..':''}</div>}
                 <div style={{display:'flex',gap:7,flexWrap:'wrap',marginTop:8}}>
                   <Badge bg={`${pc}18`} color={pc} bd={`${pc}33`}>{p.phase}</Badge>
                   <Badge bg="var(--raised)" color="var(--text2)" bd="var(--border)">{counts[p.id]||0} reqs</Badge>
+                  {myRole && <Badge bg={`${rc}18`} color={rc} bd={`${rc}33`}>{myRole}</Badge>}
                 </div>
               </div>
             );
@@ -600,6 +620,7 @@ function ProjectView({project,onBack}) {
   const [expanded,setExpanded] = useState({});
   const [selected,setSelected] = useState(null);
   const [showModal,setShowModal]= useState(false);
+  const [showMembers,setShowMembers] = useState(false);
   const [editReq,setEditReq]   = useState(null);
   const [defParent,setDefParent]= useState(null);
   const [search,setSearch]     = useState('');
@@ -611,6 +632,7 @@ function ProjectView({project,onBack}) {
     if(data)setReqs(data);
     setLoading(false);
   },[project.id]);
+  const myProjectRole = project.myProjectRole || (profile?.role==='Admin'?'Admin':'Designer');
 
   useEffect(()=>{load();},[load]);
 
@@ -621,6 +643,7 @@ function ProjectView({project,onBack}) {
     return roots;
   }
 
+  const enrichedSelected = selected ? enrichReq(reqs.find(r=>r.id===selected.id)||selected) : null;
   const filtered=reqs.filter(r=>{
     const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase());
     const ml=lvlF==='All'||r.level===lvlF;
@@ -629,9 +652,10 @@ function ProjectView({project,onBack}) {
   });
   const tree=buildTree(filtered);
 
-  const canEdit = ['Designer','Admin'].includes(profile?.role);
+  const canEdit = ['Designer','Admin'].includes(myProjectRole)||profile?.role==='Admin';
   function openNew(pid=null){setDefParent(pid);setEditReq(null);setShowModal(true);}
-  function openEdit(req,e){e?.stopPropagation();setEditReq(req);setDefParent(null);setShowModal(true);}
+  function openEdit(req,e){e?.stopPropagation();setEditReq({...req,myProjectRole});setDefParent(null);setShowModal(true);}
+  const enrichReq = r => ({...r, myProjectRole});
 
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
@@ -640,6 +664,7 @@ function ProjectView({project,onBack}) {
       <Topbar sub={project.name} actions={
         <>
           <button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>
+          {(myProjectRole==='Admin'||profile?.role==='Admin') && <button className="btn btn-ghost btn-sm" onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           {canEdit && <button className="btn btn-primary btn-sm" onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
@@ -684,13 +709,14 @@ function ProjectView({project,onBack}) {
           </div>
         </div>
         {/* Detail panel */}
-        {selected && (
+        {enrichedSelected && (
           <div style={{flex:1,overflowY:'auto',background:'var(--surface)'}}>
-            <DetailPanel req={reqs.find(r=>r.id===selected.id)||selected} allReqs={reqs} onEdit={openEdit} onClose={()=>setSelected(null)} onDeleted={()=>{setSelected(null);load();}} onStatusChanged={load}/>
+            <DetailPanel req={enrichedSelected} allReqs={reqs} onEdit={openEdit} onClose={()=>setSelected(null)} onDeleted={()=>{setSelected(null);load();}} onStatusChanged={load}/>
           </div>
         )}
       </div>
-      {showModal&&<ReqModal projectId={project.id} req={editReq} defParentId={defParent} allReqs={reqs} onClose={()=>setShowModal(false)} onSaved={()=>{setShowModal(false);load();}}/>}
+      {showModal&&<ReqModal projectId={project.id} req={editReq} defParentId={defParent} allReqs={reqs} onClose={()=>setShowModal(false)} onSaved={()=>{setShowModal(false);load();}}/> }
+      {showMembers&&<MembersModal projectId={project.id} onClose={()=>setShowMembers(false)}/>}
     </div>
   );
 }
@@ -771,9 +797,10 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   }
   useEffect(()=>{loadComments();loadAssignments();loadEvidence();},[req.id]);
 
-  const isDesigner = profile?.role==='Designer'||profile?.role==='Admin';
-  const isApprover = profile?.role==='Approver'||profile?.role==='Admin';
-  const isVerifier = profile?.role==='Verifier'||profile?.role==='Admin';
+  const pr = req.myProjectRole||'Designer';
+  const isDesigner = pr==='Designer'||pr==='Admin'||profile?.role==='Admin';
+  const isApprover = pr==='Approver'||pr==='Admin'||profile?.role==='Admin';
+  const isVerifier = pr==='Verifier'||pr==='Admin'||profile?.role==='Admin';
   const vs = req.verification_status||'Not Started';
   const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
@@ -1107,6 +1134,111 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,vs,vsc}) 
   );
 }
 
+
+// -- MEMBERS MODAL --
+function MembersModal({projectId, onClose}) {
+  const {profile} = useApp();
+  const [members, setMembers]   = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [addUserId, setAddUserId] = useState('');
+  const [addRole, setAddRole]   = useState('Designer');
+  const [saving, setSaving]     = useState(false);
+
+  async function load() {
+    setLoading(true);
+    const {data:mm} = await db.from('project_members').select('*').eq('project_id', projectId);
+    setMembers(mm||[]);
+    const {data:uu} = await db.from('profiles').select('*').order('full_name');
+    setAllUsers(uu||[]);
+    setLoading(false);
+  }
+
+  useEffect(()=>{load();},[]);
+
+  async function addMember() {
+    if (!addUserId) return;
+    setSaving(true);
+    await db.from('project_members').upsert([{project_id:projectId, user_id:addUserId, role:addRole, added_by:profile.id}], {onConflict:'project_id,user_id'});
+    setAddUserId('');
+    setSaving(false);
+    load();
+  }
+
+  async function changeRole(userId, role) {
+    await db.from('project_members').update({role}).eq('project_id',projectId).eq('user_id',userId);
+    load();
+  }
+
+  async function removeMember(userId) {
+    if (!confirm('Remove this member from the project?')) return;
+    await db.from('project_members').delete().eq('project_id',projectId).eq('user_id',userId);
+    load();
+  }
+
+  const memberIds = members.map(m=>m.user_id);
+  const nonMembers = allUsers.filter(u=>!memberIds.includes(u.id) && u.role!=='Unassigned');
+  const memberProfiles = members.map(m=>({...m, profile:allUsers.find(u=>u.id===m.user_id)})).filter(m=>m.profile);
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header"><h2>Project Members</h2><button className="btn btn-ghost btn-icon" onClick={onClose}><IX s={15}/></button></div>
+        <div className="modal-body">
+          {loading ? <div style={{textAlign:'center',padding:20,color:'var(--text3)'}}>Loading...</div> : <>
+            {/* Member list */}
+            {memberProfiles.length===0 && <div style={{color:'var(--text3)',fontSize:13,marginBottom:16}}>No members yet.</div>}
+            {memberProfiles.map(m=>{
+              const ac = avatarColor(m.profile.full_name);
+              const rc = ROLE_CLR[m.role]||'#64748b';
+              return(
+                <div key={m.user_id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',background:'var(--bg)',borderRadius:9,border:'1px solid var(--border)',marginBottom:7}}>
+                  <div style={{width:30,height:30,borderRadius:'50%',background:ac,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--mono)',fontSize:11,fontWeight:700,color:'#000',flexShrink:0}}>{initials(m.profile.full_name)}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:600,fontSize:13}}>{m.profile.full_name}</div>
+                    <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)'}}>{m.profile.role} (global)</div>
+                  </div>
+                  <select className="form-select" style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={m.role} onChange={e=>changeRole(m.user_id,e.target.value)}>
+                    {PROJECT_ROLES.map(r=><option key={r}>{r}</option>)}
+                  </select>
+                  <button className="btn btn-ghost btn-sm btn-icon" onClick={()=>removeMember(m.user_id)} style={{color:'var(--c4)',opacity:.6}}><IX s={12}/></button>
+                </div>
+              );
+            })}
+            {/* Add member */}
+            {nonMembers.length > 0 && <>
+              <div style={{height:1,background:'var(--border)',margin:'14px 0'}}/>
+              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Add Member</div>
+              <div style={{display:'flex',gap:8,alignItems:'flex-end'}}>
+                <div className="form-group" style={{flex:1,marginBottom:0}}>
+                  <label className="form-label">User</label>
+                  <select className="form-select" value={addUserId} onChange={e=>setAddUserId(e.target.value)}>
+                    <option value="">Select user...</option>
+                    {nonMembers.map(u=><option key={u.id} value={u.id}>{u.full_name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group" style={{width:130,marginBottom:0}}>
+                  <label className="form-label">Role</label>
+                  <select className="form-select" value={addRole} onChange={e=>setAddRole(e.target.value)}>
+                    {PROJECT_ROLES.map(r=><option key={r}>{r}</option>)}
+                  </select>
+                </div>
+                <button className="btn btn-primary" onClick={addMember} disabled={saving||!addUserId} style={{flexShrink:0,marginBottom:0}}><IPlus s={13}/> Add</button>
+              </div>
+            </>}
+            {nonMembers.length===0 && allUsers.filter(u=>u.role!=='Unassigned').length>0 && (
+              <div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',marginTop:12}}>All active users are already members of this project.</div>
+            )}
+          </>}
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-primary" onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
   const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
@@ -1295,7 +1427,7 @@ function AdminPanel({onBack}) {
                           <RoleBadge role={u.role}/>
                         ):(
                           <select className="form-select" style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={u.role} onChange={e=>changeRole(u.id,e.target.value)}>
-                            {ROLES.map(r=><option key={r}>{r}</option>)}
+                            {['Unassigned','User','Admin'].map(r=><option key={r}>{r}</option>)}
                           </select>
                         )}
                       </td>
