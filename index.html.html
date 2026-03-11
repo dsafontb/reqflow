@@ -1248,7 +1248,7 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const [err,setErr]=useState('');
 
   useEffect(()=>{
-    if(req){setForm({...init,...req,parent_id:req.parent_id||'',regulatory_body:req.regulatory_body||[]});}
+    if(req){const {myProjectRole:_,verification_status:_vs,...reqClean}=req;setForm({...init,...reqClean,parent_id:req.parent_id||'',regulatory_body:req.regulatory_body||[]});}
     else{const p=PREFIXES[form.level]||'SYS';const n=String(allReqs.filter(r=>r.level===form.level).length+1).padStart(3,'0');setForm(f=>({...f,req_id:`${p}-${n}`}));}
   },[req]);
 
@@ -1260,7 +1260,8 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
     if(!form.title.trim()){setErr('Title required');return;}
     if(!form.req_id.trim()){setErr('ID required');return;}
     setSaving(true);setErr('');
-    const payload={...form,project_id:projectId,parent_id:form.parent_id||null,title:form.title.trim(),req_id:form.req_id.trim()};
+    const {myProjectRole:_mpr, ...formClean} = form;
+    const payload={...formClean,project_id:projectId,parent_id:form.parent_id||null,title:form.title.trim(),req_id:form.req_id.trim()};
     const {error}=isEdit?await db.from('requirements').update(payload).eq('id',req.id):await db.from('requirements').insert([payload]);
     setSaving(false);
     if(error){setErr(error.message);return;}
