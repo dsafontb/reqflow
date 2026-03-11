@@ -287,10 +287,10 @@ function App() {
   if (session === undefined) return <Splash text="Loading…"/>;
   if (!session) return <AuthScreen/>;
   if (!profile) return <Splash text="Loading profile…"/>;
-  if (profile.role === 'Unassigned') return <WaitingScreen profile={profile}/>;
+  // Unassigned users get read-only access;
 
   return (
-    <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications}}>
+    <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications, isReadOnly:profile.role==='Unassigned'}}>
       {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')}/>}
       {page === 'project'  && <ProjectView project={project} onBack={()=>{setProject(null);setPage('projects')}}/>}
       {page === 'admin'    && profile.role==='Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
@@ -474,7 +474,7 @@ function Topbar({title, sub, actions, children}) {
 
 // ── PROJECT LIST ──────────────────────────────────────────────────────────────
 function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
-  const {profile} = useApp();
+  const {profile, isReadOnly} = useApp();
   const [projects, setProjects] = useState([]);
   const [counts, setCounts]     = useState({});
   const [loading, setLoading]   = useState(true);
@@ -485,7 +485,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
   async function load() {
     setLoading(true);
     let projData = [];
-    if (profile.role === 'Admin') {
+    if (profile.role === 'Admin' || profile.role === 'Unassigned') {
       const {data} = await db.from('projects').select('*').order('created_at',{ascending:false});
       projData = data || [];
     } else {
@@ -527,10 +527,11 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
     <div style={{minHeight:'100vh'}}>
       <Topbar actions={
         <>
-          <button className="btn btn-ghost btn-sm" onClick={onQueue}><IList s={13}/> My Queue</button>
+          {!isReadOnly && <button className="btn btn-ghost btn-sm" onClick={onQueue}><IList s={13}/> My Queue</button>}
           {isAdmin && <button className="btn btn-ghost btn-sm" onClick={onAdmin}><IUsers s={13}/> Users</button>}
           {isAdmin && <button className="btn btn-ghost btn-sm" onClick={onOptions}><IShield s={13}/> Options</button>}
           {isAdmin && <button className="btn btn-primary btn-sm" onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
+          {isReadOnly && <span style={{fontFamily:'var(--mono)',fontSize:11,padding:'4px 10px',borderRadius:6,background:'rgba(100,116,139,.15)',color:'var(--text3)',border:'1px solid rgba(100,116,139,.25)'}}>READ ONLY</span>}
         </>
       }/>
       <div style={{padding:'28px 24px',maxWidth:960,margin:'0 auto'}}>
@@ -560,7 +561,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
                   <div style={{width:38,height:38,borderRadius:9,background:`${pc}18`,border:`1px solid ${pc}33`,display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <IFolder s={16}/>
                   </div>
-                  {isAdmin && <button className="btn btn-ghost btn-sm btn-icon" onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
+                  {isAdmin && !isReadOnly && <button className="btn btn-ghost btn-sm btn-icon" onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
                 </div>
                 <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
                 {p.description && <div style={{color:'var(--text2)',fontSize:12,marginBottom:10,lineHeight:1.5}}>{p.description.slice(0,80)}{p.description.length>80?'..':''}</div>}
@@ -613,7 +614,7 @@ function ProjectModal({onClose,onSaved}) {
 
 // ── PROJECT VIEW ──────────────────────────────────────────────────────────────
 function ProjectView({project,onBack}) {
-  const {profile} = useApp();
+  const {profile, isReadOnly} = useApp();
   const [reqs,setReqs]         = useState([]);
   const [loading,setLoading]   = useState(true);
   const [expanded,setExpanded] = useState({});
@@ -652,7 +653,7 @@ function ProjectView({project,onBack}) {
   });
   const tree=buildTree(filtered);
 
-  const canEdit = ['Designer','Admin'].includes(myProjectRole)||profile?.role==='Admin';
+  const canEdit = !isReadOnly && (['Designer','Admin'].includes(myProjectRole)||profile?.role==='Admin');
   function openNew(pid=null){setDefParent(pid);setEditReq(null);setShowModal(true);}
   function openEdit(req,e){e?.stopPropagation();setEditReq({...req,myProjectRole});setDefParent(null);setShowModal(true);}
 
@@ -663,7 +664,7 @@ function ProjectView({project,onBack}) {
       <Topbar sub={project.name} actions={
         <>
           <button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>
-          {(myProjectRole==='Admin'||profile?.role==='Admin') && <button className="btn btn-ghost btn-sm" onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
+          {(myProjectRole==='Admin'||profile?.role==='Admin') && !isReadOnly && <button className="btn btn-ghost btn-sm" onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           {canEdit && <button className="btn btn-primary btn-sm" onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
@@ -755,7 +756,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
 
 // ── DETAIL PANEL ──────────────────────────────────────────────────────────────
 function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
-  const {profile,loadNotifications} = useApp();
+  const {profile,loadNotifications,isReadOnly} = useApp();
   const [comments,setComments]  = useState([]);
   const [profiles,setProfiles]  = useState({});
   const [assignments,setAssignments] = useState([]);
@@ -960,7 +961,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
               );
             })}
             {/* Assign approver dropdown - designers and admins */}
-            {(isDesigner)&&approversInProject.length>0&&(
+            {(isDesigner)&&!isReadOnly&&approversInProject.length>0&&(
               <div style={{marginTop:8}}>
                 <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:6}}>Assign Approver</div>
                 <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
@@ -975,14 +976,14 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           </div>
 
           {/* Action buttons */}
-          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          {!isReadOnly && <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {canSubmit&&<button className="btn btn-warn" onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
             {canApprove&&<>
               <button className="btn btn-success" onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
               <button className="btn btn-danger" onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
             </>}
             {req.status==='Approved'&&isDesigner&&<button className="btn btn-ghost btn-sm" onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
-          </div>
+          </div>}
         </>}
 
         {/* ── VERIFICATION TAB ── */}
@@ -1015,12 +1016,12 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             })}
           </div>
           {/* Comment input */}
-          <div>
+          {!isReadOnly && <div>
             <textarea className="form-textarea" placeholder="Add a comment…" value={comment} onChange={e=>setComment(e.target.value)} style={{marginBottom:8}}/>
             <button className="btn btn-ghost btn-sm" onClick={()=>addComment('Comment')} disabled={submitting||!comment.trim()}>
               <IMsg s={12}/> Add Comment
             </button>
-          </div>
+          </div>}
         </>}
 
       </div>
@@ -1032,7 +1033,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
 
 // -- VERIFICATION TAB --
 function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusChanged,vs,vsc}) {
-  const {profile} = useApp();
+  const {profile, isReadOnly} = useApp();
   const [updatingStatus,setUpdatingStatus] = useState(false);
   const [showVerifyForm,setShowVerifyForm] = useState(false);
   const [saving,setSaving]     = useState(false);
@@ -1045,7 +1046,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
   const [pendingStatus, setPendingStatus] = useState(null); // 'Verified' or 'Failed'
 
   async function handleStatusClick(newStatus) {
-    if (notApproved || updatingStatus) return;
+    if (notApproved || updatingStatus || isReadOnly) return;
     if (newStatus === 'Verified' || newStatus === 'Failed') {
       setPendingStatus(newStatus);
       setShowVerifyForm(true);
