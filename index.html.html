@@ -1006,6 +1006,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                       {isAction&&<span style={{fontSize:11,fontWeight:700,color:actionColor[c.action]}}>{actionLabel[c.action]}</span>}
                       {c.req_status&&<span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:ST_CLR[c.req_status]?.bg,color:ST_CLR[c.req_status]?.text,border:`1px solid ${ST_CLR[c.req_status]?.bd}`}}>{c.req_status}</span>}
                       <span className="comment-time">{timeAgo(c.created_at)}</span>
+                      {profile?.role==='Admin'&&<button onClick={async()=>{if(!confirm('Delete this comment?'))return;await db.from('comments').delete().eq('id',c.id);loadComments();}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--c4)',opacity:.5,padding:'0 2px',fontSize:13,lineHeight:1}} title="Delete comment">×</button>}
                     </div>
                     <div className="comment-text">{c.content}</div>
                   </div>
