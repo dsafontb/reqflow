@@ -643,6 +643,7 @@ function ProjectView({project,onBack}) {
     return roots;
   }
 
+  const enrichReq = r => ({...r, myProjectRole});
   const enrichedSelected = selected ? enrichReq(reqs.find(r=>r.id===selected.id)||selected) : null;
   const filtered=reqs.filter(r=>{
     const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase());
@@ -655,7 +656,6 @@ function ProjectView({project,onBack}) {
   const canEdit = ['Designer','Admin'].includes(myProjectRole)||profile?.role==='Admin';
   function openNew(pid=null){setDefParent(pid);setEditReq(null);setShowModal(true);}
   function openEdit(req,e){e?.stopPropagation();setEditReq({...req,myProjectRole});setDefParent(null);setShowModal(true);}
-  const enrichReq = r => ({...r, myProjectRole});
 
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
