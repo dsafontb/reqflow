@@ -798,9 +798,10 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   useEffect(()=>{loadComments();loadAssignments();loadEvidence();},[req.id]);
 
   const pr = req.myProjectRole||'Designer';
-  const isDesigner = pr==='Designer'||pr==='Admin'||profile?.role==='Admin';
-  const isApprover = pr==='Approver'||pr==='Admin'||profile?.role==='Admin';
-  const isVerifier = pr==='Verifier'||pr==='Admin'||profile?.role==='Admin';
+  const isAdmin = profile?.role==='Admin';
+  const isDesigner = pr==='Designer'||pr==='Admin'||isAdmin;
+  const isApprover = pr==='Approver'||pr==='Admin'||isAdmin;
+  const isVerifier = pr==='Verifier'||pr==='Admin'||isAdmin;
   const vs = req.verification_status||'Not Started';
   const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
@@ -986,7 +987,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
         </>}
 
         {/* ── VERIFICATION TAB ── */}
-        {tab==='verification'&&<VerificationTab req={req} evidence={evidence} evProfiles={evProfiles} isVerifier={isVerifier} onRefresh={loadEvidence} vs={vs} vsc={vsc}/>}
+        {tab==='verification'&&<VerificationTab req={req} evidence={evidence} evProfiles={evProfiles} isVerifier={isVerifier} onRefresh={loadEvidence} onStatusChanged={onStatusChanged} vs={vs} vsc={vsc}/>}
 
         {/* ── COMMENTS TAB ── */}
         {tab==='comments'&&<>
@@ -1029,7 +1030,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
 // ── REQUIREMENT MODAL ─────────────────────────────────────────────────────────
 
 // -- VERIFICATION TAB --
-function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,vs,vsc}) {
+function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusChanged,vs,vsc}) {
   const {profile} = useApp();
   const [showForm,setShowForm] = useState(false);
   const [saving,setSaving]     = useState(false);
@@ -1052,6 +1053,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,vs,vsc}) 
     await db.from('requirements').update({verification_status:newStatus}).eq('id',req.id);
     setUpdatingStatus(false);
     onRefresh();
+    if(onStatusChanged) onStatusChanged();
   }
 
   async function addEvidence() {
@@ -1077,7 +1079,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,vs,vsc}) 
         <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
           {VS.map(s=>{
             const c=VS_CLR[s];const isActive=vs===s;
-            return(<button key={s} onClick={()=>isVerifier&&!updatingStatus&&updateStatus(s)} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${isActive?c.bd:'var(--border)'}`,background:isActive?c.bg:'transparent',color:isActive?c.text:'var(--text2)',fontSize:12,fontWeight:600,cursor:(isVerifier&&!notApproved)?'pointer':'default',opacity:notApproved?0.4:1,transition:'all .15s',fontFamily:'var(--sans)'}}>
+            return(<button key={s} onClick={()=>!updatingStatus&&updateStatus(s)} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${isActive?c.bd:'var(--border)'}`,background:isActive?c.bg:'transparent',color:isActive?c.text:'var(--text2)',fontSize:12,fontWeight:600,cursor:notApproved?'not-allowed':'pointer',opacity:notApproved?0.4:1,transition:'all .15s',fontFamily:'var(--sans)'}}>
               {s==='Not Started'?'Not Started':s==='In Progress'?'In Progress':s==='Verified'?'Verified':'Failed'}
             </button>);
           })}
