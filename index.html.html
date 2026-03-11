@@ -63,6 +63,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
 .form-input,.form-select,.form-textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 11px;border-radius:var(--r);transition:border-color .2s;outline:none;width:100%}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--c1)}
+.form-input:disabled,.form-select:disabled,.form-textarea:disabled{opacity:.5;cursor:not-allowed;background:var(--raised)}
 .form-textarea{resize:vertical;min-height:75px;line-height:1.5}
 .form-select option{background:var(--panel)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -294,9 +295,10 @@ function App() {
 
   return (
     <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications}}>
-      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')}/>}
+      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')}/>}
       {page === 'project'  && <ProjectView project={project} onBack={()=>{setProject(null);setPage('projects')}}/>}
       {page === 'admin'    && profile.role==='Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
+      {page === 'options'   && profile.role==='Admin' && <OptionsPage onBack={()=>setPage('projects')}/>}
       {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>}
     </AppContext.Provider>
   );
@@ -475,7 +477,7 @@ function Topbar({title, sub, actions, children}) {
 }
 
 // ── PROJECT LIST ──────────────────────────────────────────────────────────────
-function ProjectList({onOpen, onAdmin, onQueue}) {
+function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
   const {profile} = useApp();
   const [projects, setProjects] = useState([]);
   const [counts, setCounts]     = useState({});
@@ -531,6 +533,7 @@ function ProjectList({onOpen, onAdmin, onQueue}) {
         <>
           <button className="btn btn-ghost btn-sm" onClick={onQueue}><IList s={13}/> My Queue</button>
           {isAdmin && <button className="btn btn-ghost btn-sm" onClick={onAdmin}><IUsers s={13}/> Users</button>}
+          {isAdmin && <button className="btn btn-ghost btn-sm" onClick={onOptions}><IShield s={13}/> Options</button>}
           {isAdmin && <button className="btn btn-primary btn-sm" onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
         </>
       }/>
@@ -812,7 +815,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     if (!comment.trim()&&action==='Comment') return;
     setSubmitting(true);
     const content = comment.trim()||`Status changed to: ${action==='Approve'?'Approved':action==='RequestChanges'?'Changes Requested':''}`;
-    await db.from('comments').insert([{requirement_id:req.id,author_id:profile.id,role:profile.role,content,action}]);
+    await db.from('comments').insert([{requirement_id:req.id,author_id:profile.id,role:profile.role,content,action,req_status:req.status}]);
     // Update requirement status
     let newStatus=req.status;
     if(action==='Approve') newStatus='Approved';
@@ -856,7 +859,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
   const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
 
-  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Sign-off'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`}];
+  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`}];
 
   return (
     <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
@@ -1005,6 +1008,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                       <span className="comment-name">{p?.full_name||'Unknown'}</span>
                       {p&&<RoleBadge role={p.role}/>}
                       {isAction&&<span style={{fontSize:11,fontWeight:700,color:actionColor[c.action]}}>{actionLabel[c.action]}</span>}
+                      {c.req_status&&<span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:ST_CLR[c.req_status]?.bg,color:ST_CLR[c.req_status]?.text,border:`1px solid ${ST_CLR[c.req_status]?.bd}`}}>{c.req_status}</span>}
                       <span className="comment-time">{timeAgo(c.created_at)}</span>
                     </div>
                     <div className="comment-text">{c.content}</div>
@@ -1032,22 +1036,27 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
 // -- VERIFICATION TAB --
 function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusChanged,vs,vsc}) {
   const {profile} = useApp();
-  const [showForm,setShowForm] = useState(false);
+  const [updatingStatus,setUpdatingStatus] = useState(false);
+  const [showVerifyForm,setShowVerifyForm] = useState(false);
   const [saving,setSaving]     = useState(false);
   const [form,setForm]         = useState({title:'',description:'',method:'Test',evidence_url:''});
-  const [updatingStatus,setUpdatingStatus] = useState(false);
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
 
-  const VS_ORDER = ['Not Started','In Progress','Verified','Failed'];
+  const VS_ORDER   = ['Not Started','In Progress','Verified','Failed'];
   const notApproved = req.status !== 'Approved';
 
-  async function updateStatus(newStatus) {
-    if (notApproved) return;
-    const currentIdx = VS_ORDER.indexOf(vs);
-    const newIdx = VS_ORDER.indexOf(newStatus);
-    const goingBack = newIdx < currentIdx && vs === 'Verified';
-    if (goingBack) {
-      if (!confirm(`Move verification back from "${vs}" to "${newStatus}"? This means the requirement is no longer considered verified.`)) return;
+  const [pendingStatus, setPendingStatus] = useState(null); // 'Verified' or 'Failed'
+
+  async function handleStatusClick(newStatus) {
+    if (notApproved || updatingStatus) return;
+    if (newStatus === 'Verified' || newStatus === 'Failed') {
+      setPendingStatus(newStatus);
+      setShowVerifyForm(true);
+      return;
+    }
+    // For any move away from Verified/Failed, confirm
+    if (vs === 'Verified' || vs === 'Failed') {
+      if (!confirm(`Move verification back from "${vs}" to "${newStatus}"?`)) return;
     }
     setUpdatingStatus(true);
     await db.from('requirements').update({verification_status:newStatus}).eq('id',req.id);
@@ -1056,12 +1065,24 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
     if(onStatusChanged) onStatusChanged();
   }
 
-  async function addEvidence() {
+  async function submitVerification() {
     if (!form.title.trim()) return;
     setSaving(true);
-    await db.from('evidence').insert([{requirement_id:req.id,added_by:profile.id,title:form.title.trim(),description:form.description,method:form.method,evidence_url:form.evidence_url}]);
+    await db.from('evidence').insert([{
+      requirement_id: req.id,
+      added_by: profile.id,
+      title: form.title.trim(),
+      description: form.description,
+      method: form.method,
+      evidence_url: form.evidence_url||null,
+    }]);
+    await db.from('requirements').update({verification_status:pendingStatus}).eq('id',req.id);
     setForm({title:'',description:'',method:'Test',evidence_url:''});
-    setShowForm(false);setSaving(false);onRefresh();
+    setShowVerifyForm(false);
+    setPendingStatus(null);
+    setSaving(false);
+    onRefresh();
+    if(onStatusChanged) onStatusChanged();
   }
 
   async function delEvidence(id) {
@@ -1074,60 +1095,103 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
 
   return (
     <div>
+      {/* Verification status buttons */}
       <div style={{marginBottom:20}}>
         <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Verification Status</div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+        {notApproved && (
+          <div style={{padding:'10px 14px',borderRadius:8,background:'rgba(255,209,102,.08)',border:'1px solid rgba(255,209,102,.2)',fontSize:13,color:'var(--c3)',marginBottom:12}}>
+            Locked until this requirement is <strong>Approved</strong>. Current status: <strong>{req.status}</strong>.
+          </div>
+        )}
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:8}}>
           {VS.map(s=>{
-            const c=VS_CLR[s];const isActive=vs===s;
-            return(<button key={s} onClick={()=>!updatingStatus&&updateStatus(s)} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${isActive?c.bd:'var(--border)'}`,background:isActive?c.bg:'transparent',color:isActive?c.text:'var(--text2)',fontSize:12,fontWeight:600,cursor:notApproved?'not-allowed':'pointer',opacity:notApproved?0.4:1,transition:'all .15s',fontFamily:'var(--sans)'}}>
-              {s==='Not Started'?'Not Started':s==='In Progress'?'In Progress':s==='Verified'?'Verified':'Failed'}
-            </button>);
+            const c=VS_CLR[s]; const isActive=vs===s;
+
+            return(
+              <button key={s} onClick={()=>handleStatusClick(s)}
+                style={{padding:'7px 14px',borderRadius:8,border:`1px solid ${isActive?c.bd:'var(--border)'}`,
+                  background:isActive?c.bg:'transparent',color:isActive?c.text:'var(--text2)',
+                  fontSize:12,fontWeight:600,cursor:notApproved?'not-allowed':'pointer',
+                  opacity:notApproved?0.4:1,transition:'all .15s',fontFamily:'var(--sans)',
+                  display:'flex',alignItems:'center',gap:5}}>
+                {(s==='Verified'||s==='Failed') && <span style={{fontSize:10,opacity:.7}}>{s==='Verified'?'+evidence':'+reason'}</span>}
+                {s}
+              </button>
+            );
           })}
         </div>
-        {notApproved && (
-        <div style={{padding:'10px 14px',borderRadius:8,background:'rgba(255,209,102,.08)',border:'1px solid rgba(255,209,102,.2)',fontSize:13,color:'var(--c3)',marginBottom:8}}>
-          Verification is locked until this requirement is <strong>Approved</strong>. Current status: <strong>{req.status}</strong>.
-        </div>
-      )}
-      {!isVerifier && !notApproved && <div style={{fontSize:12,color:'var(--text3)',fontStyle:'italic'}}>Only Verifiers and Admins can update verification status.</div>}
+        {!isVerifier && !notApproved && <div style={{fontSize:12,color:'var(--text3)',fontStyle:'italic'}}>Only Verifiers and Admins can update verification status.</div>}
+        {vs==='Verified' && <div style={{fontSize:12,color:'var(--c2)',marginTop:4}}>Verified with {evidence.length} evidence {evidence.length===1?'entry':'entries'}.</div>}
+        {vs==='Failed' && <div style={{fontSize:12,color:'var(--c4)',marginTop:4}}>Failed — {evidence.length} {evidence.length===1?'reason':'reasons'} recorded.</div>}
       </div>
-      <div style={{height:1,background:'var(--border)',marginBottom:20}}/>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-        <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4}}>Evidence ({evidence.length})</div>
-        {isVerifier && <button className="btn btn-ghost btn-sm" onClick={()=>setShowForm(v=>!v)}><IPlus s={11}/> Add Evidence</button>}
-      </div>
-      {showForm && (
-        <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:16,marginBottom:16}}>
-          <div className="form-group"><label className="form-label">Title *</label><input className="form-input" placeholder="e.g. Bench test report #42" value={form.title} onChange={e=>set('title',e.target.value)} autoFocus/></div>
-          <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" style={{minHeight:60}} placeholder="What was tested, how, results summary..." value={form.description} onChange={e=>set('description',e.target.value)}/></div>
+
+      {/* Verified evidence submission form (modal-like inline) */}
+      {showVerifyForm && (
+        <div style={{background:'var(--bg)',border:`2px solid ${pendingStatus==='Verified'?'rgba(127,255,107,.3)':'rgba(255,107,53,.3)'}`,borderRadius:12,padding:18,marginBottom:20}}>
+          <div style={{fontSize:13,fontWeight:700,color:pendingStatus==='Verified'?'var(--c2)':'var(--c4)',marginBottom:12}}>
+            {pendingStatus==='Verified'?'Submit Verification Evidence':'Record Failure Reason'}
+          </div>
+          <div style={{fontSize:12,color:'var(--text2)',marginBottom:14,lineHeight:1.6}}>
+            {pendingStatus==='Verified'
+              ? <>Provide evidence before marking as <strong style={{color:'var(--c2)'}}>Verified</strong>.</>
+              : <>Provide a reason before marking as <strong style={{color:'var(--c4)'}}>Failed</strong>. Describe what failed and why.</>
+            }
+          </div>
+          <div className="form-group">
+            <label className="form-label">Evidence Title *</label>
+            <input className="form-input" placeholder="e.g. Brake system bench test report v1.2" value={form.title} onChange={e=>set('title',e.target.value)} autoFocus/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea className="form-textarea" style={{minHeight:70}} placeholder="Summary of what was tested, conditions, result, pass/fail criteria..." value={form.description} onChange={e=>set('description',e.target.value)}/>
+          </div>
           <div className="form-row">
-            <div className="form-group"><label className="form-label">Method</label><select className="form-select" value={form.method} onChange={e=>set('method',e.target.value)}>{['Test','Analysis','Inspection','Demonstration'].map(m=><option key={m}>{m}</option>)}</select></div>
-            <div className="form-group"><label className="form-label">Evidence Link (URL)</label><input className="form-input" placeholder="https://drive... or sharepoint..." value={form.evidence_url} onChange={e=>set('evidence_url',e.target.value)}/></div>
+            <div className="form-group">
+              <label className="form-label">Verification Method</label>
+              <select className="form-select" value={form.method} onChange={e=>set('method',e.target.value)}>
+                {['Test','Analysis','Inspection','Demonstration'].map(m=><option key={m}>{m}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Evidence Link (URL)</label>
+              <input className="form-input" placeholder="Link to report, document, or file..." value={form.evidence_url} onChange={e=>set('evidence_url',e.target.value)}/>
+            </div>
           </div>
-          <div style={{display:'flex',gap:8,marginTop:4}}>
-            <button className="btn btn-primary btn-sm" onClick={addEvidence} disabled={saving||!form.title.trim()}>{saving?'Saving...':'Save Evidence'}</button>
-            <button className="btn btn-ghost btn-sm" onClick={()=>setShowForm(false)}>Cancel</button>
+          <div style={{display:'flex',gap:8,marginTop:8}}>
+            <button className={`btn ${pendingStatus==='Verified'?'btn-success':'btn-danger'}`} onClick={submitVerification} disabled={saving||!form.title.trim()}>
+              {saving?'Submitting...':pendingStatus==='Verified'?'Submit & Mark Verified':'Submit & Mark Failed'}
+            </button>
+            <button className="btn btn-ghost" onClick={()=>setShowVerifyForm(false)}>Cancel</button>
           </div>
         </div>
       )}
-      {evidence.length===0&&!showForm&&<div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic',padding:'12px 0'}}>No evidence recorded yet.</div>}
+
+      <div style={{height:1,background:'var(--border)',marginBottom:16}}/>
+
+      {/* Evidence list */}
+      <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:12}}>
+        Evidence Record ({evidence.length})
+      </div>
+      {evidence.length===0 && (
+        <div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic',padding:'8px 0'}}>No evidence recorded yet. Mark as Verified or Failed to add the first entry.</div>
+      )}
       {evidence.map(ev=>{
-        const p=evProfiles[ev.added_by];const mc=methodColor[ev.method]||'#64748b';
+        const p=evProfiles[ev.added_by]; const mc=methodColor[ev.method]||'#64748b';
         return(
           <div key={ev.id} style={{background:'var(--raised)',border:'1px solid var(--border)',borderRadius:10,padding:'12px 14px',marginBottom:10}}>
-            <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:6}}>
+            <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:3}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:4}}>
                   <span style={{fontWeight:700,fontSize:13}}>{ev.title}</span>
                   <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 8px',borderRadius:4,background:`${mc}18`,color:mc,border:`1px solid ${mc}33`}}>{ev.method}</span>
                 </div>
-                {ev.description&&<div style={{fontSize:12,color:'var(--text2)',lineHeight:1.5,marginBottom:6}}>{ev.description}</div>}
+                {ev.description&&<div style={{fontSize:12,color:'var(--text2)',lineHeight:1.6,marginBottom:6}}>{ev.description}</div>}
                 {ev.evidence_url&&<a href={ev.evidence_url} target="_blank" rel="noopener noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:12,color:'var(--c1)',textDecoration:'none'}}>Open evidence file</a>}
+                <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',marginTop:6}}>
+                  {p?.full_name||'Unknown'} - {new Date(ev.created_at).toLocaleDateString()}
+                </div>
               </div>
-              {isVerifier&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>delEvidence(ev.id)} style={{color:'var(--c4)',opacity:.6,flexShrink:0}}><ITrash s={11}/></button>}
-            </div>
-            <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',borderTop:'1px solid var(--border)',paddingTop:6,marginTop:4}}>
-              Added by {p?.full_name||'Unknown'} - {new Date(ev.created_at).toLocaleDateString()}
+              {isVerifier&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>delEvidence(ev.id)} style={{color:'var(--c4)',opacity:.5,flexShrink:0}}><ITrash s={11}/></button>}
             </div>
           </div>
         );
@@ -1135,7 +1199,6 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
     </div>
   );
 }
-
 
 // -- MEMBERS MODAL --
 function MembersModal({projectId, onClose}) {
@@ -1243,6 +1306,7 @@ function MembersModal({projectId, onClose}) {
 
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
+  const isLocked = isEdit && ['Approved','Verified'].includes(req?.status);
   const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
   const [form,setForm]=useState(init);
   const [tab,setTab]=useState('basic');
@@ -1289,20 +1353,20 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
           {err&&<div className="err">{err}</div>}
           {tab==='basic'&&<>
             <div className="form-row">
-              <div className="form-group"><label className="form-label">Level</label><select className="form-select" value={form.level} onChange={e=>onLvl(e.target.value)}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
-              <div className="form-group"><label className="form-label">ID *</label><input className="form-input" value={form.req_id} onChange={e=>set('req_id',e.target.value)}/></div>
+              <div className="form-group"><label className="form-label">Level</label><select className="form-select" value={form.level} onChange={e=>onLvl(e.target.value)} disabled={isLocked}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">ID *</label><input className="form-input" value={form.req_id} onChange={e=>set('req_id',e.target.value)} disabled={isLocked}/></div>
             </div>
-            <div className="form-group"><label className="form-label">Title *</label><input className="form-input" value={form.title} onChange={e=>set('title',e.target.value)} autoFocus/></div>
-            <div className="form-group"><label className="form-label">Description (Shall Statement)</label><textarea className="form-textarea" value={form.description} onChange={e=>set('description',e.target.value)} placeholder="The system shall…"/></div>
+            <div className="form-group"><label className="form-label">Title *</label><input className="form-input" value={form.title} onChange={e=>set('title',e.target.value)} autoFocus disabled={isLocked}/></div>
+            <div className="form-group"><label className="form-label">Description (Shall Statement)</label><textarea className="form-textarea" value={form.description} onChange={e=>set('description',e.target.value)} placeholder="The system shall…" disabled={isLocked}/></div>
             <div className="form-row">
               <div className="form-group"><label className="form-label">Status</label><select className="form-select" value={form.status} onChange={e=>set('status',e.target.value)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
-              <div className="form-group"><label className="form-label">Verification</label><select className="form-select" value={form.verification_method} onChange={e=>set('verification_method',e.target.value)}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Verification Method</label><select className="form-select" value={form.verification_method} onChange={e=>set('verification_method',e.target.value)} disabled={isLocked}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
             </div>
             <div className="form-row">
               <div className="form-group"><label className="form-label">Parent</label><select className="form-select" value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value="">— None —</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,34)}</option>)}</select></div>
-              <div className="form-group"><label className="form-label">Owner</label><input className="form-input" value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder="Name or role"/></div>
+              <div className="form-group"><label className="form-label">Owner</label><input className="form-input" value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder="Name or role" disabled={isLocked}/></div>
             </div>
-            <div className="form-group"><label className="form-label">Rationale</label><textarea className="form-textarea" value={form.rationale} onChange={e=>set('rationale',e.target.value)}/></div>
+            <div className="form-group"><label className="form-label">Rationale</label><textarea className="form-textarea" value={form.rationale} onChange={e=>set('rationale',e.target.value)} disabled={isLocked}/></div>
           </>}
           {tab==='safety'&&<>
             <div className="form-row">
@@ -1479,7 +1543,6 @@ function AdminPanel({onBack}) {
   const {profile:me} = useApp();
   const [users,setUsers]=useState([]);
   const [loading,setLoading]=useState(true);
-  const [showStandards,setShowStandards]=useState(false);
 
   useEffect(()=>{load();},[]);
 
@@ -1497,7 +1560,7 @@ function AdminPanel({onBack}) {
 
   return(
     <div style={{minHeight:'100vh'}}>
-      <Topbar sub="User Management" actions={<><button className="btn btn-ghost btn-sm" onClick={()=>setShowStandards(true)}><IShield s={13}/> Standards</button><button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button></>}/>
+      <Topbar sub="User Management" actions={<button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>}/>
       <div style={{padding:'28px 24px',maxWidth:860,margin:'0 auto'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>User Management</h1>
@@ -1543,10 +1606,128 @@ function AdminPanel({onBack}) {
           Designer — creates & edits requirements, submits for review · Reviewer — comments · Approver — approves or requests changes (when assigned) · Verifier — tracks verification · Admin — full access
         </div>
       </div>
-      {showStandards&&<StandardsManager onClose={()=>setShowStandards(false)}/>}
     </div>
   );
 }
+
+
+// -- OPTIONS PAGE --
+function OptionsPage({onBack}) {
+  const [tab, setTab] = useState('standards');
+  const TABS = [{id:'standards',label:'Standards'}];
+  return (
+    <div style={{minHeight:'100vh'}}>
+      <Topbar sub="Options" actions={<button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>}/>
+      <div style={{maxWidth:860,margin:'0 auto',padding:'28px 24px'}}>
+        <div style={{marginBottom:24}}>
+          <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>Options</h1>
+          <p style={{color:'var(--text2)',fontSize:13}}>System configuration — Admin only</p>
+        </div>
+        <div style={{display:'flex',gap:20}}>
+          {/* Sidebar */}
+          <div style={{width:180,flexShrink:0}}>
+            {TABS.map(t=>(
+              <div key={t.id} onClick={()=>setTab(t.id)} style={{padding:'9px 14px',borderRadius:9,cursor:'pointer',fontWeight:600,fontSize:13,marginBottom:4,background:tab===t.id?'rgba(0,212,255,.08)':'transparent',color:tab===t.id?'var(--c1)':'var(--text2)',border:`1px solid ${tab===t.id?'rgba(0,212,255,.2)':'transparent'}`,transition:'all .15s'}}>
+                {t.label}
+              </div>
+            ))}
+          </div>
+          {/* Content */}
+          <div style={{flex:1,minWidth:0}}>
+            {tab==='standards' && <StandardsPanel/>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StandardsPanel() {
+  const [standards, setStandards] = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [newName, setNewName]     = useState('');
+  const [newDesc, setNewDesc]     = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [err, setErr]             = useState('');
+
+  async function load() {
+    setLoading(true);
+    const {data} = await db.from('standards').select('*').order('sort_order').order('created_at');
+    if (data) setStandards(data);
+    setLoading(false);
+  }
+  useEffect(()=>{load();},[]);
+
+  async function add() {
+    if (!newName.trim()) { setErr('Name required'); return; }
+    setSaving(true); setErr('');
+    const maxOrder = standards.reduce((m,s)=>Math.max(m,s.sort_order||0),0);
+    const {error} = await db.from('standards').insert([{name:newName.trim(),description:newDesc.trim()||null,sort_order:maxOrder+1}]);
+    if (error) { setErr(error.message); setSaving(false); return; }
+    setNewName(''); setNewDesc('');
+    setSaving(false); load();
+  }
+
+  async function toggleActive(id, active) {
+    await db.from('standards').update({active:!active}).eq('id',id);
+    load();
+  }
+
+  async function del(id) {
+    if (!confirm('Delete this standard?')) return;
+    await db.from('standards').delete().eq('id',id);
+    load();
+  }
+
+  return (
+    <div>
+      <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>Standards</div>
+      <div style={{fontSize:13,color:'var(--text2)',marginBottom:20}}>Manage the standards available for selection when creating or editing requirements.</div>
+      <div className="card" style={{padding:0,overflow:'hidden',marginBottom:16}}>
+        {loading ? <div style={{padding:24,textAlign:'center',color:'var(--text3)'}}>Loading...</div> : (
+          <table className="admin-table">
+            <thead><tr><th>Name</th><th>Description</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {standards.map(s=>(
+                <tr key={s.id} style={{opacity:s.active?1:.45}}>
+                  <td><span style={{fontFamily:'var(--mono)',fontSize:12,color:s.active?'var(--c1)':'var(--text3)',fontWeight:700}}>{s.name}</span></td>
+                  <td style={{color:'var(--text2)'}}>{s.description||'—'}</td>
+                  <td><span style={{fontFamily:'var(--mono)',fontSize:11,padding:'2px 8px',borderRadius:4,background:s.active?'rgba(127,255,107,.1)':'rgba(100,116,139,.1)',color:s.active?'var(--c2)':'var(--text3)',border:`1px solid ${s.active?'rgba(127,255,107,.2)':'rgba(100,116,139,.2)'}`}}>{s.active?'Active':'Disabled'}</span></td>
+                  <td style={{textAlign:'right'}}>
+                    <div style={{display:'flex',gap:6,justifyContent:'flex-end'}}>
+                      <button className={`btn btn-sm ${s.active?'btn-ghost':'btn-success'}`} onClick={()=>toggleActive(s.id,s.active)}>{s.active?'Disable':'Enable'}</button>
+                      <button className="btn btn-ghost btn-sm btn-icon" onClick={()=>del(s.id)} style={{color:'var(--c4)',opacity:.6}}><ITrash s={11}/></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {standards.length===0&&<tr><td colSpan={4} style={{textAlign:'center',color:'var(--text3)',fontStyle:'italic'}}>No standards yet</td></tr>}
+            </tbody>
+          </table>
+        )}
+      </div>
+      {/* Add new */}
+      <div className="card">
+        <div style={{fontSize:13,fontWeight:700,marginBottom:14}}>Add Standard</div>
+        {err&&<div className="err">{err}</div>}
+        <div className="form-row">
+          <div className="form-group" style={{marginBottom:0}}>
+            <label className="form-label">Name *</label>
+            <input className="form-input" placeholder="e.g. EN 50159" value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          </div>
+          <div className="form-group" style={{marginBottom:0}}>
+            <label className="form-label">Description (optional)</label>
+            <input className="form-input" placeholder="Short description" value={newDesc} onChange={e=>setNewDesc(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          </div>
+        </div>
+        <div style={{marginTop:12}}>
+          <button className="btn btn-primary" onClick={add} disabled={saving||!newName.trim()}>{saving?'Adding...':'Add Standard'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
