@@ -11,36 +11,53 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#080c14; --surface:#0f1623; --panel:#141d2e; --raised:#1a2438;
-  --border:#1e2d47; --border2:#263550;
-  --c1:#00d4ff; --c2:#7fff6b; --c3:#ffd166; --c4:#ff6b35; --c5:#c77dff;
-  --text:#e2e8f0; --text2:#94a3b8; --text3:#64748b;
-  --mono:'Space Mono',monospace; --sans:'DM Sans',sans-serif;
-  --r:10px; --rl:16px;
+  --bg:#080c14;--surface:#0f1623;--panel:#141d2e;--raised:#1a2438;
+  --border:#1e2d47;--border2:#263550;
+  --c1:#00d4ff;--c2:#7fff6b;--c3:#ffd166;--c4:#ff6b35;--c5:#c77dff;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif;
+  --r:10px;--rl:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
 #root{position:relative;z-index:1}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-.topbar{display:flex;align-items:center;gap:12px;padding:0 20px;height:54px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:12px;padding:0 20px;height:54px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
 .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--c1),var(--c5));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:700;color:#000;flex-shrink:0}
 .topbar-title{font-weight:700;font-size:15px}
 .topbar-sep{color:var(--border2)}
-.topbar-sub{color:var(--text2);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px}
-.topbar-actions{margin-left:auto;display:flex;gap:8px}
+.topbar-sub{color:var(--text2);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+/* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid transparent;white-space:nowrap;line-height:1}
 .btn-primary{background:var(--c1);color:#000;border-color:var(--c1)}
 .btn-primary:hover{background:#33ddff}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed}
 .btn-ghost{background:transparent;color:var(--text2);border-color:var(--border)}
 .btn-ghost:hover{background:var(--raised);color:var(--text);border-color:var(--border2)}
+.btn-ghost:disabled{opacity:.4;cursor:not-allowed}
+.btn-success{background:rgba(127,255,107,.12);color:var(--c2);border-color:rgba(127,255,107,.3)}
+.btn-success:hover{background:rgba(127,255,107,.22)}
+.btn-warn{background:rgba(255,209,102,.12);color:var(--c3);border-color:rgba(255,209,102,.3)}
+.btn-warn:hover{background:rgba(255,209,102,.22)}
+.btn-danger{background:rgba(255,107,53,.1);color:var(--c4);border-color:rgba(255,107,53,.3)}
+.btn-danger:hover{background:rgba(255,107,53,.2)}
 .btn-sm{padding:5px 10px;font-size:12px}
 .btn-icon{padding:6px}
+
+/* ── BADGE ── */
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+
+/* ── CARD ── */
 .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--rl);padding:20px}
+
+/* ── FORMS ── */
 .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
 .form-group:last-child{margin-bottom:0}
 .form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
@@ -49,120 +66,392 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .form-textarea{resize:vertical;min-height:75px;line-height:1.5}
 .form-select option{background:var(--panel)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(4px);animation:fadeIn .15s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal{background:var(--panel);border:1px solid var(--border2);border-radius:var(--rl);width:100%;max-width:620px;max-height:90vh;overflow-y:auto;animation:slideUp .2s ease}
+.modal-wide{max-width:780px}
 @keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:1}
 .modal-header h2{font-size:16px;font-weight:700}
 .modal-body{padding:22px}
 .modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--panel)}
+
+/* ── MISC ── */
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:60px 20px;text-align:center}
 .empty-icon{font-size:36px;opacity:.25}
 .empty h3{font-size:15px;font-weight:600;color:var(--text2)}
 .empty p{font-size:13px;color:var(--text3);max-width:260px}
-.checkbox-group{display:flex;flex-wrap:wrap;gap:7px}
 .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:12px;cursor:pointer;transition:all .15s;user-select:none}
 .chip.on{border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.08);color:var(--c1)}
 .tab-bar{display:flex;border-bottom:1px solid var(--border);padding-left:22px}
 .tab{background:transparent;border:none;cursor:pointer;padding:9px 14px;font-size:13px;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;font-family:var(--sans)}
 .tab.active{color:var(--c1);border-bottom-color:var(--c1)}
 .err{color:var(--c4);font-size:13px;margin-bottom:14px;padding:8px 12px;background:rgba(255,107,53,.08);border-radius:8px}
-.detail-field{margin-bottom:10px}
-.detail-field .lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
-.detail-field .val{font-size:13px;color:var(--text);line-height:1.5}
-.section-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* ── AUTH SCREEN ── */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-card{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:400px}
+.auth-logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--c1),var(--c5));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:18px;font-weight:700;color:#000;margin:0 auto 20px}
+.auth-card h1{font-size:22px;font-weight:800;text-align:center;margin-bottom:6px}
+.auth-card .auth-sub{text-align:center;color:var(--text2);font-size:13px;margin-bottom:28px}
+.auth-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--text2)}
+.auth-switch button{background:none;border:none;color:var(--c1);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600}
+
+/* ── ROLE BADGE ── */
+.role-badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px}
+
+/* ── NOTIFICATION BELL ── */
+.notif-wrap{position:relative}
+.notif-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--c4);border:2px solid var(--surface)}
+.notif-panel{position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--panel);border:1px solid var(--border2);border-radius:var(--rl);z-index:300;overflow:hidden;animation:slideUp .15s ease}
+.notif-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:13px}
+.notif-item{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .15s}
+.notif-item:hover{background:var(--raised)}
+.notif-item.unread{background:rgba(0,212,255,.04)}
+.notif-item .ni-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.notif-item .ni-body{font-size:12px;color:var(--text2)}
+.notif-item .ni-time{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px}
+.notif-empty{padding:24px;text-align:center;color:var(--text3);font-size:13px}
+
+/* ── USER MENU ── */
+.user-menu-wrap{position:relative}
+.user-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;color:#000;cursor:pointer;flex-shrink:0;border:2px solid transparent;transition:border-color .2s}
+.user-avatar:hover{border-color:var(--c1)}
+.user-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:200px;background:var(--panel);border:1px solid var(--border2);border-radius:var(--r);z-index:300;overflow:hidden;animation:slideUp .15s ease}
+.ud-item{padding:10px 16px;font-size:13px;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:8px}
+.ud-item:hover{background:var(--raised)}
+.ud-divider{height:1px;background:var(--border)}
+.ud-name{padding:12px 16px;border-bottom:1px solid var(--border)}
+.ud-name .name{font-weight:700;font-size:14px}
+.ud-name .role{font-size:11px;color:var(--text3);font-family:var(--mono)}
+
+/* ── WORKFLOW STATUS ── */
+.wf-bar{display:flex;align-items:center;gap:0;margin:16px 0}
+.wf-step{display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--raised)}
+.wf-step:first-child{border-radius:8px 0 0 8px}
+.wf-step:last-child{border-radius:0 8px 8px 0}
+.wf-step.active{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3);color:var(--c1)}
+.wf-step.done{background:rgba(127,255,107,.08);border-color:rgba(127,255,107,.2);color:var(--c2)}
+.wf-step.rejected{background:rgba(255,107,53,.08);border-color:rgba(255,107,53,.2);color:var(--c4)}
+.wf-arrow{color:var(--text3);font-size:11px;margin:0 -1px;z-index:1}
+
+/* ── COMMENT THREAD ── */
+.comment{display:flex;gap:10px;margin-bottom:12px}
+.comment-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px}
+.comment-body{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:10px 13px}
+.comment-meta{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.comment-name{font-weight:700;font-size:13px}
+.comment-time{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.comment-text{font-size:13px;color:var(--text);line-height:1.6}
+.action-approve{border-color:rgba(127,255,107,.3)!important;background:rgba(127,255,107,.05)!important}
+.action-reject{border-color:rgba(255,107,53,.3)!important;background:rgba(255,107,53,.05)!important}
+.action-changes{border-color:rgba(255,209,102,.3)!important;background:rgba(255,209,102,.05)!important}
+
+/* ── ADMIN PANEL ── */
+.admin-table{width:100%;border-collapse:collapse}
+.admin-table th{text-align:left;padding:10px 14px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.admin-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-table tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── QUEUE ── */
+.queue-item{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.queue-item:hover{border-color:var(--border2);transform:translateY(-1px)}
+.queue-item .qi-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.queue-item .qi-title{font-weight:600;font-size:14px;margin-bottom:3px}
+.queue-item .qi-meta{font-size:12px;color:var(--text2)}
+
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useCallback } = React;
+const {useState,useEffect,useCallback,useRef} = React;
 
-// ── CONFIG ──────────────────────────────────────────────────────────────────
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://zozoihjcbmtadzlwpzoz.supabase.co';
 const SUPA_KEY = 'sb_publishable_QMOQAPb1nG4Zl22oPcRYVg_lZ2m_LQH';
 const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// ── CONSTANTS ───────────────────────────────────────────────────────────────
-const LEVELS = ['Stakeholder','System','Subsystem','Component','Verification'];
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const LEVELS   = ['Stakeholder','System','Subsystem','Component','Verification'];
 const PREFIXES = {Stakeholder:'STK',System:'SYS',Subsystem:'SUB',Component:'CMP',Verification:'VER'};
-const LEVEL_CLR = {Stakeholder:'#00d4ff',System:'#7fff6b',Subsystem:'#ffd166',Component:'#ff6b35',Verification:'#c77dff'};
-const STATUSES = ['Draft','In Review','Approved','Obsolete'];
-const ST_CLR = {
-  'Draft':     {bg:'rgba(100,116,139,.15)',text:'#94a3b8',bd:'rgba(100,116,139,.3)'},
-  'In Review': {bg:'rgba(255,209,102,.15)',text:'#ffd166',bd:'rgba(255,209,102,.3)'},
-  'Approved':  {bg:'rgba(127,255,107,.15)',text:'#7fff6b',bd:'rgba(127,255,107,.3)'},
-  'Obsolete':  {bg:'rgba(255,107,53,.10)', text:'#ff6b35',bd:'rgba(255,107,53,.2)'},
+const LEVEL_CLR= {Stakeholder:'#00d4ff',System:'#7fff6b',Subsystem:'#ffd166',Component:'#ff6b35',Verification:'#c77dff'};
+const STATUSES = ['Draft','In Review','Approved','Changes Requested','Obsolete'];
+const ST_CLR   = {
+  'Draft':              {bg:'rgba(100,116,139,.15)',text:'#94a3b8',bd:'rgba(100,116,139,.3)'},
+  'In Review':          {bg:'rgba(255,209,102,.15)',text:'#ffd166',bd:'rgba(255,209,102,.3)'},
+  'Approved':           {bg:'rgba(127,255,107,.15)',text:'#7fff6b',bd:'rgba(127,255,107,.3)'},
+  'Changes Requested':  {bg:'rgba(255,107,53,.12)', text:'#ff6b35',bd:'rgba(255,107,53,.25)'},
+  'Obsolete':           {bg:'rgba(100,116,139,.10)',text:'#64748b',bd:'rgba(100,116,139,.2)'},
 };
-const SIL_CLR = {'SIL 4':'#ff6b35','SIL 3':'#ff6b35','SIL 2':'#ffd166','SIL 1':'#ffd166','SIL 0':'#7fff6b','N/A':'#64748b'};
-const VERIFY  = ['Test','Analysis','Inspection','Demonstration'];
-const SAFETY  = ['None','Low','Medium','High','Safety-Critical'];
-const SILS    = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
-const SAFECAT = ['Quality','Functional Safety','Security','Dependability','RAMS'];
-const PHASES  = ['Concept','Development','Qualification','Production'];
-const REGS    = ['EN 50126','EN 50128','EN 50129','EN 50155','ISO 22163','ISO 9001','ISO 13485','FDA 21 CFR','ESA / ECSS','DO-178C','DO-254'];
-const PHASE_CLR = {Concept:'#00d4ff',Development:'#ffd166',Qualification:'#ff6b35',Production:'#7fff6b'};
+const SIL_CLR  = {'SIL 4':'#ff6b35','SIL 3':'#ff6b35','SIL 2':'#ffd166','SIL 1':'#ffd166','SIL 0':'#7fff6b','N/A':'#64748b'};
+const VERIFY   = ['Test','Analysis','Inspection','Demonstration'];
+const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
+const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
+const SAFECAT  = ['Quality','Functional Safety','Security','Dependability','RAMS'];
+const PHASES   = ['Concept','Development','Qualification','Production'];
+const REGS     = ['EN 50126','EN 50128','EN 50129','EN 50155','ISO 22163','ISO 9001','ISO 13485','FDA 21 CFR','ESA / ECSS','DO-178C','DO-254'];
+const ROLES    = ['Designer','Reviewer','Approver','Verifier','Admin'];
+const ROLE_CLR = {Designer:'#00d4ff',Reviewer:'#ffd166',Approver:'#7fff6b',Verifier:'#c77dff',Admin:'#ff6b35'};
+const PHASE_CLR= {Concept:'#00d4ff',Development:'#ffd166',Qualification:'#ff6b35',Production:'#7fff6b'};
 
-// ── ICONS (inline SVG) ───────────────────────────────────────────────────────
-const Icon = ({d,size=14,color='currentColor'}) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+// ── ICONS ─────────────────────────────────────────────────────────────────────
+const Ic = ({d,s=14,c='currentColor'}) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d={d}/>
   </svg>
 );
-const IcoPlus    = ({s}) => <Icon size={s} d="M12 5v14M5 12h14"/>;
-const IcoBack    = ({s}) => <Icon size={s} d="M19 12H5M12 19l-7-7 7-7"/>;
-const IcoX       = ({s}) => <Icon size={s} d="M18 6L6 18M6 6l12 12"/>;
-const IcoEdit    = ({s}) => <Icon size={s} d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>;
-const IcoTrash   = ({s}) => <Icon size={s} d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>;
-const IcoChevR   = ({s}) => <Icon size={s} d="M9 18l6-6-6-6"/>;
-const IcoChevD   = ({s}) => <Icon size={s} d="M6 9l6 6 6-6"/>;
-const IcoSearch  = ({s}) => <Icon size={s} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>;
-const IcoFolder  = ({s}) => <Icon size={s} d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>;
-const IcoBranch  = ({s}) => <Icon size={s} d="M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zM18 9c0 4.97-12 4.97-12 9"/>;
+const IPlus   = ({s}) => <Ic s={s} d="M12 5v14M5 12h14"/>;
+const IBack   = ({s}) => <Ic s={s} d="M19 12H5M12 19l-7-7 7-7"/>;
+const IX      = ({s}) => <Ic s={s} d="M18 6L6 18M6 6l12 12"/>;
+const IEdit   = ({s}) => <Ic s={s} d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>;
+const ITrash  = ({s}) => <Ic s={s} d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>;
+const IChevR  = ({s}) => <Ic s={s} d="M9 18l6-6-6-6"/>;
+const IChevD  = ({s}) => <Ic s={s} d="M6 9l6 6 6-6"/>;
+const ISearch = ({s}) => <Ic s={s} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>;
+const IFolder = ({s}) => <Ic s={s} d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>;
+const IBell   = ({s}) => <Ic s={s} d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>;
+const ICheck  = ({s}) => <Ic s={s} d="M20 6L9 17l-5-5"/>;
+const IMsg    = ({s}) => <Ic s={s} d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>;
+const IUsers  = ({s}) => <Ic s={s} d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>;
+const IShield = ({s}) => <Ic s={s} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>;
+const IList   = ({s}) => <Ic s={s} d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>;
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-function Badge({children, bg, color, bd}) {
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function Badge({children,bg,color,bd}) {
   return <span className="badge" style={{background:bg,color,border:`1px solid ${bd}`}}>{children}</span>;
 }
+function RoleBadge({role}) {
+  const c = ROLE_CLR[role]||'#64748b';
+  return <span className="role-badge" style={{background:`${c}18`,color:c,border:`1px solid ${c}33`}}>{role}</span>;
+}
+function initials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+function avatarColor(name) {
+  const colors = ['#00d4ff','#7fff6b','#ffd166','#ff6b35','#c77dff'];
+  let h = 0;
+  for (let i=0; i<(name||'').length; i++) h = (h*31 + name.charCodeAt(i)) % colors.length;
+  return colors[h];
+}
+function timeAgo(ts) {
+  const d = (Date.now() - new Date(ts)) / 1000;
+  if (d < 60) return 'just now';
+  if (d < 3600) return `${Math.floor(d/60)}m ago`;
+  if (d < 86400) return `${Math.floor(d/3600)}h ago`;
+  return `${Math.floor(d/86400)}d ago`;
+}
 
-// ── APP ROOT ─────────────────────────────────────────────────────────────────
+// ── APP ROOT ──────────────────────────────────────────────────────────────────
 function App() {
-  const [page, setPage] = useState('loading'); // loading | projects | project
+  const [session, setSession] = useState(undefined);
+  const [profile, setProfile] = useState(null);
+  const [page, setPage]       = useState('projects');
   const [project, setProject] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    db.from('projects').select('id').limit(1)
-      .then(({error}) => setPage(error ? 'error' : 'projects'));
+    db.auth.getSession().then(({data:{session}}) => setSession(session));
+    const {data:{subscription}} = db.auth.onAuthStateChange((_,s) => {
+      setSession(s);
+      if (!s) { setProfile(null); setPage('projects'); setProject(null); }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
-  if (page === 'loading') return (
+  useEffect(() => {
+    if (session) loadProfile();
+  }, [session]);
+
+  async function loadProfile() {
+    const {data} = await db.from('profiles').select('*').eq('id', session.user.id).single();
+    setProfile(data);
+  }
+
+  async function loadNotifications() {
+    if (!session) return;
+    const {data} = await db.from('notifications').select('*').eq('user_id', session.user.id).order('created_at',{ascending:false}).limit(20);
+    setNotifications(data||[]);
+  }
+
+  useEffect(() => {
+    if (session) loadNotifications();
+  }, [session]);
+
+  if (session === undefined) return <Splash text="Loading…"/>;
+  if (!session) return <AuthScreen/>;
+  if (!profile) return <Splash text="Loading profile…"/>;
+
+  return (
+    <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications}}>
+      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')}/>}
+      {page === 'project'  && <ProjectView project={project} onBack={()=>{setProject(null);setPage('projects')}}/>}
+      {page === 'admin'    && profile.role==='Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
+      {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>}
+    </AppContext.Provider>
+  );
+}
+
+const AppContext = React.createContext(null);
+const useApp = () => React.useContext(AppContext);
+
+// ── SPLASH ────────────────────────────────────────────────────────────────────
+function Splash({text}) {
+  return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:14}}>
       <div className="logo" style={{width:56,height:56,fontSize:18,animation:'pulse 1.5s ease-in-out infinite'}}>RF</div>
-      <div style={{fontFamily:'var(--mono)',fontSize:12,color:'var(--text3)'}}>Connecting…</div>
+      <div style={{fontFamily:'var(--mono)',fontSize:12,color:'var(--text3)'}}>{text}</div>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
     </div>
   );
+}
 
-  if (page === 'error') return (
-    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
-      <div className="card" style={{maxWidth:440,textAlign:'center'}}>
-        <div style={{fontSize:32,marginBottom:12}}>⚠️</div>
-        <h2 style={{marginBottom:8}}>Cannot reach database</h2>
-        <p style={{color:'var(--text2)',fontSize:13}}>Check that your Supabase URL and key are correct, and that the tables have been created via the SQL Editor.</p>
+// ── AUTH SCREEN ───────────────────────────────────────────────────────────────
+function AuthScreen() {
+  const [mode, setMode]     = useState('login');
+  const [email, setEmail]   = useState('');
+  const [pass, setPass]     = useState('');
+  const [name, setName]     = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr]       = useState('');
+  const [msg, setMsg]       = useState('');
+
+  async function submit() {
+    setErr(''); setMsg(''); setLoading(true);
+    if (mode === 'login') {
+      const {error} = await db.auth.signInWithPassword({email, password:pass});
+      if (error) setErr(error.message);
+    } else {
+      const {error} = await db.auth.signUp({email, password:pass, options:{data:{full_name:name}}});
+      if (error) setErr(error.message);
+      else setMsg('Account created! You can now log in.');
+    }
+    setLoading(false);
+  }
+
+  function onKey(e) { if (e.key==='Enter') submit(); }
+
+  return (
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-logo">RF</div>
+        <h1>ReqFlow</h1>
+        <div className="auth-sub">{mode==='login'?'Sign in to continue':'Create your account'}</div>
+        {err && <div className="err">{err}</div>}
+        {msg && <div style={{color:'var(--c2)',fontSize:13,marginBottom:14,padding:'8px 12px',background:'rgba(127,255,107,.08)',borderRadius:8}}>{msg}</div>}
+        {mode==='register' && (
+          <div className="form-group">
+            <label className="form-label">Full Name</label>
+            <input className="form-input" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)} onKeyDown={onKey}/>
+          </div>
+        )}
+        <div className="form-group">
+          <label className="form-label">Email</label>
+          <input className="form-input" type="email" placeholder="you@company.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={onKey}/>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Password</label>
+          <input className="form-input" type="password" placeholder="••••••••" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={onKey}/>
+        </div>
+        <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',marginTop:8}} onClick={submit} disabled={loading}>
+          {loading?'Please wait…':mode==='login'?'Sign In':'Create Account'}
+        </button>
+        <div className="auth-switch">
+          {mode==='login'?<>No account? <button onClick={()=>{setMode('register');setErr('')}}>Register</button></>
+                         :<>Have an account? <button onClick={()=>{setMode('login');setErr('')}}>Sign In</button></>}
+        </div>
       </div>
     </div>
   );
+}
 
-  if (page === 'project') return (
-    <ProjectView project={project} onBack={() => { setProject(null); setPage('projects'); }} />
+// ── TOPBAR COMPONENT ──────────────────────────────────────────────────────────
+function Topbar({title, sub, actions, children}) {
+  const {profile, notifications, loadNotifications} = useApp();
+  const [showNotif, setShowNotif] = useState(false);
+  const [showUser, setShowUser]   = useState(false);
+  const unread = notifications.filter(n=>!n.read).length;
+  const notifRef = useRef(null);
+  const userRef  = useRef(null);
+
+  useEffect(() => {
+    function handler(e) {
+      if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotif(false);
+      if (userRef.current && !userRef.current.contains(e.target)) setShowUser(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  async function markAllRead() {
+    await db.from('notifications').update({read:true}).eq('user_id', profile.id).eq('read', false);
+    loadNotifications();
+  }
+
+  async function signOut() { await db.auth.signOut(); }
+
+  const ac = avatarColor(profile?.full_name);
+
+  return (
+    <div className="topbar">
+      <div className="logo">RF</div>
+      <div className="topbar-title">{title||'ReqFlow'}</div>
+      {sub && <><div className="topbar-sep">·</div><div className="topbar-sub">{sub}</div></>}
+      <div className="topbar-actions">
+        {actions}
+        {children}
+        {/* Notification bell */}
+        <div className="notif-wrap" ref={notifRef}>
+          <button className="btn btn-ghost btn-icon" onClick={()=>{setShowNotif(v=>!v);setShowUser(false);loadNotifications()}}>
+            <IBell s={15}/>
+          </button>
+          {unread>0 && <div className="notif-dot"/>}
+          {showNotif && (
+            <div className="notif-panel">
+              <div className="notif-head">
+                <span>Notifications {unread>0&&<span style={{color:'var(--c4)',fontFamily:'var(--mono)',fontSize:11}}>({unread})</span>}</span>
+                {unread>0 && <button className="btn btn-ghost btn-sm" onClick={markAllRead}>Mark all read</button>}
+              </div>
+              {notifications.length===0 && <div className="notif-empty">No notifications yet</div>}
+              {notifications.map(n=>(
+                <div key={n.id} className={`notif-item ${n.read?'':'unread'}`} onClick={async()=>{await db.from('notifications').update({read:true}).eq('id',n.id);loadNotifications();setShowNotif(false)}}>
+                  <div className="ni-title">{n.title}</div>
+                  <div className="ni-body">{n.body}</div>
+                  <div className="ni-time">{timeAgo(n.created_at)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* User avatar */}
+        <div className="user-menu-wrap" ref={userRef}>
+          <div className="user-avatar" style={{background:ac}} onClick={()=>{setShowUser(v=>!v);setShowNotif(false)}}>
+            {initials(profile?.full_name)}
+          </div>
+          {showUser && (
+            <div className="user-dropdown">
+              <div className="ud-name">
+                <div className="name">{profile?.full_name}</div>
+                <div className="role"><RoleBadge role={profile?.role}/></div>
+              </div>
+              <div className="ud-item" onClick={signOut}><IX s={13}/> Sign Out</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
-
-  return <ProjectList onOpen={p => { setProject(p); setPage('project'); }} />;
 }
 
 // ── PROJECT LIST ──────────────────────────────────────────────────────────────
-function ProjectList({ onOpen }) {
+function ProjectList({onOpen, onAdmin, onQueue}) {
+  const {profile} = useApp();
   const [projects, setProjects] = useState([]);
   const [counts, setCounts]     = useState({});
   const [loading, setLoading]   = useState(true);
@@ -170,74 +459,66 @@ function ProjectList({ onOpen }) {
 
   async function load() {
     setLoading(true);
-    const { data } = await db.from('projects').select('*').order('created_at',{ascending:false});
+    const {data} = await db.from('projects').select('*').order('created_at',{ascending:false});
     if (data) {
       setProjects(data);
       if (data.length) {
         const ids = data.map(p=>p.id);
-        const { data: rr } = await db.from('requirements').select('project_id').in('project_id',ids);
-        const c = {};
-        ids.forEach(id => c[id]=0);
-        rr?.forEach(r => c[r.project_id]=(c[r.project_id]||0)+1);
+        const {data:rr} = await db.from('requirements').select('project_id').in('project_id',ids);
+        const c={};ids.forEach(id=>c[id]=0);
+        rr?.forEach(r=>c[r.project_id]=(c[r.project_id]||0)+1);
         setCounts(c);
       }
     }
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(()=>{load();},[]);
 
-  async function del(id, e) {
+  async function del(id,e) {
     e.stopPropagation();
     if (!confirm('Delete this project and all its requirements?')) return;
-    await db.from('projects').delete().eq('id', id);
+    await db.from('projects').delete().eq('id',id);
     load();
   }
 
+  const canCreate = ['Designer','Admin'].includes(profile?.role);
+
   return (
     <div style={{minHeight:'100vh'}}>
-      <div className="topbar">
-        <div className="logo">RF</div>
-        <div className="topbar-title">ReqFlow</div>
-        <div className="topbar-sep">·</div>
-        <div className="topbar-sub">Requirements Management</div>
-        <div className="topbar-actions">
-          <button className="btn btn-primary" onClick={() => setShowNew(true)}>
-            <IcoPlus s={13}/> New Project
-          </button>
-        </div>
-      </div>
-
+      <Topbar actions={
+        <>
+          <button className="btn btn-ghost btn-sm" onClick={onQueue}><IList s={13}/> My Queue</button>
+          {profile?.role==='Admin' && <button className="btn btn-ghost btn-sm" onClick={onAdmin}><IUsers s={13}/> Users</button>}
+          {canCreate && <button className="btn btn-primary btn-sm" onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
+        </>
+      }/>
       <div style={{padding:'28px 24px',maxWidth:960,margin:'0 auto'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:24,fontWeight:800,marginBottom:4}}>Projects</h1>
-          <p style={{color:'var(--text2)',fontSize:13}}>Select a project to manage its requirements hierarchy</p>
+          <p style={{color:'var(--text2)',fontSize:13}}>Select a project to manage its requirements</p>
         </div>
-
         {loading && <div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>}
-
-        {!loading && projects.length === 0 && (
+        {!loading && projects.length===0 && (
           <div className="empty">
             <div className="empty-icon">📂</div>
             <h3>No projects yet</h3>
-            <p>Create your first project to start managing requirements</p>
-            <button className="btn btn-primary" onClick={() => setShowNew(true)}><IcoPlus s={13}/> Create Project</button>
+            {canCreate && <button className="btn btn-primary" onClick={()=>setShowNew(true)}><IPlus s={13}/> Create Project</button>}
           </div>
         )}
-
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:14}}>
-          {projects.map(p => {
-            const pc = PHASE_CLR[p.phase] || '#00d4ff';
+          {projects.map(p=>{
+            const pc=PHASE_CLR[p.phase]||'#00d4ff';
             return (
-              <div key={p.id} className="card" onClick={() => onOpen(p)}
-                style={{cursor:'pointer',transition:'all .2s'}}
+              <div key={p.id} className="card" onClick={()=>onOpen(p)} style={{cursor:'pointer',transition:'all .2s'}}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--border2)';e.currentTarget.style.transform='translateY(-2px)'}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='none'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                   <div style={{width:38,height:38,borderRadius:9,background:`${pc}18`,border:`1px solid ${pc}33`,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                    <IcoFolder s={16}/>
+                    <IFolder s={16}/>
                   </div>
-                  <button className="btn btn-ghost btn-sm btn-icon" onClick={e=>del(p.id,e)} title="Delete"><IcoTrash s={12}/></button>
+                  {['Admin','Designer'].includes(profile?.role) &&
+                    <button className="btn btn-ghost btn-sm btn-icon" onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
                 </div>
                 <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
                 {p.description && <div style={{color:'var(--text2)',fontSize:12,marginBottom:10,lineHeight:1.5}}>{p.description.slice(0,80)}{p.description.length>80?'…':''}</div>}
@@ -250,47 +531,33 @@ function ProjectList({ onOpen }) {
           })}
         </div>
       </div>
-
-      {showNew && <ProjectModal onClose={() => setShowNew(false)} onSaved={() => { setShowNew(false); load(); }} />}
+      {showNew && <ProjectModal onClose={()=>setShowNew(false)} onSaved={()=>{setShowNew(false);load();}}/>}
     </div>
   );
 }
 
-function ProjectModal({ onClose, onSaved }) {
-  const [form, setForm] = useState({name:'',description:'',phase:'Concept'});
-  const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState('');
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
-
+function ProjectModal({onClose,onSaved}) {
+  const [form,setForm]=useState({name:'',description:'',phase:'Concept'});
+  const [saving,setSaving]=useState(false);
+  const [err,setErr]=useState('');
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
   async function save() {
-    if (!form.name.trim()) { setErr('Name is required'); return; }
+    if (!form.name.trim()){setErr('Name required');return;}
     setSaving(true);
-    const { error } = await db.from('projects').insert([{name:form.name.trim(),description:form.description,phase:form.phase}]);
+    const {error}=await db.from('projects').insert([{name:form.name.trim(),description:form.description,phase:form.phase}]);
     setSaving(false);
-    if (error) { setErr(error.message); return; }
+    if (error){setErr(error.message);return;}
     onSaved();
   }
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><h2>New Project</h2><button className="btn btn-ghost btn-icon" onClick={onClose}><IcoX s={15}/></button></div>
+        <div className="modal-header"><h2>New Project</h2><button className="btn btn-ghost btn-icon" onClick={onClose}><IX s={15}/></button></div>
         <div className="modal-body">
-          {err && <div className="err">{err}</div>}
-          <div className="form-group">
-            <label className="form-label">Project Name *</label>
-            <input className="form-input" placeholder="e.g. Brake Control Unit v2" value={form.name} onChange={e=>set('name',e.target.value)} autoFocus/>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Description</label>
-            <textarea className="form-textarea" placeholder="Brief scope description…" value={form.description} onChange={e=>set('description',e.target.value)}/>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Phase</label>
-            <select className="form-select" value={form.phase} onChange={e=>set('phase',e.target.value)}>
-              {PHASES.map(p=><option key={p}>{p}</option>)}
-            </select>
-          </div>
+          {err&&<div className="err">{err}</div>}
+          <div className="form-group"><label className="form-label">Name *</label><input className="form-input" placeholder="e.g. Brake Control Unit" value={form.name} onChange={e=>set('name',e.target.value)} autoFocus/></div>
+          <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={form.description} onChange={e=>set('description',e.target.value)}/></div>
+          <div className="form-group"><label className="form-label">Phase</label><select className="form-select" value={form.phase} onChange={e=>set('phase',e.target.value)}>{PHASES.map(p=><option key={p}>{p}</option>)}</select></div>
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
@@ -302,494 +569,601 @@ function ProjectModal({ onClose, onSaved }) {
 }
 
 // ── PROJECT VIEW ──────────────────────────────────────────────────────────────
-function ProjectView({ project, onBack }) {
-  const [reqs, setReqs]         = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [expanded, setExpanded] = useState({});
-  const [selected, setSelected] = useState(null);
-  const [showModal, setShowModal]= useState(false);
-  const [editReq, setEditReq]   = useState(null);
-  const [defParent, setDefParent]= useState(null);
-  const [search, setSearch]     = useState('');
-  const [lvlFilter, setLvlFilter]= useState('All');
-  const [stFilter, setStFilter] = useState('All');
+function ProjectView({project,onBack}) {
+  const {profile} = useApp();
+  const [reqs,setReqs]         = useState([]);
+  const [loading,setLoading]   = useState(true);
+  const [expanded,setExpanded] = useState({});
+  const [selected,setSelected] = useState(null);
+  const [showModal,setShowModal]= useState(false);
+  const [editReq,setEditReq]   = useState(null);
+  const [defParent,setDefParent]= useState(null);
+  const [search,setSearch]     = useState('');
+  const [lvlF,setLvlF]         = useState('All');
+  const [stF,setStF]           = useState('All');
 
-  const load = useCallback(async () => {
-    const { data } = await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
-    if (data) setReqs(data);
+  const load = useCallback(async()=>{
+    const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
+    if(data)setReqs(data);
     setLoading(false);
-  }, [project.id]);
+  },[project.id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(()=>{load();},[load]);
 
   function buildTree(flat) {
-    const map = {};
-    flat.forEach(r => map[r.id] = {...r, children:[]});
-    const roots = [];
-    flat.forEach(r => {
-      if (r.parent_id && map[r.parent_id]) map[r.parent_id].children.push(map[r.id]);
-      else roots.push(map[r.id]);
-    });
+    const map={};flat.forEach(r=>map[r.id]={...r,children:[]});
+    const roots=[];
+    flat.forEach(r=>{if(r.parent_id&&map[r.parent_id])map[r.parent_id].children.push(map[r.id]);else roots.push(map[r.id]);});
     return roots;
   }
 
-  const filtered = reqs.filter(r => {
-    const ms = !search || r.title.toLowerCase().includes(search.toLowerCase()) || r.req_id.toLowerCase().includes(search.toLowerCase());
-    const ml = lvlFilter==='All' || r.level===lvlFilter;
-    const mst = stFilter==='All' || r.status===stFilter;
-    return ms && ml && mst;
+  const filtered=reqs.filter(r=>{
+    const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase());
+    const ml=lvlF==='All'||r.level===lvlF;
+    const mst=stF==='All'||r.status===stF;
+    return ms&&ml&&mst;
   });
+  const tree=buildTree(filtered);
 
-  const tree = buildTree(filtered);
+  const canEdit = ['Designer','Admin'].includes(profile?.role);
+  function openNew(pid=null){setDefParent(pid);setEditReq(null);setShowModal(true);}
+  function openEdit(req,e){e?.stopPropagation();setEditReq(req);setDefParent(null);setShowModal(true);}
 
-  function openNew(parentId=null) { setDefParent(parentId); setEditReq(null); setShowModal(true); }
-  function openEdit(req,e) { e?.stopPropagation(); setEditReq(req); setDefParent(null); setShowModal(true); }
-
-  const stats = STATUSES.reduce((a,s) => { a[s]=reqs.filter(r=>r.status===s).length; return a; }, {});
+  const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
-      <div className="topbar">
-        <button className="btn btn-ghost btn-icon" onClick={onBack}><IcoBack s={15}/></button>
-        <div className="logo">RF</div>
-        <div className="topbar-title">ReqFlow</div>
-        <div className="topbar-sep">·</div>
-        <div className="topbar-sub">{project.name}</div>
-        <div className="topbar-actions">
-          <button className="btn btn-primary btn-sm" onClick={() => openNew()}><IcoPlus s={12}/> Add Requirement</button>
-        </div>
-      </div>
-
+      <Topbar sub={project.name} actions={
+        <>
+          <button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>
+          {canEdit && <button className="btn btn-primary btn-sm" onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
+        </>
+      }/>
       <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
         {/* Tree panel */}
-        <div style={{width:selected?'56%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',transition:'width .2s',overflow:'hidden'}}>
-
+        <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',transition:'width .2s',overflow:'hidden'}}>
           {/* Stats */}
-          <div style={{padding:'10px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',gap:14,flexWrap:'wrap',alignItems:'center'}}>
-            {STATUSES.map(s=>(
+          <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
+            {STATUSES.filter(s=>stats[s]>0).map(s=>(
               <div key={s} style={{display:'flex',alignItems:'center',gap:5,fontSize:12}}>
-                <span style={{width:7,height:7,borderRadius:'50%',background:ST_CLR[s].text,display:'inline-block'}}/>
+                <span style={{width:6,height:6,borderRadius:'50%',background:ST_CLR[s].text,display:'inline-block'}}/>
                 <span style={{color:'var(--text2)'}}>{s}</span>
                 <span style={{fontFamily:'var(--mono)',fontSize:11,color:ST_CLR[s].text}}>{stats[s]}</span>
               </div>
             ))}
             <span style={{marginLeft:'auto',fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{reqs.length} total</span>
           </div>
-
-          {/* Search + filters */}
-          <div style={{padding:'10px 18px',borderBottom:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center'}}>
+          {/* Search/filter */}
+          <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center'}}>
             <div style={{position:'relative',flex:1}}>
-              <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><IcoSearch s={13}/></span>
+              <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
               <input className="form-input" style={{paddingLeft:30}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
             </div>
-            <select className="form-select" style={{width:'auto'}} value={lvlFilter} onChange={e=>setLvlFilter(e.target.value)}>
-              <option value="All">All Levels</option>
-              {LEVELS.map(l=><option key={l}>{l}</option>)}
+            <select className="form-select" style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
+              <option value="All">All Levels</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
             </select>
-            <select className="form-select" style={{width:'auto'}} value={stFilter} onChange={e=>setStFilter(e.target.value)}>
-              <option value="All">All Statuses</option>
-              {STATUSES.map(s=><option key={s}>{s}</option>)}
+            <select className="form-select" style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
+              <option value="All">All Statuses</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
             </select>
           </div>
-
           {/* Tree */}
           <div style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
-            {loading && <div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>}
-            {!loading && tree.length===0 && (
+            {loading&&<div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>}
+            {!loading&&tree.length===0&&(
               <div className="empty">
                 <div className="empty-icon">📋</div>
-                <h3>{search||lvlFilter!=='All'||stFilter!=='All'?'No results':'No requirements yet'}</h3>
-                <p>{search||lvlFilter!=='All'||stFilter!=='All'?'Try a different filter':'Add your first requirement'}</p>
-                {!search && lvlFilter==='All' && stFilter==='All' && (
-                  <button className="btn btn-primary" onClick={() => openNew()}><IcoPlus s={13}/> Add Requirement</button>
-                )}
+                <h3>{search||lvlF!=='All'||stF!=='All'?'No results':'No requirements yet'}</h3>
+                {canEdit&&!search&&lvlF==='All'&&stF==='All'&&<button className="btn btn-primary" onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
               </div>
             )}
-            {tree.map(node=>(
-              <TreeNode key={node.id} node={node} depth={0}
-                expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))}
-                selectedId={selected?.id}
-                onSelect={r=>setSelected(s=>s?.id===r.id?null:r)}
-                onEdit={openEdit}
-                onAddChild={openNew}
-                onDeleted={()=>{setSelected(null);load();}}
-              />
-            ))}
+            {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={r=>setSelected(s=>s?.id===r.id?null:r)} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
           </div>
         </div>
-
         {/* Detail panel */}
         {selected && (
           <div style={{flex:1,overflowY:'auto',background:'var(--surface)'}}>
-            <DetailPanel
-              req={reqs.find(r=>r.id===selected.id)||selected}
-              allReqs={reqs}
-              onEdit={r=>{openEdit(r);}}
-              onClose={()=>setSelected(null)}
-              onDeleted={()=>{setSelected(null);load();}}
-            />
+            <DetailPanel req={reqs.find(r=>r.id===selected.id)||selected} allReqs={reqs} onEdit={openEdit} onClose={()=>setSelected(null)} onDeleted={()=>{setSelected(null);load();}} onStatusChanged={load}/>
           </div>
         )}
       </div>
-
-      {showModal && (
-        <ReqModal
-          projectId={project.id}
-          req={editReq}
-          defParentId={defParent}
-          allReqs={reqs}
-          onClose={()=>setShowModal(false)}
-          onSaved={()=>{setShowModal(false);load();}}
-        />
-      )}
+      {showModal&&<ReqModal projectId={project.id} req={editReq} defParentId={defParent} allReqs={reqs} onClose={()=>setShowModal(false)} onSaved={()=>{setShowModal(false);load();}}/>}
     </div>
   );
 }
 
 // ── TREE NODE ─────────────────────────────────────────────────────────────────
-function TreeNode({ node, depth, expanded, onToggle, selectedId, onSelect, onEdit, onAddChild, onDeleted }) {
-  const isOpen = expanded[node.id]!==false && (expanded[node.id]||depth<2);
-  const hasKids = node.children?.length>0;
-  const isSel = selectedId===node.id;
-  const lc = LEVEL_CLR[node.level]||'#64748b';
-  const sc = ST_CLR[node.status]||ST_CLR['Draft'];
-
-  async function del(e) {
-    e.stopPropagation();
-    if (!confirm('Delete this requirement?')) return;
-    await db.from('requirements').delete().eq('id',node.id);
-    onDeleted();
-  }
-
+function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAddChild,onDeleted,canEdit}) {
+  const isOpen=expanded[node.id]!==false&&(expanded[node.id]||depth<2);
+  const hasKids=node.children?.length>0;
+  const isSel=selectedId===node.id;
+  const lc=LEVEL_CLR[node.level]||'#64748b';
+  const sc=ST_CLR[node.status]||ST_CLR['Draft'];
+  async function del(e){e.stopPropagation();if(!confirm('Delete?'))return;await db.from('requirements').delete().eq('id',node.id);onDeleted();}
   return (
     <div>
-      <div
-        onClick={()=>onSelect(node)}
-        style={{
-          display:'flex',alignItems:'center',gap:4,
-          padding:`5px 16px 5px ${16+depth*18}px`,
-          cursor:'pointer',
-          background:isSel?'rgba(0,212,255,.06)':'transparent',
-          borderLeft:isSel?'2px solid var(--c1)':'2px solid transparent',
-          transition:'all .1s',
-        }}
+      <div onClick={()=>onSelect(node)} style={{display:'flex',alignItems:'center',gap:4,padding:`5px 16px 5px ${16+depth*18}px`,cursor:'pointer',background:isSel?'rgba(0,212,255,.06)':'transparent',borderLeft:isSel?'2px solid var(--c1)':'2px solid transparent',transition:'all .1s'}}
         onMouseEnter={e=>{if(!isSel)e.currentTarget.style.background='rgba(255,255,255,.02)'}}
-        onMouseLeave={e=>{if(!isSel)e.currentTarget.style.background='transparent'}}
-      >
-        <div onClick={e=>{e.stopPropagation();hasKids&&onToggle(node.id)}}
-          style={{width:14,height:14,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:'var(--text3)',cursor:hasKids?'pointer':'default'}}>
-          {hasKids?(isOpen?<IcoChevD s={12}/>:<IcoChevR s={12}/>):<span style={{width:12}}/>}
+        onMouseLeave={e=>{if(!isSel)e.currentTarget.style.background='transparent'}}>
+        <div onClick={e=>{e.stopPropagation();hasKids&&onToggle(node.id)}} style={{width:14,height:14,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:'var(--text3)',cursor:hasKids?'pointer':'default'}}>
+          {hasKids?(isOpen?<IChevD s={12}/>:<IChevR s={12}/>):<span style={{width:12}}/>}
         </div>
         <div style={{width:7,height:7,borderRadius:'50%',background:lc,flexShrink:0,opacity:.85}}/>
         <span style={{fontFamily:'var(--mono)',fontSize:11,color:lc,opacity:.9,flexShrink:0,minWidth:68}}>{node.req_id}</span>
         <span style={{fontSize:13,fontWeight:500,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{node.title}</span>
         <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{node.status}</Badge>
-        {node.sil_level && node.sil_level!=='N/A' && (
-          <Badge bg={`${SIL_CLR[node.sil_level]}18`} color={SIL_CLR[node.sil_level]} bd={`${SIL_CLR[node.sil_level]}33`}>{node.sil_level}</Badge>
-        )}
-        <div style={{display:'flex',gap:2,flexShrink:0,marginLeft:4}} onClick={e=>e.stopPropagation()}>
-          <button className="btn btn-ghost btn-sm btn-icon" title="Add child" onClick={()=>onAddChild(node.id)} style={{opacity:.45}}><IcoPlus s={11}/></button>
-          <button className="btn btn-ghost btn-sm btn-icon" title="Edit" onClick={e=>onEdit(node,e)} style={{opacity:.45}}><IcoEdit s={11}/></button>
+        {node.sil_level&&node.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[node.sil_level]}18`} color={SIL_CLR[node.sil_level]} bd={`${SIL_CLR[node.sil_level]}33`}>{node.sil_level}</Badge>}
+        {canEdit&&<div style={{display:'flex',gap:2,flexShrink:0,marginLeft:4}} onClick={e=>e.stopPropagation()}>
+          <button className="btn btn-ghost btn-sm btn-icon" title="Add child" onClick={()=>onAddChild(node.id)} style={{opacity:.4}}><IPlus s={11}/></button>
+          <button className="btn btn-ghost btn-sm btn-icon" title="Edit" onClick={e=>onEdit(node,e)} style={{opacity:.4}}><IEdit s={11}/></button>
           <button className="btn btn-ghost btn-sm btn-icon" title="Delete" onClick={del} style={{opacity:.3,color:'var(--c4)'}}>×</button>
-        </div>
+        </div>}
       </div>
-      {hasKids && isOpen && node.children.map(c=>(
-        <TreeNode key={c.id} node={c} depth={depth+1} expanded={expanded} onToggle={onToggle}
-          selectedId={selectedId} onSelect={onSelect} onEdit={onEdit} onAddChild={onAddChild} onDeleted={onDeleted}/>
-      ))}
+      {hasKids&&isOpen&&node.children.map(c=><TreeNode key={c.id} node={c} depth={depth+1} expanded={expanded} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} onEdit={onEdit} onAddChild={onAddChild} onDeleted={onDeleted} canEdit={canEdit}/>)}
     </div>
   );
 }
 
 // ── DETAIL PANEL ──────────────────────────────────────────────────────────────
-function DetailPanel({ req, allReqs, onEdit, onClose, onDeleted }) {
-  if (!req) return null;
-  const lc = LEVEL_CLR[req.level]||'#64748b';
-  const sc = ST_CLR[req.status]||ST_CLR['Draft'];
-  const parent   = req.parent_id ? allReqs.find(r=>r.id===req.parent_id) : null;
-  const children = allReqs.filter(r=>r.parent_id===req.id);
+function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
+  const {profile,loadNotifications} = useApp();
+  const [comments,setComments]  = useState([]);
+  const [profiles,setProfiles]  = useState({});
+  const [assignments,setAssignments] = useState([]);
+  const [allProfiles,setAllProfiles] = useState([]);
+  const [comment,setComment]    = useState('');
+  const [submitting,setSubmitting] = useState(false);
+  const [tab,setTab]            = useState('details');
+
+  const lc=LEVEL_CLR[req.level]||'#64748b';
+  const sc=ST_CLR[req.status]||ST_CLR['Draft'];
+  const parent=req.parent_id?allReqs.find(r=>r.id===req.parent_id):null;
+  const children=allReqs.filter(r=>r.parent_id===req.id);
+
+  async function loadComments() {
+    const {data}=await db.from('comments').select('*').eq('requirement_id',req.id).order('created_at');
+    if(data)setComments(data);
+    const ids=[...new Set((data||[]).map(c=>c.author_id).filter(Boolean))];
+    if(ids.length){
+      const {data:pp}=await db.from('profiles').select('*').in('id',ids);
+      const m={};pp?.forEach(p=>m[p.id]=p);setProfiles(m);
+    }
+  }
+
+  async function loadAssignments() {
+    const {data}=await db.from('approver_assignments').select('*').eq('requirement_id',req.id);
+    if(data)setAssignments(data);
+    const {data:pp}=await db.from('profiles').select('*').order('full_name');
+    if(pp)setAllProfiles(pp);
+  }
+
+  useEffect(()=>{loadComments();loadAssignments();},[req.id]);
+
+  const isDesigner = profile?.role==='Designer'||profile?.role==='Admin';
+  const isApprover = profile?.role==='Approver'||profile?.role==='Admin';
+  const isVerifier = profile?.role==='Verifier'||profile?.role==='Admin';
+  const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
+  const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
+  const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
+
+  async function addComment(action='Comment') {
+    if (!comment.trim()&&action==='Comment') return;
+    setSubmitting(true);
+    const content = comment.trim()||`Status changed to: ${action==='Approve'?'Approved':action==='RequestChanges'?'Changes Requested':''}`;
+    await db.from('comments').insert([{requirement_id:req.id,author_id:profile.id,role:profile.role,content,action}]);
+    // Update requirement status
+    let newStatus=req.status;
+    if(action==='Approve') newStatus='Approved';
+    if(action==='RequestChanges') newStatus='Changes Requested';
+    if(action==='Submit') newStatus='In Review';
+    if(newStatus!==req.status) {
+      await db.from('requirements').update({status:newStatus}).eq('id',req.id);
+      // Notify relevant people
+      if(action==='Submit') {
+        for(const a of assignments){
+          await db.from('notifications').insert([{user_id:a.approver_id,title:'Review requested',body:`${profile.full_name} submitted "${req.title}" for review`,requirement_id:req.id}]);
+        }
+      }
+      if(action==='Approve'||action==='RequestChanges') {
+        await db.from('notifications').insert([{user_id:req.owner_id||profile.id,title:action==='Approve'?'Requirement approved':'Changes requested',body:`${profile.full_name} ${action==='Approve'?'approved':'requested changes on'} "${req.title}"`,requirement_id:req.id}]);
+      }
+      onStatusChanged();
+      loadNotifications();
+    }
+    setComment('');
+    setSubmitting(false);
+    loadComments();
+  }
+
+  async function assignApprover(approverId) {
+    if(assignments.some(a=>a.approver_id===approverId)){
+      await db.from('approver_assignments').delete().eq('requirement_id',req.id).eq('approver_id',approverId);
+    } else {
+      await db.from('approver_assignments').insert([{requirement_id:req.id,approver_id:approverId,assigned_by:profile.id}]);
+    }
+    loadAssignments();
+  }
 
   async function del() {
-    if (!confirm('Delete this requirement?')) return;
+    if(!confirm('Delete this requirement?'))return;
     await db.from('requirements').delete().eq('id',req.id);
     onDeleted();
   }
 
-  const Sec = ({title,children:c}) => (
-    <div style={{marginBottom:18}}>
-      <div className="section-head">{title}</div>
-      {c}
-    </div>
-  );
-  const Fld = ({label,value}) => value?(
-    <div className="detail-field">
-      <div className="lbl">{label}</div>
-      <div className="val">{value}</div>
-    </div>
-  ):null;
+  const actionColor={Comment:'var(--text3)',Submit:'var(--c3)',Approve:'var(--c2)',RequestChanges:'var(--c4)'};
+  const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
+  const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
+
+  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Sign-off'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`}];
 
   return (
     <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
-      <div style={{padding:'14px 18px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'flex-start',gap:10,background:'var(--panel)',flexShrink:0}}>
+      {/* Header */}
+      <div style={{padding:'13px 18px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'flex-start',gap:10,background:'var(--panel)',flexShrink:0}}>
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4,flexWrap:'wrap'}}>
             <span style={{fontFamily:'var(--mono)',fontSize:12,color:lc,fontWeight:700}}>{req.req_id}</span>
             <Badge bg={`${lc}18`} color={lc} bd={`${lc}33`}>{req.level}</Badge>
             <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{req.status}</Badge>
-            {req.sil_level && req.sil_level!=='N/A' && (
-              <Badge bg={`${SIL_CLR[req.sil_level]}18`} color={SIL_CLR[req.sil_level]} bd={`${SIL_CLR[req.sil_level]}33`}>{req.sil_level}</Badge>
-            )}
+            {req.sil_level&&req.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[req.sil_level]}18`} color={SIL_CLR[req.sil_level]} bd={`${SIL_CLR[req.sil_level]}33`}>{req.sil_level}</Badge>}
           </div>
           <div style={{fontWeight:700,fontSize:15,lineHeight:1.3}}>{req.title}</div>
         </div>
         <div style={{display:'flex',gap:3,flexShrink:0}}>
-          <button className="btn btn-ghost btn-sm btn-icon" onClick={()=>onEdit(req)}><IcoEdit s={12}/></button>
-          <button className="btn btn-ghost btn-sm btn-icon" onClick={del} style={{color:'var(--c4)'}}><IcoTrash s={12}/></button>
-          <button className="btn btn-ghost btn-sm btn-icon" onClick={onClose}><IcoX s={12}/></button>
+          {isDesigner&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>onEdit(req)}><IEdit s={12}/></button>}
+          {isDesigner&&<button className="btn btn-ghost btn-sm btn-icon" onClick={del} style={{color:'var(--c4)'}}><ITrash s={12}/></button>}
+          <button className="btn btn-ghost btn-sm btn-icon" onClick={onClose}><IX s={12}/></button>
         </div>
       </div>
 
+      <div className="tab-bar" style={{paddingLeft:0,paddingRight:0}}>
+        {TABS.map(t=><button key={t.id} className={`tab ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)} style={{fontSize:12,padding:'8px 16px'}}>{t.label}</button>)}
+      </div>
+
       <div style={{flex:1,overflowY:'auto',padding:18}}>
-        <Sec title="Description">
-          {req.description
-            ? <div style={{fontSize:13,lineHeight:1.7,background:'var(--bg)',padding:'10px 13px',borderRadius:8,border:'1px solid var(--border)',fontStyle:'italic'}}>{req.description}</div>
-            : <div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic'}}>No description provided.</div>}
-          {req.rationale && <div style={{marginTop:8}}><div className="lbl" style={{fontSize:11,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:3,fontWeight:600}}>Rationale</div><div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6}}>{req.rationale}</div></div>}
-        </Sec>
 
-        <Sec title="Attributes">
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 14px'}}>
-            <Fld label="Owner" value={req.owner}/>
-            <Fld label="Verification" value={req.verification_method}/>
-            <Fld label="Phase" value={req.project_phase}/>
-            <Fld label="Safety Class" value={req.safety_class!=='None'?req.safety_class:null}/>
-            <Fld label="Source Document" value={req.source_document}/>
+        {/* ── DETAILS TAB ── */}
+        {tab==='details'&&<>
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:6}}>Description</div>
+            {req.description?<div style={{fontSize:13,lineHeight:1.7,background:'var(--bg)',padding:'10px 13px',borderRadius:8,border:'1px solid var(--border)',fontStyle:'italic'}}>{req.description}</div>
+              :<div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic'}}>No description.</div>}
           </div>
-        </Sec>
+          {req.rationale&&<div style={{marginBottom:16}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:4}}>Rationale</div><div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6}}>{req.rationale}</div></div>}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px 14px',marginBottom:16}}>
+            {[['Owner',req.owner],['Verification',req.verification_method],['Phase',req.project_phase],['Safety Class',req.safety_class!=='None'?req.safety_class:null],['Source',req.source_document]].map(([l,v])=>v?(
+              <div key={l} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>{l}</div><div style={{fontSize:13}}>{v}</div></div>
+            ):null)}
+          </div>
+          {(req.sil_level!=='N/A'||req.regulatory_body?.length>0)&&<div style={{marginBottom:16}}>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:6}}>Safety & Standards</div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+              {req.sil_level&&req.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[req.sil_level]}18`} color={SIL_CLR[req.sil_level]} bd={`${SIL_CLR[req.sil_level]}33`}>{req.sil_level}</Badge>}
+              {req.regulatory_body?.map(b=><Badge key={b} bg="rgba(199,125,255,.08)" color="var(--c5)" bd="rgba(199,125,255,.2)">{b}</Badge>)}
+            </div>
+          </div>}
+          {(parent||children.length>0)&&<div>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:6}}>Hierarchy</div>
+            {parent&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'7px 11px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border)',marginBottom:5}}>
+              <span style={{fontFamily:'var(--mono)',fontSize:11,color:LEVEL_CLR[parent.level]||'#64748b'}}>{parent.req_id}</span>
+              <span style={{fontSize:12,color:'var(--text2)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{parent.title}</span>
+              <span style={{fontSize:10,color:'var(--text3)'}}>parent</span>
+            </div>}
+            {children.map(c=><div key={c.id} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 11px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border)',marginBottom:4}}>
+              <div style={{width:6,height:6,borderRadius:'50%',background:LEVEL_CLR[c.level]||'#64748b',flexShrink:0}}/>
+              <span style={{fontFamily:'var(--mono)',fontSize:11,color:LEVEL_CLR[c.level]||'#64748b'}}>{c.req_id}</span>
+              <span style={{fontSize:12,color:'var(--text2)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.title}</span>
+              <Badge bg={ST_CLR[c.status]?.bg} color={ST_CLR[c.status]?.text} bd={ST_CLR[c.status]?.bd}>{c.status}</Badge>
+            </div>)}
+          </div>}
+          <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',borderTop:'1px solid var(--border)',paddingTop:10,marginTop:10}}>
+            Created {new Date(req.created_at).toLocaleString()} · Updated {new Date(req.updated_at).toLocaleString()}
+          </div>
+        </>}
 
-        {(req.sil_level!=='N/A' || (req.regulatory_body?.length>0)) && (
-          <Sec title="Safety & Compliance">
-            {req.sil_level && req.sil_level!=='N/A' && (
-              <div style={{marginBottom:10}}>
-                <div className="lbl" style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:5}}>SIL Level</div>
-                <Badge bg={`${SIL_CLR[req.sil_level]}18`} color={SIL_CLR[req.sil_level]} bd={`${SIL_CLR[req.sil_level]}33`} style={{fontSize:12,padding:'4px 12px'}}>{req.sil_level}</Badge>
-              </div>
-            )}
-            {req.regulatory_body?.length>0 && (
-              <div>
-                <div className="lbl" style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:5}}>Standards</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                  {req.regulatory_body.map(b=><Badge key={b} bg="rgba(199,125,255,.08)" color="var(--c5)" bd="rgba(199,125,255,.2)">{b}</Badge>)}
+        {/* ── WORKFLOW TAB ── */}
+        {tab==='workflow'&&<>
+          {/* Status flow */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Current Status</div>
+            <div className="wf-bar">
+              {['Draft','In Review','Approved'].map((s,i)=>(
+                <React.Fragment key={s}>
+                  {i>0&&<div className="wf-arrow">›</div>}
+                  <div className={`wf-step ${req.status===s?'active':['Approved'].includes(req.status)&&i<2?'done':''}`}>{s}</div>
+                </React.Fragment>
+              ))}
+              <div className="wf-arrow">↕</div>
+              <div className={`wf-step ${req.status==='Changes Requested'?'rejected':''}`}>Changes Requested</div>
+            </div>
+          </div>
+
+          {/* Assigned approvers */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:8}}>Assigned Approvers</div>
+            {assignments.length===0&&<div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',marginBottom:8}}>No approvers assigned yet.</div>}
+            {assignments.map(a=>{
+              const p=allProfiles.find(x=>x.id===a.approver_id);
+              if(!p)return null;
+              const ac=avatarColor(p.full_name);
+              return(
+                <div key={a.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border)',marginBottom:6}}>
+                  <div style={{width:28,height:28,borderRadius:'50%',background:ac,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--mono)',fontSize:11,fontWeight:700,color:'#000',flexShrink:0}}>{initials(p.full_name)}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:600}}>{p.full_name}</div>
+                    <RoleBadge role={p.role}/>
+                  </div>
+                  {(isDesigner||profile?.role==='Admin')&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>assignApprover(p.id)}><IX s={11}/></button>}
+                </div>
+              );
+            })}
+            {/* Assign approver dropdown - designers and admins */}
+            {(isDesigner)&&approversInProject.length>0&&(
+              <div style={{marginTop:8}}>
+                <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:6}}>Assign Approver</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                  {approversInProject.filter(p=>!assignments.some(a=>a.approver_id===p.id)).map(p=>(
+                    <button key={p.id} className="btn btn-ghost btn-sm" onClick={()=>assignApprover(p.id)}>
+                      <IPlus s={11}/> {p.full_name}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
-          </Sec>
-        )}
+          </div>
 
-        <Sec title="Hierarchy">
-          {parent && (
-            <div style={{marginBottom:9}}>
-              <div className="lbl" style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:5}}>Parent</div>
-              <div style={{display:'flex',alignItems:'center',gap:8,padding:'7px 11px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border)'}}>
-                <span style={{fontFamily:'var(--mono)',fontSize:11,color:LEVEL_CLR[parent.level]||'#64748b'}}>{parent.req_id}</span>
-                <span style={{fontSize:13,color:'var(--text2)'}}>{parent.title}</span>
-              </div>
-            </div>
-          )}
-          {children.length>0 && (
-            <div>
-              <div className="lbl" style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:5}}>Children ({children.length})</div>
-              <div style={{display:'flex',flexDirection:'column',gap:4}}>
-                {children.map(c=>(
-                  <div key={c.id} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 11px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border)'}}>
-                    <div style={{width:6,height:6,borderRadius:'50%',background:LEVEL_CLR[c.level]||'#64748b',flexShrink:0}}/>
-                    <span style={{fontFamily:'var(--mono)',fontSize:11,color:LEVEL_CLR[c.level]||'#64748b'}}>{c.req_id}</span>
-                    <span style={{fontSize:13,color:'var(--text2)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.title}</span>
-                    <Badge bg={ST_CLR[c.status]?.bg} color={ST_CLR[c.status]?.text} bd={ST_CLR[c.status]?.bd}>{c.status}</Badge>
+          {/* Action buttons */}
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {canSubmit&&<button className="btn btn-warn" onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
+            {canApprove&&<>
+              <button className="btn btn-success" onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
+              <button className="btn btn-danger" onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
+            </>}
+            {req.status==='Approved'&&isDesigner&&<button className="btn btn-ghost btn-sm" onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
+          </div>
+        </>}
+
+        {/* ── COMMENTS TAB ── */}
+        {tab==='comments'&&<>
+          <div style={{marginBottom:16}}>
+            {comments.length===0&&<div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic',marginBottom:16}}>No comments yet.</div>}
+            {comments.map(c=>{
+              const p=profiles[c.author_id];
+              const ac=avatarColor(p?.full_name);
+              const isAction=c.action!=='Comment';
+              return(
+                <div key={c.id} className={`comment ${c.action==='Approve'?'action-approve':c.action==='RequestChanges'?'action-reject':c.action==='Submit'?'action-changes':''}`}>
+                  <div className="comment-avatar" style={{background:ac,color:'#000'}}>{initials(p?.full_name)}</div>
+                  <div className="comment-body" style={{borderColor:isAction?(c.action==='Approve'?'rgba(127,255,107,.3)':c.action==='RequestChanges'?'rgba(255,107,53,.3)':'rgba(255,209,102,.3)'):'var(--border)'}}>
+                    <div className="comment-meta">
+                      <span className="comment-name">{p?.full_name||'Unknown'}</span>
+                      {p&&<RoleBadge role={p.role}/>}
+                      {isAction&&<span style={{fontSize:11,fontWeight:700,color:actionColor[c.action]}}>{actionLabel[c.action]}</span>}
+                      <span className="comment-time">{timeAgo(c.created_at)}</span>
+                    </div>
+                    <div className="comment-text">{c.content}</div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {!parent && children.length===0 && <div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic'}}>No hierarchy links yet.</div>}
-        </Sec>
+                </div>
+              );
+            })}
+          </div>
+          {/* Comment input */}
+          <div>
+            <textarea className="form-textarea" placeholder="Add a comment…" value={comment} onChange={e=>setComment(e.target.value)} style={{marginBottom:8}}/>
+            <button className="btn btn-ghost btn-sm" onClick={()=>addComment('Comment')} disabled={submitting||!comment.trim()}>
+              <IMsg s={12}/> Add Comment
+            </button>
+          </div>
+        </>}
 
-        <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',borderTop:'1px solid var(--border)',paddingTop:10}}>
-          Created {new Date(req.created_at).toLocaleString()} · Updated {new Date(req.updated_at).toLocaleString()}
-        </div>
       </div>
     </div>
   );
 }
 
 // ── REQUIREMENT MODAL ─────────────────────────────────────────────────────────
-function ReqModal({ projectId, req, defParentId, allReqs, onClose, onSaved }) {
-  const isEdit = !!req;
-  const init = {
-    req_id:'', title:'', description:'', level:'System', status:'Draft',
-    parent_id: defParentId||'', owner:'', verification_method:'Test',
-    safety_class:'None', sil_level:'N/A', safety_category:'Quality',
-    regulatory_body:[], project_phase:'Development', source_document:'', rationale:''
-  };
-  const [form, setForm] = useState(init);
-  const [tab, setTab]   = useState('basic');
-  const [saving, setSaving] = useState(false);
-  const [err, setErr]   = useState('');
+function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
+  const isEdit=!!req;
+  const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
+  const [form,setForm]=useState(init);
+  const [tab,setTab]=useState('basic');
+  const [saving,setSaving]=useState(false);
+  const [err,setErr]=useState('');
 
-  useEffect(() => {
-    if (req) {
-      setForm({...init,...req, parent_id:req.parent_id||'', regulatory_body:req.regulatory_body||[]});
-    } else {
-      const prefix = PREFIXES[form.level]||'SYS';
-      const n = String(allReqs.filter(r=>r.level===form.level).length+1).padStart(3,'0');
-      setForm(f=>({...f,req_id:`${prefix}-${n}`}));
-    }
+  useEffect(()=>{
+    if(req){setForm({...init,...req,parent_id:req.parent_id||'',regulatory_body:req.regulatory_body||[]});}
+    else{const p=PREFIXES[form.level]||'SYS';const n=String(allReqs.filter(r=>r.level===form.level).length+1).padStart(3,'0');setForm(f=>({...f,req_id:`${p}-${n}`}));}
   },[req]);
 
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  function onLvl(level){const p=PREFIXES[level]||level.slice(0,3).toUpperCase();const n=String(allReqs.filter(r=>r.level===level).length+1).padStart(3,'0');setForm(f=>({...f,level,req_id:`${p}-${n}`}));}
+  function toggleReg(b){setForm(f=>({...f,regulatory_body:f.regulatory_body.includes(b)?f.regulatory_body.filter(x=>x!==b):[...f.regulatory_body,b]}));}
 
-  function onLvl(level) {
-    const prefix = PREFIXES[level]||level.slice(0,3).toUpperCase();
-    const n = String(allReqs.filter(r=>r.level===level).length+1).padStart(3,'0');
-    setForm(f=>({...f,level,req_id:`${prefix}-${n}`}));
-  }
-
-  function toggleReg(b) {
-    setForm(f=>({...f,regulatory_body:f.regulatory_body.includes(b)?f.regulatory_body.filter(x=>x!==b):[...f.regulatory_body,b]}));
-  }
-
-  async function save() {
-    if (!form.title.trim()) { setErr('Title is required'); return; }
-    if (!form.req_id.trim()) { setErr('ID is required'); return; }
-    setSaving(true); setErr('');
-    const payload = {...form, project_id:projectId, parent_id:form.parent_id||null, title:form.title.trim(), req_id:form.req_id.trim()};
-    const { error } = isEdit
-      ? await db.from('requirements').update(payload).eq('id',req.id)
-      : await db.from('requirements').insert([payload]);
+  async function save(){
+    if(!form.title.trim()){setErr('Title required');return;}
+    if(!form.req_id.trim()){setErr('ID required');return;}
+    setSaving(true);setErr('');
+    const payload={...form,project_id:projectId,parent_id:form.parent_id||null,title:form.title.trim(),req_id:form.req_id.trim()};
+    const {error}=isEdit?await db.from('requirements').update(payload).eq('id',req.id):await db.from('requirements').insert([payload]);
     setSaving(false);
-    if (error) { setErr(error.message); return; }
+    if(error){setErr(error.message);return;}
     onSaved();
   }
 
-  const parents = allReqs.filter(r=>r.id!==req?.id);
-  const TABS = [{id:'basic',label:'Basic'},{id:'safety',label:'Safety & Compliance'},{id:'meta',label:'Metadata'}];
+  const parents=allReqs.filter(r=>r.id!==req?.id);
+  const TABS=[{id:'basic',label:'Basic'},{id:'safety',label:'Safety'},{id:'meta',label:'Meta'}];
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e=>e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{isEdit?'Edit Requirement':'New Requirement'}</h2>
-          <button className="btn btn-ghost btn-icon" onClick={onClose}><IcoX s={15}/></button>
-        </div>
-        <div className="tab-bar">
-          {TABS.map(t=><button key={t.id} className={`tab ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>{t.label}</button>)}
-        </div>
+        <div className="modal-header"><h2>{isEdit?'Edit Requirement':'New Requirement'}</h2><button className="btn btn-ghost btn-icon" onClick={onClose}><IX s={15}/></button></div>
+        <div className="tab-bar">{TABS.map(t=><button key={t.id} className={`tab ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>{t.label}</button>)}</div>
         <div className="modal-body">
-          {err && <div className="err">{err}</div>}
-
-          {tab==='basic' && <>
+          {err&&<div className="err">{err}</div>}
+          {tab==='basic'&&<>
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Level *</label>
-                <select className="form-select" value={form.level} onChange={e=>onLvl(e.target.value)}>
-                  {LEVELS.map(l=><option key={l}>{l}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">ID *</label>
-                <input className="form-input" value={form.req_id} onChange={e=>set('req_id',e.target.value)} placeholder="SYS-001"/>
-              </div>
+              <div className="form-group"><label className="form-label">Level</label><select className="form-select" value={form.level} onChange={e=>onLvl(e.target.value)}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">ID *</label><input className="form-input" value={form.req_id} onChange={e=>set('req_id',e.target.value)}/></div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Title *</label>
-              <input className="form-input" value={form.title} onChange={e=>set('title',e.target.value)} placeholder="Short descriptive title" autoFocus/>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Description (Shall Statement)</label>
-              <textarea className="form-textarea" value={form.description} onChange={e=>set('description',e.target.value)} placeholder="The system shall…"/>
+            <div className="form-group"><label className="form-label">Title *</label><input className="form-input" value={form.title} onChange={e=>set('title',e.target.value)} autoFocus/></div>
+            <div className="form-group"><label className="form-label">Description (Shall Statement)</label><textarea className="form-textarea" value={form.description} onChange={e=>set('description',e.target.value)} placeholder="The system shall…"/></div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Status</label><select className="form-select" value={form.status} onChange={e=>set('status',e.target.value)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Verification</label><select className="form-select" value={form.verification_method} onChange={e=>set('verification_method',e.target.value)}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
             </div>
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Status</label>
-                <select className="form-select" value={form.status} onChange={e=>set('status',e.target.value)}>
-                  {STATUSES.map(s=><option key={s}>{s}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Verification Method</label>
-                <select className="form-select" value={form.verification_method} onChange={e=>set('verification_method',e.target.value)}>
-                  {VERIFY.map(v=><option key={v}>{v}</option>)}
-                </select>
-              </div>
+              <div className="form-group"><label className="form-label">Parent</label><select className="form-select" value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value="">— None —</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,34)}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Owner</label><input className="form-input" value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder="Name or role"/></div>
             </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Parent Requirement</label>
-                <select className="form-select" value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}>
-                  <option value="">— None (root) —</option>
-                  {parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,36)}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Owner</label>
-                <input className="form-input" value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder="Name or role"/>
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Rationale</label>
-              <textarea className="form-textarea" value={form.rationale} onChange={e=>set('rationale',e.target.value)} placeholder="Why does this requirement exist?"/>
-            </div>
+            <div className="form-group"><label className="form-label">Rationale</label><textarea className="form-textarea" value={form.rationale} onChange={e=>set('rationale',e.target.value)}/></div>
           </>}
-
-          {tab==='safety' && <>
+          {tab==='safety'&&<>
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Safety Class</label>
-                <select className="form-select" value={form.safety_class} onChange={e=>set('safety_class',e.target.value)}>
-                  {SAFETY.map(s=><option key={s}>{s}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">SIL Level (EN 50129)</label>
-                <select className="form-select" value={form.sil_level} onChange={e=>set('sil_level',e.target.value)}>
-                  {SILS.map(s=><option key={s}>{s}</option>)}
-                </select>
-              </div>
+              <div className="form-group"><label className="form-label">Safety Class</label><select className="form-select" value={form.safety_class} onChange={e=>set('safety_class',e.target.value)}>{SAFETY.map(s=><option key={s}>{s}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">SIL Level</label><select className="form-select" value={form.sil_level} onChange={e=>set('sil_level',e.target.value)}>{SILS.map(s=><option key={s}>{s}</option>)}</select></div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Safety Category</label>
-              <select className="form-select" value={form.safety_category} onChange={e=>set('safety_category',e.target.value)}>
-                {SAFECAT.map(s=><option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Applicable Standards</label>
-              <div className="checkbox-group" style={{marginTop:4}}>
-                {REGS.map(b=>(
-                  <div key={b} className={`chip ${form.regulatory_body.includes(b)?'on':''}`} onClick={()=>toggleReg(b)}>{b}</div>
-                ))}
-              </div>
-            </div>
+            <div className="form-group"><label className="form-label">Safety Category</label><select className="form-select" value={form.safety_category} onChange={e=>set('safety_category',e.target.value)}>{SAFECAT.map(s=><option key={s}>{s}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Standards</label><div style={{display:'flex',flexWrap:'wrap',gap:7,marginTop:4}}>{REGS.map(b=><div key={b} className={`chip ${form.regulatory_body.includes(b)?'on':''}`} onClick={()=>toggleReg(b)}>{b}</div>)}</div></div>
           </>}
-
-          {tab==='meta' && <>
+          {tab==='meta'&&<>
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Project Phase</label>
-                <select className="form-select" value={form.project_phase} onChange={e=>set('project_phase',e.target.value)}>
-                  {PHASES.map(p=><option key={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Source Document</label>
-                <input className="form-input" value={form.source_document} onChange={e=>set('source_document',e.target.value)} placeholder="Customer spec, standard ref…"/>
-              </div>
+              <div className="form-group"><label className="form-label">Phase</label><select className="form-select" value={form.project_phase} onChange={e=>set('project_phase',e.target.value)}>{PHASES.map(p=><option key={p}>{p}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Source Document</label><input className="form-input" value={form.source_document} onChange={e=>set('source_document',e.target.value)}/></div>
             </div>
           </>}
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={save} disabled={saving}>{saving?'Saving…':isEdit?'Save Changes':'Create Requirement'}</button>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>{saving?'Saving…':isEdit?'Save Changes':'Create'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── APPROVAL QUEUE ────────────────────────────────────────────────────────────
+function ApprovalQueue({onBack, onOpen}) {
+  const {profile} = useApp();
+  const [items,setItems] = useState([]);
+  const [loading,setLoading] = useState(true);
+
+  useEffect(()=>{load();},[]);
+
+  async function load() {
+    setLoading(true);
+    let reqs=[];
+    if(profile.role==='Approver'||profile.role==='Admin'){
+      const {data:assignments}=await db.from('approver_assignments').select('requirement_id').eq('approver_id',profile.id);
+      const ids=(assignments||[]).map(a=>a.requirement_id);
+      if(ids.length){
+        const {data}=await db.from('requirements').select('*, projects(name)').in('id',ids).eq('status','In Review');
+        reqs=data||[];
+      }
+    }
+    if(profile.role==='Designer'||profile.role==='Admin'){
+      const {data}=await db.from('requirements').select('*, projects(name)').in('status',['In Review','Changes Requested','Approved']);
+      const mine=(data||[]).filter(r=>!reqs.find(x=>x.id===r.id));
+      reqs=[...reqs,...mine];
+    }
+    setItems(reqs);
+    setLoading(false);
+  }
+
+  return (
+    <div style={{minHeight:'100vh'}}>
+      <Topbar sub="My Queue" actions={<button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>}/>
+      <div style={{padding:'28px 24px',maxWidth:760,margin:'0 auto'}}>
+        <div style={{marginBottom:24}}>
+          <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>My Queue</h1>
+          <p style={{color:'var(--text2)',fontSize:13}}>{profile.role==='Approver'?'Requirements awaiting your approval':'Requirements in review or recently acted on'}</p>
+        </div>
+        {loading&&<div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>}
+        {!loading&&items.length===0&&<div className="empty"><div className="empty-icon">✅</div><h3>Queue is empty</h3><p>Nothing pending right now</p></div>}
+        {items.map(r=>{
+          const sc=ST_CLR[r.status]||ST_CLR['Draft'];
+          const lc=LEVEL_CLR[r.level]||'#64748b';
+          return(
+            <div key={r.id} className="queue-item" onClick={()=>onOpen(r.projects)}>
+              <div className="qi-top">
+                <span style={{fontFamily:'var(--mono)',fontSize:11,color:lc}}>{r.req_id}</span>
+                <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{r.status}</Badge>
+                <span style={{fontSize:12,color:'var(--text3)',marginLeft:'auto'}}>{r.projects?.name}</span>
+              </div>
+              <div className="qi-title">{r.title}</div>
+              {r.description&&<div className="qi-meta">{r.description.slice(0,100)}{r.description.length>100?'…':''}</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── ADMIN PANEL ───────────────────────────────────────────────────────────────
+function AdminPanel({onBack}) {
+  const {profile:me} = useApp();
+  const [users,setUsers]=useState([]);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{load();},[]);
+
+  async function load(){
+    setLoading(true);
+    const {data}=await db.from('profiles').select('*').order('created_at');
+    if(data)setUsers(data);
+    setLoading(false);
+  }
+
+  async function changeRole(id,role){
+    await db.from('profiles').update({role}).eq('id',id);
+    load();
+  }
+
+  return(
+    <div style={{minHeight:'100vh'}}>
+      <Topbar sub="User Management" actions={<button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>}/>
+      <div style={{padding:'28px 24px',maxWidth:860,margin:'0 auto'}}>
+        <div style={{marginBottom:24}}>
+          <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>User Management</h1>
+          <p style={{color:'var(--text2)',fontSize:13}}>Manage roles for all registered users. First user is always Admin.</p>
+        </div>
+        <div className="card" style={{padding:0,overflow:'hidden'}}>
+          {loading?<div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>:(
+            <table className="admin-table">
+              <thead>
+                <tr><th>User</th><th>Email</th><th>Role</th><th>Joined</th></tr>
+              </thead>
+              <tbody>
+                {users.map(u=>{
+                  const ac=avatarColor(u.full_name);
+                  return(
+                    <tr key={u.id}>
+                      <td>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:32,height:32,borderRadius:'50%',background:ac,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--mono)',fontSize:12,fontWeight:700,color:'#000',flexShrink:0}}>{initials(u.full_name)}</div>
+                          <div style={{fontWeight:600}}>{u.full_name||'—'}</div>
+                        </div>
+                      </td>
+                      <td style={{color:'var(--text2)',fontFamily:'var(--mono)',fontSize:12}}>{u.id===me.id?<span style={{color:'var(--c1)'}}>You</span>:''} {u.id.slice(0,8)}…</td>
+                      <td>
+                        {u.id===me.id?(
+                          <RoleBadge role={u.role}/>
+                        ):(
+                          <select className="form-select" style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={u.role} onChange={e=>changeRole(u.id,e.target.value)}>
+                            {ROLES.map(r=><option key={r}>{r}</option>)}
+                          </select>
+                        )}
+                      </td>
+                      <td style={{color:'var(--text3)',fontSize:12,fontFamily:'var(--mono)'}}>{new Date(u.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+        <div style={{marginTop:16,padding:'14px 18px',background:'var(--panel)',borderRadius:10,border:'1px solid var(--border)',fontSize:13,color:'var(--text2)'}}>
+          <strong style={{color:'var(--text)'}}>Role permissions: </strong>
+          Designer — creates & edits requirements, submits for review · Reviewer — comments · Approver — approves or requests changes (when assigned) · Verifier — tracks verification · Admin — full access
         </div>
       </div>
     </div>
