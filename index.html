@@ -627,6 +627,9 @@ function ProjectView({project,onBack}) {
   const [search,setSearch]     = useState('');
   const [lvlF,setLvlF]         = useState('All');
   const [stF,setStF]           = useState('All');
+  const [typeF,setTypeF]       = useState('All');
+  const [ownerF,setOwnerF]     = useState('');
+  const [showFilters,setShowFilters] = useState(false);
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
@@ -646,11 +649,14 @@ function ProjectView({project,onBack}) {
 
   const enrichReq = r => ({...r, myProjectRole});
   const enrichedSelected = selected ? enrichReq(reqs.find(r=>r.id===selected.id)||selected) : null;
+  const hasActiveFilter = search||lvlF!=='All'||stF!=='All'||typeF!=='All'||ownerF;
   const filtered=reqs.filter(r=>{
-    const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase());
+    const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase())||r.description?.toLowerCase().includes(search.toLowerCase());
     const ml=lvlF==='All'||r.level===lvlF;
     const mst=stF==='All'||r.status===stF;
-    return ms&&ml&&mst;
+    const mt=typeF==='All'||r.requirement_type===typeF;
+    const mo=!ownerF||(r.owner||'').toLowerCase().includes(ownerF.toLowerCase())||(r.stakeholder||'').toLowerCase().includes(ownerF.toLowerCase());
+    return ms&&ml&&mst&&mt&&mo;
   });
   const tree=buildTree(filtered);
 
@@ -684,17 +690,44 @@ function ProjectView({project,onBack}) {
             <span style={{marginLeft:'auto',fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{reqs.length} total</span>
           </div>
           {/* Search/filter */}
-          <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center'}}>
-            <div style={{position:'relative',flex:1}}>
-              <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
-              <input className="form-input" style={{paddingLeft:30}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
+          <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',display:'flex',flexDirection:'column',gap:8}}>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              <div style={{position:'relative',flex:1}}>
+                <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
+                <input className="form-input" style={{paddingLeft:30}} placeholder="Search..." value={search} onChange={e=>setSearch(e.target.value)}/>
+              </div>
+              <button className="btn btn-sm" style={{flexShrink:0,position:'relative',background:showFilters?'var(--c1)':'var(--raised)',color:showFilters?'#000':'var(--text)',border:'1px solid var(--border)'}} onClick={()=>setShowFilters(f=>!f)}>
+                Filters
+                {hasActiveFilter&&<span style={{position:'absolute',top:-3,right:-3,width:7,height:7,borderRadius:'50%',background:'var(--c4)'}}/>}
+              </button>
             </div>
-            <select className="form-select" style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
-              <option value="All">All Levels</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
-            </select>
-            <select className="form-select" style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
-              <option value="All">All Statuses</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
-            </select>
+            {showFilters&&(
+              <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'flex-end',padding:'8px 0 2px'}}>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Level</div>
+                  <select className="form-select" style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
+                    <option value="All">All</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Status</div>
+                  <select className="form-select" style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
+                    <option value="All">All</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Type</div>
+                  <select className="form-select" style={{width:'auto'}} value={typeF} onChange={e=>setTypeF(e.target.value)}>
+                    <option value="All">All</option>{[...new Set(reqs.map(r=>r.requirement_type).filter(Boolean))].map(t=><option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Owner / Stakeholder</div>
+                  <input className="form-input" style={{width:140}} placeholder="Search..." value={ownerF} onChange={e=>setOwnerF(e.target.value)}/>
+                </div>
+                {hasActiveFilter&&<button className="btn btn-ghost btn-sm" onClick={()=>{setSearch('');setLvlF('All');setStF('All');setTypeF('All');setOwnerF('');}}>Clear all</button>}
+              </div>
+            )}
           </div>
           {/* Tree */}
           <div style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
@@ -702,8 +735,8 @@ function ProjectView({project,onBack}) {
             {!loading&&tree.length===0&&(
               <div className="empty">
                 <div className="empty-icon">📋</div>
-                <h3>{search||lvlF!=='All'||stF!=='All'?'No results':'No requirements yet'}</h3>
-                {canEdit&&!search&&lvlF==='All'&&stF==='All'&&<button className="btn btn-primary" onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
+                <h3>{hasActiveFilter?'No results':'No requirements yet'}</h3>
+                {canEdit&&!hasActiveFilter&&<button className="btn btn-primary" onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
               </div>
             )}
             {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={r=>setSelected(s=>s?.id===r.id?null:r)} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
