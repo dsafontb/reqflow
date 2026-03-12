@@ -1516,7 +1516,7 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
             </div>
             <div className="form-row">
               <div className="form-group"><label className="form-label">Stakeholder</label><input className="form-input" value={form.stakeholder||''} onChange={e=>set('stakeholder',e.target.value)} placeholder="Name or org"/></div>
-              <div className="form-group"><label className="form-label">Type</label><select className="form-select" value={form.requirement_type||'Functional'} onChange={e=>set('requirement_type',e.target.value)}>{REQ_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Type</label><input className="form-input" list="req-types-list" value={form.requirement_type||''} onChange={e=>set('requirement_type',e.target.value)} placeholder="e.g. Functional"/><datalist id="req-types-list">{[...new Set(allReqs.map(r=>r.requirement_type).filter(Boolean))].map(t=><option key={t} value={t}/>)}</datalist></div>
             </div>
             <div className="form-group"><label className="form-label">Rationale</label><textarea className="form-textarea" value={form.rationale} onChange={e=>set('rationale',e.target.value)} disabled={isLocked}/></div>
           </>}
