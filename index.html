@@ -198,6 +198,7 @@ const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
 const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
 const SAFECAT  = ['Quality','Functional Safety','Security','Dependability','RAMS'];
 const PHASES   = ['Concept','Development','Qualification','Production'];
+const REQ_TYPES = ['Functional','Performance','Interface','Safety','Reliability','Maintainability','Physical','Environmental','Operational'];
 const REGS_DEFAULT = ['EN 50126','EN 50128','EN 50129','EN 50155','ISO 22163','ISO 9001']; // fallback only
 const ROLES    = ['Unassigned','User','Admin'];
 const PROJECT_ROLES = ['Designer','Reviewer','Approver','Verifier','Admin'];
@@ -1454,7 +1455,7 @@ function MembersModal({projectId, onClose}) {
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
   const isLocked = isEdit && ['Approved','Verified'].includes(req?.status);
-  const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
+  const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',stakeholder:'',requirement_type:'Functional',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
   const [form,setForm]=useState(init);
   const [tab,setTab]=useState('basic');
   const [saving,setSaving]=useState(false);
@@ -1512,6 +1513,10 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
             <div className="form-row">
               <div className="form-group"><label className="form-label">Parent</label><select className="form-select" value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value="">— None —</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,34)}</option>)}</select></div>
               <div className="form-group"><label className="form-label">Owner</label><input className="form-input" value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder="Name or role" disabled={isLocked}/></div>
+            </div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Stakeholder</label><input className="form-input" value={form.stakeholder||''} onChange={e=>set('stakeholder',e.target.value)} placeholder="Name or org"/></div>
+              <div className="form-group"><label className="form-label">Type</label><select className="form-select" value={form.requirement_type||'Functional'} onChange={e=>set('requirement_type',e.target.value)}>{REQ_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
             </div>
             <div className="form-group"><label className="form-label">Rationale</label><textarea className="form-textarea" value={form.rationale} onChange={e=>set('rationale',e.target.value)} disabled={isLocked}/></div>
           </>}
