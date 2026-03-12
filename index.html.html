@@ -705,7 +705,6 @@ function ProjectView({project,onBack}) {
       <Topbar sub={project.name} actions={
         <>
           <button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>
-          <button className="btn btn-ghost btn-sm" onClick={exportExcel} title="Export to Excel">↓ Excel</button>
           {(myProjectRole==='Admin'||profile?.role==='Admin') && !isReadOnly && <button className="btn btn-ghost btn-sm" onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           {canEdit && <button className="btn btn-primary btn-sm" onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
@@ -733,8 +732,10 @@ function ProjectView({project,onBack}) {
                 <input className="form-input" style={{paddingLeft:30}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
               <button className={`btn btn-sm ${showFilters?'btn-primary':'btn-ghost'}`} onClick={()=>setShowFilters(f=>!f)} style={{flexShrink:0,position:'relative'}}>
-                {'Filters'}
-                {hasActiveFilter&&<span style={{position:'absolute',top:-4,right:-4,width:8,height:8,borderRadius:'50%',background:'var(--c1)'}}/>}
+                Filters{hasActiveFilter&&stF==='All'&&lvlF==='All'?'':''}{(typeF!=='All'||silF!=='All'||verF!=='All'||ownerF)&&<span style={{position:'absolute',top:-4,right:-4,width:8,height:8,borderRadius:'50%',background:'var(--c1)'}}/>}
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={exportExcel} title="Export to Excel" style={{flexShrink:0}}>
+                ↓ Excel
               </button>
             </div>
             {/* Expanded filter panel */}
@@ -905,10 +906,10 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
   const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
 
-  async function addComment(action='Comment', extraContent) {
-    if (!comment.trim()&&action==='Comment'&&!extraContent) return;
+  async function addComment(action='Comment') {
+    if (!comment.trim()&&action==='Comment') return;
     setSubmitting(true);
-    const content = extraContent||comment.trim()||`Status changed to: ${action==='Approve'?'Approved':action==='RequestChanges'?'Changes Requested':''}`;
+    const content = comment.trim()||`Status changed to: ${action==='Approve'?'Approved':action==='RequestChanges'?'Changes Requested':''}`;
     await db.from('comments').insert([{requirement_id:req.id,author_id:profile.id,role:profile.role,content,action,req_status:req.status}]);
     // Update requirement status
     let newStatus=req.status;
@@ -960,7 +961,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
   const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
 
-  const TABS=[{id:'details',label:'Details'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`},{id:'history',label:'History'}];
+  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`},{id:'history',label:'History'}];
 
   return (
     <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
@@ -998,7 +999,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           </div>
           {req.rationale&&<div style={{marginBottom:16}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:4}}>Rationale</div><div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6}}>{req.rationale}</div></div>}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px 14px',marginBottom:16}}>
-            {[['Owner',req.owner],['Stakeholder',req.stakeholder],['Type',req.requirement_type],['Verification Method',req.verification_method],['Phase',req.project_phase],['Safety Class',req.safety_class!=='None'?req.safety_class:null],['Source',req.source_document]].map(([l,v])=>v?(
+            {[['Owner',req.owner],['Stakeholder',req.stakeholder],['Type',req.requirement_type],['Verification',req.verification_method],['Phase',req.project_phase],['Safety Class',req.safety_class!=='None'?req.safety_class:null],['Source',req.source_document]].map(([l,v])=>v?(
               <div key={l} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>{l}</div><div style={{fontSize:13}}>{v}</div></div>
             ):null)}
           </div>
@@ -1026,9 +1027,10 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',borderTop:'1px solid var(--border)',paddingTop:10,marginTop:10}}>
             Created {new Date(req.created_at).toLocaleString()} · Updated {new Date(req.updated_at).toLocaleString()}
           </div>
-        
+        </>}
 
-          <div style={{height:1,background:'var(--border)',margin:'20px 0'}}/>
+        {/* ── WORKFLOW TAB ── */}
+        {tab==='workflow'&&<>
           {/* Status flow */}
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Current Status</div>
@@ -1079,29 +1081,17 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           </div>
 
           {/* Action buttons */}
-          {/* Request Changes form */}
-          {showChangesForm&&<div style={{background:'var(--bg)',border:'2px solid rgba(255,107,53,.3)',borderRadius:10,padding:14,marginBottom:12}}>
-            <div style={{fontSize:13,fontWeight:700,color:'var(--c4)',marginBottom:10}}>Request Changes</div>
-            <div className="form-group" style={{marginBottom:8}}>
-              <label className="form-label">Summary of required changes *</label>
-              <textarea className="form-textarea" style={{minHeight:80}} placeholder="Describe what needs to be changed and why..." value={changesSummary} onChange={e=>setChangesSummary(e.target.value)} autoFocus/>
-            </div>
-            <div style={{display:'flex',gap:8}}>
-              <button className="btn btn-danger btn-sm" disabled={submitting||!changesSummary.trim()} onClick={async()=>{await addComment('RequestChanges',changesSummary.trim());setShowChangesForm(false);setChangesSummary('');}}>Submit Request</button>
-              <button className="btn btn-ghost btn-sm" onClick={()=>{setShowChangesForm(false);setChangesSummary('');}}>Cancel</button>
-            </div>
-          </div>}
           {!isReadOnly && <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {canSubmit&&<button className="btn btn-warn" onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
             {canApprove&&<>
               <button className="btn btn-success" onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
-              <button className="btn btn-danger" onClick={()=>setShowChangesForm(true)} disabled={submitting}>🔄 Request Changes</button>
+              <button className="btn btn-danger" onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
             </>}
             {req.status==='Approved'&&isDesigner&&<button className="btn btn-ghost btn-sm" onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
           </div>}
         </>}
 
-                {/* ── VERIFICATION TAB ── */}
+        {/* ── VERIFICATION TAB ── */}
         {tab==='verification'&&<VerificationTab req={req} evidence={evidence} evProfiles={evProfiles} isVerifier={isVerifier} onRefresh={loadEvidence} onStatusChanged={onStatusChanged} vs={vs} vsc={vsc}/>}
 
         {/* ── COMMENTS TAB ── */}
@@ -1401,13 +1391,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
             <div style={{fontSize:13,fontWeight:700,color:'var(--c3)',marginBottom:12}}>Plan Verification Activity</div>
             <div className="form-group">
               <label className="form-label">Forecast Date *</label>
-              <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                <input className='form-input' type='date' value={planForm.planned_date} onChange={e=>setPlanForm(f=>({...f,planned_date:e.target.value}))} autoFocus style={{flex:1}}/>
-                <input className='form-input' type='text' placeholder='dd/mm/yyyy' style={{width:110}} maxLength={10}
-                  value={planForm.planned_date ? new Date(planForm.planned_date+'T12:00:00').toLocaleDateString('es-ES') : ''}
-                  onChange={e=>{const pts=e.target.value.split('/');if(pts.length===3&&pts[2].length===4)setPlanForm(f=>({...f,planned_date:pts[2]+'-'+pts[1]+'-'+pts[0]}));}}
-                />
-              </div>
+              <input className="form-input" type="date" value={planForm.planned_date} onChange={e=>setPlanForm(f=>({...f,planned_date:e.target.value}))} autoFocus/>
             </div>
             <div style={{display:'flex',gap:8}}>
               <button className="btn btn-warn btn-sm" onClick={savePlan} disabled={saving||!planForm.planned_date}>{saving?'Saving...':'Save'}</button>
@@ -1422,13 +1406,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
             <div style={{fontSize:13,fontWeight:700,color:'var(--c2)',marginBottom:12}}>Mark Activity as Finished</div>
             <div className="form-group">
               <label className="form-label">Actual Completion Date</label>
-              <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                <input className='form-input' type='date' value={finishForm.actual_date} onChange={e=>setFinishForm(f=>({...f,actual_date:e.target.value}))} autoFocus style={{flex:1}}/>
-                <input className='form-input' type='text' placeholder='dd/mm/yyyy' style={{width:110}} maxLength={10}
-                  value={finishForm.actual_date ? new Date(finishForm.actual_date+'T12:00:00').toLocaleDateString('es-ES') : ''}
-                  onChange={e=>{const pts=e.target.value.split('/');if(pts.length===3&&pts[2].length===4)setFinishForm(f=>({...f,actual_date:pts[2]+'-'+pts[1]+'-'+pts[0]}));}}
-                />
-              </div>
+              <input className="form-input" type="date" value={finishForm.actual_date} onChange={e=>setFinishForm(f=>({...f,actual_date:e.target.value}))} autoFocus/>
             </div>
             <div style={{display:'flex',gap:8}}>
               <button className="btn btn-success btn-sm" onClick={saveFinish} disabled={saving}>{saving?'Saving...':'Mark Finished'}</button>
@@ -1647,7 +1625,7 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   }
 
   const parents=allReqs.filter(r=>r.id!==req?.id);
-  const TABS=[{id:'basic',label:'Basic'},{id:'safety',label:'Safety'}];
+  const TABS=[{id:'basic',label:'Basic'},{id:'safety',label:'Safety'},{id:'meta',label:'Meta'}];
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -1685,7 +1663,12 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
             <div className="form-group"><label className="form-label">Safety Category</label><select className="form-select" value={form.safety_category} onChange={e=>set('safety_category',e.target.value)}>{SAFECAT.map(s=><option key={s}>{s}</option>)}</select></div>
             <div className="form-group"><label className="form-label">Standards</label><div style={{display:'flex',flexWrap:'wrap',gap:7,marginTop:4}}>{standards.map(b=><div key={b} className={`chip ${form.regulatory_body.includes(b)?'on':''}`} onClick={()=>toggleReg(b)}>{b}</div>)}</div></div>
           </>}
-          
+          {tab==='meta'&&<>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Phase</label><select className="form-select" value={form.project_phase} onChange={e=>set('project_phase',e.target.value)}>{PHASES.map(p=><option key={p}>{p}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Source Document</label><input className="form-input" value={form.source_document} onChange={e=>set('source_document',e.target.value)}/></div>
+            </div>
+          </>}
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
