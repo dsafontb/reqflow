@@ -182,7 +182,7 @@ const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 const LEVELS   = ['Stakeholder','System','Subsystem','Component','Verification'];
 const PREFIXES = {Stakeholder:'STK',System:'SYS',Subsystem:'SUB',Component:'CMP',Verification:'VER'};
 const LEVEL_CLR= {Stakeholder:'#00d4ff',System:'#7fff6b',Subsystem:'#ffd166',Component:'#ff6b35',Verification:'#c77dff'};
-const STATUSES = ['Draft','In Review','Approved','Changes Requested','Obsolete','Verified'];
+const STATUSES = ['Draft','In Review','Approved','Changes Requested','Obsolete'];
 const ST_CLR   = {
   'Draft':              {bg:'rgba(100,116,139,.15)',text:'#94a3b8',bd:'rgba(100,116,139,.3)'},
   'In Review':          {bg:'rgba(255,209,102,.15)',text:'#ffd166',bd:'rgba(255,209,102,.3)'},
@@ -191,8 +191,8 @@ const ST_CLR   = {
   'Obsolete':           {bg:'rgba(100,116,139,.10)',text:'#64748b',bd:'rgba(100,116,139,.2)'},
 };
 const SIL_CLR  = {'SIL 4':'#ff6b35','SIL 3':'#ff6b35','SIL 2':'#ffd166','SIL 1':'#ffd166','SIL 0':'#7fff6b','N/A':'#64748b'};
-const VS       = ['Not Defined','Defined','Planned','In Progress','Finished','Verified','Failed'];
-const VS_CLR   = {'Not Defined':{bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},'Defined':{bg:'rgba(0,212,255,.12)',text:'#00d4ff',bd:'rgba(0,212,255,.25)'},'Planned':{bg:'rgba(199,125,255,.12)',text:'#c77dff',bd:'rgba(199,125,255,.25)'},'In Progress':{bg:'rgba(255,209,102,.12)',text:'#ffd166',bd:'rgba(255,209,102,.25)'},'Finished':{bg:'rgba(127,255,107,.12)',text:'#7fff6b',bd:'rgba(127,255,107,.25)'},'Verified':{bg:'rgba(127,255,107,.2)',text:'#7fff6b',bd:'rgba(127,255,107,.4)'},'Failed':{bg:'rgba(255,107,53,.12)',text:'#ff6b35',bd:'rgba(255,107,53,.25)'}};
+const VS       = ['Not Started','In Progress','Verified','Failed'];
+const VS_CLR   = {'Not Started':{bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},'In Progress':{bg:'rgba(255,209,102,.12)',text:'#ffd166',bd:'rgba(255,209,102,.25)'},'Verified':{bg:'rgba(127,255,107,.12)',text:'#7fff6b',bd:'rgba(127,255,107,.25)'},'Failed':{bg:'rgba(255,107,53,.12)',text:'#ff6b35',bd:'rgba(255,107,53,.25)'}};
 const VERIFY   = ['Test','Analysis','Inspection','Demonstration'];
 const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
 const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
@@ -627,13 +627,6 @@ function ProjectView({project,onBack}) {
   const [search,setSearch]     = useState('');
   const [lvlF,setLvlF]         = useState('All');
   const [stF,setStF]           = useState('All');
-  const [typeF,setTypeF]       = useState('All');
-  const [ownerF,setOwnerF]         = useState('');
-  const [stakeholderF,setStakeholderF] = useState('');
-  const [vsF,setVsF]               = useState('All');
-  const [wcField,setWcField]       = useState('safety_class');
-  const [wcVal,setWcVal]           = useState('');
-  const [showFilters,setShowFilters] = useState(false);
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
@@ -653,17 +646,11 @@ function ProjectView({project,onBack}) {
 
   const enrichReq = r => ({...r, myProjectRole});
   const enrichedSelected = selected ? enrichReq(reqs.find(r=>r.id===selected.id)||selected) : null;
-  const hasActiveFilter = search||lvlF!=='All'||stF!=='All'||typeF!=='All'||ownerF||stakeholderF||vsF!=='All'||wcVal;
   const filtered=reqs.filter(r=>{
-    const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase())||r.description?.toLowerCase().includes(search.toLowerCase());
+    const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase());
     const ml=lvlF==='All'||r.level===lvlF;
     const mst=stF==='All'||r.status===stF;
-    const mt=typeF==='All'||r.requirement_type===typeF;
-    const mo=!ownerF||(r.owner||'').toLowerCase().includes(ownerF.toLowerCase());
-    const msh=!stakeholderF||(r.stakeholder||'').toLowerCase().includes(stakeholderF.toLowerCase());
-    const mvs=vsF==='All'||r.verification_status===vsF;
-    const mwc=!wcVal||(r[wcField]||'').toString()===wcVal;
-    return ms&&ml&&mst&&mt&&mo&&msh&&mvs&&mwc;
+    return ms&&ml&&mst;
   });
   const tree=buildTree(filtered);
 
@@ -697,74 +684,17 @@ function ProjectView({project,onBack}) {
             <span style={{marginLeft:'auto',fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{reqs.length} total</span>
           </div>
           {/* Search/filter */}
-          <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',display:'flex',flexDirection:'column',gap:8}}>
-            <div style={{display:'flex',gap:8,alignItems:'center'}}>
-              <div style={{position:'relative',flex:1}}>
-                <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
-                <input className="form-input" style={{paddingLeft:30}} placeholder="Search..." value={search} onChange={e=>setSearch(e.target.value)}/>
-              </div>
-              <button className="btn btn-sm" style={{flexShrink:0,position:'relative',background:showFilters?'var(--c1)':'var(--raised)',color:showFilters?'#000':'var(--text)',border:'1px solid var(--border)'}} onClick={()=>setShowFilters(f=>!f)}>
-                Filters
-                {hasActiveFilter&&<span style={{position:'absolute',top:-3,right:-3,width:7,height:7,borderRadius:'50%',background:'var(--c4)'}}/>}
-              </button>
+          <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center'}}>
+            <div style={{position:'relative',flex:1}}>
+              <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
+              <input className="form-input" style={{paddingLeft:30}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
             </div>
-            {showFilters&&(
-              <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'flex-end',padding:'8px 0 2px'}}>
-                <div>
-                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Level</div>
-                  <select className="form-select" style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
-                    <option value="All">All</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Status</div>
-                  <select className="form-select" style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
-                    <option value="All">All</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Type</div>
-                  <select className="form-select" style={{width:'auto'}} value={typeF} onChange={e=>setTypeF(e.target.value)}>
-                    <option value="All">All</option>{[...new Set(reqs.map(r=>r.requirement_type).filter(Boolean))].map(t=><option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Act. Status</div>
-                  <select className="form-select" style={{width:'auto'}} value={vsF} onChange={e=>setVsF(e.target.value)}>
-                    <option value="All">All</option>{VS.map(s=><option key={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Owner</div>
-                  <input className="form-input" style={{width:120}} placeholder="Search..." value={ownerF} onChange={e=>setOwnerF(e.target.value)}/>
-                </div>
-                <div>
-                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Stakeholder</div>
-                  <input className="form-input" style={{width:120}} placeholder="Search..." value={stakeholderF} onChange={e=>setStakeholderF(e.target.value)}/>
-                </div>
-                <div style={{display:'flex',gap:4,alignItems:'flex-end'}}>
-                  <div>
-                    <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Field</div>
-                    <select className="form-select" style={{width:'auto'}} value={wcField} onChange={e=>{setWcField(e.target.value);setWcVal('');}}>
-                      <option value="safety_class">Safety Class</option>
-                      <option value="sil_level">SIL Level</option>
-                      <option value="safety_category">Safety Category</option>
-                      <option value="project_phase">Phase</option>
-                      <option value="verification_method">Verif. Method</option>
-                      <option value="source_document">Source Doc</option>
-                    </select>
-                  </div>
-                  <div>
-                    <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Value</div>
-                    <select className="form-select" style={{width:'auto'}} value={wcVal} onChange={e=>setWcVal(e.target.value)}>
-                      <option value="">All</option>
-                      {[...new Set(reqs.map(r=>r[wcField]).filter(Boolean))].sort().map(v=><option key={v}>{v}</option>)}
-                    </select>
-                  </div>
-                </div>
-                {hasActiveFilter&&<button className="btn btn-ghost btn-sm" style={{alignSelf:'flex-end'}} onClick={()=>{setSearch('');setLvlF('All');setStF('All');setTypeF('All');setOwnerF('');setStakeholderF('');setVsF('All');setWcVal('');}}>Clear all</button>}
-              </div>
-            )}
+            <select className="form-select" style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
+              <option value="All">All Levels</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
+            </select>
+            <select className="form-select" style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
+              <option value="All">All Statuses</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
+            </select>
           </div>
           {/* Tree */}
           <div style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
@@ -772,8 +702,8 @@ function ProjectView({project,onBack}) {
             {!loading&&tree.length===0&&(
               <div className="empty">
                 <div className="empty-icon">📋</div>
-                <h3>{hasActiveFilter?'No results':'No requirements yet'}</h3>
-                {canEdit&&!hasActiveFilter&&<button className="btn btn-primary" onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
+                <h3>{search||lvlF!=='All'||stF!=='All'?'No results':'No requirements yet'}</h3>
+                {canEdit&&!search&&lvlF==='All'&&stF==='All'&&<button className="btn btn-primary" onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
               </div>
             )}
             {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={r=>setSelected(s=>s?.id===r.id?null:r)} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
@@ -813,7 +743,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
         <span style={{fontSize:13,fontWeight:500,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{node.title}</span>
         <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{node.status}</Badge>
         {node.sil_level&&node.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[node.sil_level]}18`} color={SIL_CLR[node.sil_level]} bd={`${SIL_CLR[node.sil_level]}33`}>{node.sil_level}</Badge>}
-        {(()=>{const vs2=node.verification_status||'Not Defined';const vc=VS_CLR[vs2];return vs2!=='Not Defined'?<Badge bg={vc.bg} color={vc.text} bd={vc.bd}>{vs2}</Badge>:null;})()}
+        {(()=>{const vs2=node.verification_status||'Not Started';const vc=VS_CLR[vs2];return vs2!=='Not Started'?<Badge bg={vc.bg} color={vc.text} bd={vc.bd}>{vs2}</Badge>:null;})()}
         {canEdit&&<div style={{display:'flex',gap:2,flexShrink:0,marginLeft:4}} onClick={e=>e.stopPropagation()}>
           <button className="btn btn-ghost btn-sm btn-icon" title="Add child" onClick={()=>onAddChild(node.id)} style={{opacity:.4}}><IPlus s={11}/></button>
           <button className="btn btn-ghost btn-sm btn-icon" title="Edit" onClick={e=>onEdit(node,e)} style={{opacity:.4}}><IEdit s={11}/></button>
@@ -873,8 +803,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const isDesigner = pr==='Designer'||pr==='Admin'||isAdmin;
   const isApprover = pr==='Approver'||pr==='Admin'||isAdmin;
   const isVerifier = pr==='Verifier'||pr==='Admin'||isAdmin;
-  const vs = req.verification_status||'Not Defined';
-  const vsc = VS_CLR[vs]||VS_CLR['Not Defined'];
+  const vs = req.verification_status||'Not Started';
+  const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
   const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
   const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
@@ -939,7 +869,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             <Badge bg={`${lc}18`} color={lc} bd={`${lc}33`}>{req.level}</Badge>
             <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{req.status}</Badge>
             {req.sil_level&&req.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[req.sil_level]}18`} color={SIL_CLR[req.sil_level]} bd={`${SIL_CLR[req.sil_level]}33`}>{req.sil_level}</Badge>}
-            <Badge bg={vsc.bg} color={vsc.text} bd={vsc.bd}>Act: {vs}</Badge>
+            <Badge bg={vsc.bg} color={vsc.text} bd={vsc.bd}>{vs}</Badge>
           </div>
           <div style={{fontWeight:700,fontSize:15,lineHeight:1.3}}>{req.title}</div>
         </div>
