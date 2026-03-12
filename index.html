@@ -964,13 +964,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
               :<div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic'}}>No description.</div>}
           </div>
           {req.rationale&&<div style={{marginBottom:16}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:4}}>Rationale</div><div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6}}>{req.rationale}</div></div>}
-          <div style={{marginBottom:16,display:'flex',alignItems:'center',gap:10,padding:'10px 14px',background:'var(--bg)',borderRadius:9,border:'1px solid var(--border)'}}>
-            <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,flexShrink:0}}>Status</div>
-            <Badge bg={ST_CLR[req.status]?.bg} color={ST_CLR[req.status]?.text} bd={ST_CLR[req.status]?.bd}>{req.status}</Badge>
-            <div style={{marginLeft:'auto',fontSize:11,color:'var(--text3)'}}>Change in Status tab</div>
-          </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px 14px',marginBottom:16}}>
-            {[['Owner',req.owner],['Verification',req.verification_method],['Safety Class',req.safety_class!=='None'?req.safety_class:null],['Source',req.source_document]].map(([l,v])=>v?(
+            {[['Owner',req.owner],['Verification',req.verification_method],['Phase',req.project_phase],['Safety Class',req.safety_class!=='None'?req.safety_class:null],['Source',req.source_document]].map(([l,v])=>v?(
               <div key={l} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>{l}</div><div style={{fontSize:13}}>{v}</div></div>
             ):null)}
           </div>
@@ -1053,12 +1048,12 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
 
           {/* Action buttons */}
           {!isReadOnly && <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            {canSubmit&&<button className="btn btn-warn" onClick={()=>{if(window.confirm('Submit this requirement for review?'))addComment('Submit');}} disabled={submitting}>Submit for Review</button>}
+            {canSubmit&&<button className="btn btn-warn" onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
             {canApprove&&<>
-              <button className="btn btn-success" onClick={()=>{if(window.confirm('Approve this requirement?'))addComment('Approve');}} disabled={submitting}>Approve</button>
-              <button className="btn btn-danger" onClick={()=>{if(window.confirm('Request changes on this requirement?'))addComment('RequestChanges');}} disabled={submitting}>Request Changes</button>
+              <button className="btn btn-success" onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
+              <button className="btn btn-danger" onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
             </>}
-            {req.status==='Approved'&&isDesigner&&<button className="btn btn-ghost btn-sm" onClick={async()=>{if(window.confirm('Reopen this requirement as Draft?')){await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}}>Reopen as Draft</button>}
+            {req.status==='Approved'&&isDesigner&&<button className="btn btn-ghost btn-sm" onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
           </div>}
         </>}
 
@@ -1565,7 +1560,7 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   }
 
   const parents=allReqs.filter(r=>r.id!==req?.id);
-  const TABS=[{id:'basic',label:'Basic'},{id:'safety',label:'Safety'}];
+  const TABS=[{id:'basic',label:'Basic'},{id:'safety',label:'Safety'},{id:'meta',label:'Meta'}];
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -1581,7 +1576,10 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
             </div>
             <div className="form-group"><label className="form-label">Title *</label><input className="form-input" value={form.title} onChange={e=>set('title',e.target.value)} autoFocus disabled={isLocked}/></div>
             <div className="form-group"><label className="form-label">Description (Shall Statement)</label><textarea className="form-textarea" value={form.description} onChange={e=>set('description',e.target.value)} placeholder="The system shall…" disabled={isLocked}/></div>
-            <div className="form-group"><label className="form-label">Verification Method</label><select className="form-select" value={form.verification_method} onChange={e=>set('verification_method',e.target.value)} disabled={isLocked}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Status</label><select className="form-select" value={form.status} onChange={e=>set('status',e.target.value)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Verification Method</label><select className="form-select" value={form.verification_method} onChange={e=>set('verification_method',e.target.value)} disabled={isLocked}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
+            </div>
             <div className="form-row">
               <div className="form-group"><label className="form-label">Parent</label><select className="form-select" value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value="">— None —</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,34)}</option>)}</select></div>
               <div className="form-group"><label className="form-label">Owner</label><input className="form-input" value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder="Name or role" disabled={isLocked}/></div>
@@ -1599,9 +1597,13 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
             </div>
             <div className="form-group"><label className="form-label">Safety Category</label><select className="form-select" value={form.safety_category} onChange={e=>set('safety_category',e.target.value)}>{SAFECAT.map(s=><option key={s}>{s}</option>)}</select></div>
             <div className="form-group"><label className="form-label">Standards</label><div style={{display:'flex',flexWrap:'wrap',gap:7,marginTop:4}}>{standards.map(b=><div key={b} className={`chip ${form.regulatory_body.includes(b)?'on':''}`} onClick={()=>toggleReg(b)}>{b}</div>)}</div></div>
-            <div className="form-group"><label className="form-label">Source Document</label><input className="form-input" value={form.source_document} onChange={e=>set('source_document',e.target.value)}/></div>
           </>}
-
+          {tab==='meta'&&<>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Phase</label><select className="form-select" value={form.project_phase} onChange={e=>set('project_phase',e.target.value)}>{PHASES.map(p=><option key={p}>{p}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Source Document</label><input className="form-input" value={form.source_document} onChange={e=>set('source_document',e.target.value)}/></div>
+            </div>
+          </>}
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
