@@ -733,7 +733,8 @@ function ProjectView({project,onBack}) {
                 <input className="form-input" style={{paddingLeft:30}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
               <button className={`btn btn-sm ${showFilters?'btn-primary':'btn-ghost'}`} onClick={()=>setShowFilters(f=>!f)} style={{flexShrink:0,position:'relative'}}>
-                Filters{hasActiveFilter&&stF==='All'&&lvlF==='All'?'':''}{(typeF!=='All'||silF!=='All'||verF!=='All'||ownerF)&&<span style={{position:'absolute',top:-4,right:-4,width:8,height:8,borderRadius:'50%',background:'var(--c1)'}}/>}
+                {'Filters'}
+                {hasActiveFilter&&<span style={{position:'absolute',top:-4,right:-4,width:8,height:8,borderRadius:'50%',background:'var(--c1)'}}/>}
               </button>
             </div>
             {/* Expanded filter panel */}
