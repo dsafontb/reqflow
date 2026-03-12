@@ -1401,7 +1401,13 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
             <div style={{fontSize:13,fontWeight:700,color:'var(--c3)',marginBottom:12}}>Plan Verification Activity</div>
             <div className="form-group">
               <label className="form-label">Forecast Date *</label>
-              <div style={{display:"flex",gap:6}}><input className="form-input" type="date" value={planForm.planned_date} onChange={e=>setPlanForm(f=>({...f,planned_date:e.target.value}))} autoFocus style={{flex:1}}/><input className="form-input" type="text" placeholder="dd/mm/yyyy" value={planForm.planned_date?new Date(planForm.planned_date+'T12:00:00').toLocaleDateString('es-ES'):'' } onChange={e=>{const p=e.target.value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);if(p)setPlanForm(f=>({...f,planned_date:`${p[3]}-${p[2]}-${p[1]}`}));}} style={{width:110}} maxLength={10}/></div>
+              <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                <input className='form-input' type='date' value={planForm.planned_date} onChange={e=>setPlanForm(f=>({...f,planned_date:e.target.value}))} autoFocus style={{flex:1}}/>
+                <input className='form-input' type='text' placeholder='dd/mm/yyyy' style={{width:110}} maxLength={10}
+                  value={planForm.planned_date ? new Date(planForm.planned_date+'T12:00:00').toLocaleDateString('es-ES') : ''}
+                  onChange={e=>{const pts=e.target.value.split('/');if(pts.length===3&&pts[2].length===4)setPlanForm(f=>({...f,planned_date:pts[2]+'-'+pts[1]+'-'+pts[0]}));}}
+                />
+              </div>
             </div>
             <div style={{display:'flex',gap:8}}>
               <button className="btn btn-warn btn-sm" onClick={savePlan} disabled={saving||!planForm.planned_date}>{saving?'Saving...':'Save'}</button>
@@ -1416,7 +1422,13 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
             <div style={{fontSize:13,fontWeight:700,color:'var(--c2)',marginBottom:12}}>Mark Activity as Finished</div>
             <div className="form-group">
               <label className="form-label">Actual Completion Date</label>
-              <div style={{display:"flex",gap:6}}><input className="form-input" type="date" value={finishForm.actual_date} onChange={e=>setFinishForm(f=>({...f,actual_date:e.target.value}))} autoFocus style={{flex:1}}/><input className="form-input" type="text" placeholder="dd/mm/yyyy" value={finishForm.actual_date?new Date(finishForm.actual_date+'T12:00:00').toLocaleDateString('es-ES'):'' } onChange={e=>{const p=e.target.value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);if(p)setFinishForm(f=>({...f,actual_date:`${p[3]}-${p[2]}-${p[1]}`}));}} style={{width:110}} maxLength={10}/></div>
+              <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                <input className='form-input' type='date' value={finishForm.actual_date} onChange={e=>setFinishForm(f=>({...f,actual_date:e.target.value}))} autoFocus style={{flex:1}}/>
+                <input className='form-input' type='text' placeholder='dd/mm/yyyy' style={{width:110}} maxLength={10}
+                  value={finishForm.actual_date ? new Date(finishForm.actual_date+'T12:00:00').toLocaleDateString('es-ES') : ''}
+                  onChange={e=>{const pts=e.target.value.split('/');if(pts.length===3&&pts[2].length===4)setFinishForm(f=>({...f,actual_date:pts[2]+'-'+pts[1]+'-'+pts[0]}));}}
+                />
+              </div>
             </div>
             <div style={{display:'flex',gap:8}}>
               <button className="btn btn-success btn-sm" onClick={saveFinish} disabled={saving}>{saving?'Saving...':'Mark Finished'}</button>
