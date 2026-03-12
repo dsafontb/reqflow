@@ -6,6 +6,7 @@
 <title>ReqFlow</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -194,6 +195,7 @@ const SIL_CLR  = {'SIL 4':'#ff6b35','SIL 3':'#ff6b35','SIL 2':'#ffd166','SIL 1':
 const VS       = ['Not Started','In Progress','Verified','Failed'];
 const VS_CLR   = {'Not Started':{bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},'In Progress':{bg:'rgba(255,209,102,.12)',text:'#ffd166',bd:'rgba(255,209,102,.25)'},'Verified':{bg:'rgba(127,255,107,.12)',text:'#7fff6b',bd:'rgba(127,255,107,.25)'},'Failed':{bg:'rgba(255,107,53,.12)',text:'#ff6b35',bd:'rgba(255,107,53,.25)'}};
 const VERIFY   = ['Test','Analysis','Inspection','Demonstration'];
+const REQ_TYPES = ['Functional','Performance','Interface','Safety','Reliability','Maintainability','Physical','Environmental','Operational'];
 const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
 const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
 const SAFECAT  = ['Quality','Functional Safety','Security','Dependability','RAMS'];
@@ -636,6 +638,40 @@ function ProjectView({project,onBack}) {
 
   useEffect(()=>{load();},[load]);
 
+  async function exportExcel() {
+    // Fetch all requirements for this project (unfiltered)
+    const {data:rows} = await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
+    if(!rows||!rows.length){alert('No requirements to export.');return;}
+    const exportRows = rows.map(r=>({
+      'ID':               r.req_id||'',
+      'Title':            r.title||'',
+      'Description':      r.description||'',
+      'Level':            r.level||'',
+      'Status':           r.status||'',
+      'Type':             r.requirement_type||'',
+      'Owner':            r.owner||'',
+      'Stakeholder':      r.stakeholder||'',
+      'Verification Method': r.verification_method||'',
+      'Verification Status': r.verification_status||'',
+      'Safety Class':     r.safety_class||'',
+      'SIL Level':        r.sil_level||'',
+      'Safety Category':  r.safety_category||'',
+      'Standards':        (r.regulatory_body||[]).join(', '),
+      'Project Phase':    r.project_phase||'',
+      'Source Document':  r.source_document||'',
+      'Rationale':        r.rationale||'',
+      'Created':          r.created_at?new Date(r.created_at).toLocaleDateString('es-ES'):'',
+      'Updated':          r.updated_at?new Date(r.updated_at).toLocaleDateString('es-ES'):'',
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    // Auto-width columns
+    const colWidths = Object.keys(exportRows[0]).map(k=>({wch:Math.max(k.length,Math.min(60,Math.max(...exportRows.map(r=>String(r[k]||'').length))))+2}));
+    ws['!cols'] = colWidths;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Requirements');
+    XLSX.writeFile(wb,`${project.name.replace(/[^a-z0-9]/gi,'_')}_requirements.xlsx`);
+  }
+
   function buildTree(flat) {
     const map={};flat.forEach(r=>map[r.id]={...r,children:[]});
     const roots=[];
@@ -645,11 +681,16 @@ function ProjectView({project,onBack}) {
 
   const enrichReq = r => ({...r, myProjectRole});
   const enrichedSelected = selected ? enrichReq(reqs.find(r=>r.id===selected.id)||selected) : null;
+  const hasActiveFilter = search||lvlF!=='All'||stF!=='All'||typeF!=='All'||silF!=='All'||verF!=='All'||ownerF;
   const filtered=reqs.filter(r=>{
-    const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase());
+    const ms=!search||r.title.toLowerCase().includes(search.toLowerCase())||r.req_id.toLowerCase().includes(search.toLowerCase())||r.description?.toLowerCase().includes(search.toLowerCase());
     const ml=lvlF==='All'||r.level===lvlF;
     const mst=stF==='All'||r.status===stF;
-    return ms&&ml&&mst;
+    const mtype=typeF==='All'||r.requirement_type===typeF;
+    const msil=silF==='All'||r.sil_level===silF;
+    const mver=verF==='All'||r.verification_method===verF;
+    const mown=!ownerF||(r.owner||'').toLowerCase().includes(ownerF.toLowerCase())||(r.stakeholder||'').toLowerCase().includes(ownerF.toLowerCase());
+    return ms&&ml&&mst&&mtype&&msil&&mver&&mown;
   });
   const tree=buildTree(filtered);
 
@@ -684,25 +725,67 @@ function ProjectView({project,onBack}) {
           </div>
           {/* Search/filter */}
           <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center'}}>
-            <div style={{position:'relative',flex:1}}>
-              <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
-              <input className="form-input" style={{paddingLeft:30}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
+            {/* Search + filter toggle row */}
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              <div style={{position:'relative',flex:1}}>
+                <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
+                <input className="form-input" style={{paddingLeft:30}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
+              </div>
+              <button className={`btn btn-sm ${showFilters?'btn-primary':'btn-ghost'}`} onClick={()=>setShowFilters(f=>!f)} style={{flexShrink:0,position:'relative'}}>
+                Filters{hasActiveFilter&&stF==='All'&&lvlF==='All'?'':''}{(typeF!=='All'||silF!=='All'||verF!=='All'||ownerF)&&<span style={{position:'absolute',top:-4,right:-4,width:8,height:8,borderRadius:'50%',background:'var(--c1)'}}/>}
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={exportExcel} title="Export to Excel" style={{flexShrink:0}}>
+                ↓ Excel
+              </button>
             </div>
-            <select className="form-select" style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
-              <option value="All">All Levels</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
-            </select>
-            <select className="form-select" style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
-              <option value="All">All Statuses</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
-            </select>
-          </div>
+            {/* Expanded filter panel */}
+            {showFilters&&(
+              <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:9,padding:'10px 12px',display:'flex',gap:8,flexWrap:'wrap',alignItems:'flex-end'}}>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Level</div>
+                  <select className="form-select" style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
+                    <option value="All">All</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Status</div>
+                  <select className="form-select" style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
+                    <option value="All">All</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Type</div>
+                  <select className="form-select" style={{width:'auto'}} value={typeF} onChange={e=>setTypeF(e.target.value)}>
+                    <option value="All">All</option>{REQ_TYPES.map(t=><option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>SIL Level</div>
+                  <select className="form-select" style={{width:'auto'}} value={silF} onChange={e=>setSilF(e.target.value)}>
+                    <option value="All">All</option>{['SIL 0','SIL 1','SIL 2','SIL 3','SIL 4','N/A'].map(s=><option key={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Verification</div>
+                  <select className="form-select" style={{width:'auto'}} value={verF} onChange={e=>setVerF(e.target.value)}>
+                    <option value="All">All</option>{VERIFY.map(v=><option key={v}>{v}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Owner / Stakeholder</div>
+                  <input className="form-input" style={{width:140}} placeholder="Search…" value={ownerF} onChange={e=>setOwnerF(e.target.value)}/>
+                </div>
+                {hasActiveFilter&&<button className="btn btn-ghost btn-sm" onClick={()=>{setSearch('');setLvlF('All');setStF('All');setTypeF('All');setSilF('All');setVerF('All');setOwnerF('');}}>Clear all</button>}
+              </div>
+            )}
           {/* Tree */}
           <div style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
             {loading&&<div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>}
             {!loading&&tree.length===0&&(
               <div className="empty">
                 <div className="empty-icon">📋</div>
-                <h3>{search||lvlF!=='All'||stF!=='All'?'No results':'No requirements yet'}</h3>
-                {canEdit&&!search&&lvlF==='All'&&stF==='All'&&<button className="btn btn-primary" onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
+                <h3>{hasActiveFilter?'No results':'No requirements yet'}</h3>
+                {canEdit&&!hasActiveFilter&&<button className="btn btn-primary" onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
               </div>
             )}
             {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={r=>setSelected(s=>s?.id===r.id?null:r)} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
@@ -772,6 +855,21 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const parent=req.parent_id?allReqs.find(r=>r.id===req.parent_id):null;
   const children=allReqs.filter(r=>r.parent_id===req.id);
 
+  const [versions,setVersions]=useState([]);
+  const [versionProfiles,setVersionProfiles]=useState({});
+
+  async function loadVersions(){
+    const {data}=await db.from('requirement_versions').select('*').eq('requirement_id',req.id).order('version',{ascending:false});
+    if(data){
+      setVersions(data);
+      const ids=[...new Set(data.map(v=>v.approved_by).filter(Boolean))];
+      if(ids.length){
+        const {data:ps}=await db.from('profiles').select('id,full_name').in('id',ids);
+        if(ps){const m={};ps.forEach(p=>m[p.id]=p);setVersionProfiles(m);}
+      }
+    }
+  }
+
   async function loadComments() {
     const {data}=await db.from('comments').select('*').eq('requirement_id',req.id).order('created_at');
     if(data)setComments(data);
@@ -795,7 +893,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     const ids=[...new Set((data||[]).map(e=>e.added_by).filter(Boolean))];
     if(ids.length){const {data:pp}=await db.from('profiles').select('*').in('id',ids);const m={};pp?.forEach(p=>m[p.id]=p);setEvProfiles(m);}
   }
-  useEffect(()=>{loadComments();loadAssignments();loadEvidence();},[req.id]);
+  useEffect(()=>{loadComments();loadAssignments();loadEvidence();loadVersions();},[req.id]);
 
   const pr = req.myProjectRole||'Designer';
   const isAdmin = profile?.role==='Admin';
@@ -819,6 +917,13 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     if(action==='RequestChanges') newStatus='Changes Requested';
     if(action==='Submit') newStatus='In Review';
     if(newStatus!==req.status) {
+      // Snapshot version on Approve
+      if(action==='Approve') {
+        const {data:vers} = await db.from('requirement_versions').select('version').eq('requirement_id',req.id).order('version',{ascending:false}).limit(1);
+        const nextVer = vers&&vers.length>0 ? vers[0].version+1 : 1;
+        const snap={requirement_id:req.id,version:nextVer,req_id:req.req_id,title:req.title,description:req.description,level:req.level,status:'Approved',owner:req.owner,stakeholder:req.stakeholder,requirement_type:req.requirement_type,verification_method:req.verification_method,safety_class:req.safety_class,sil_level:req.sil_level,safety_category:req.safety_category,regulatory_body:req.regulatory_body,project_phase:req.project_phase,source_document:req.source_document,rationale:req.rationale,approved_by:profile.id,approved_at:new Date().toISOString()};
+        await db.from('requirement_versions').insert([snap]);
+      }
       await db.from('requirements').update({status:newStatus}).eq('id',req.id);
       // Notify relevant people
       if(action==='Submit') {
@@ -856,7 +961,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
   const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
 
-  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`}];
+  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`},{id:'history',label:'History'}];
 
   return (
     <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
@@ -894,7 +999,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           </div>
           {req.rationale&&<div style={{marginBottom:16}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:4}}>Rationale</div><div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6}}>{req.rationale}</div></div>}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px 14px',marginBottom:16}}>
-            {[['Owner',req.owner],['Verification',req.verification_method],['Phase',req.project_phase],['Safety Class',req.safety_class!=='None'?req.safety_class:null],['Source',req.source_document]].map(([l,v])=>v?(
+            {[['Owner',req.owner],['Stakeholder',req.stakeholder],['Type',req.requirement_type],['Verification',req.verification_method],['Phase',req.project_phase],['Safety Class',req.safety_class!=='None'?req.safety_class:null],['Source',req.source_document]].map(([l,v])=>v?(
               <div key={l} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>{l}</div><div style={{fontSize:13}}>{v}</div></div>
             ):null)}
           </div>
@@ -1022,7 +1127,38 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
               <IMsg s={12}/> Add Comment
             </button>
           </div>}
-        </>}
+        </>
+
+        {tab==='history'&&(
+          <div>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:12}}>Version History</div>
+            {versions.length===0&&<div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic'}}>No approved versions yet. Versions are created each time a requirement is approved.</div>}
+            {versions.map(v=>{
+              const approver=versionProfiles[v.approved_by];
+              return(
+                <div key={v.id} style={{background:'var(--raised)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10,flexWrap:'wrap'}}>
+                    <span style={{fontFamily:'var(--mono)',fontSize:13,fontWeight:800,color:'var(--c1)'}}>v{v.version}.0</span>
+                    <span style={{fontFamily:'var(--mono)',fontSize:11,padding:'2px 8px',borderRadius:4,background:'rgba(127,255,107,.1)',color:'var(--c2)',border:'1px solid rgba(127,255,107,.2)'}}>Approved</span>
+                    <span style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',marginLeft:'auto'}}>
+                      {approver?.full_name||'Unknown'} — {new Date(v.approved_at).toLocaleString('es-ES',{timeZone:'Europe/Madrid',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+                    </span>
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px 16px',fontSize:12}}>
+                    {[['ID',v.req_id],['Title',v.title],['Level',v.level],['Type',v.requirement_type],['Owner',v.owner],['Stakeholder',v.stakeholder],['Verification',v.verification_method],['SIL',v.sil_level],['Safety Class',v.safety_class],['Phase',v.project_phase]].map(([label,val])=>val?(
+                      <div key={label} style={{display:'flex',gap:6}}>
+                        <span style={{color:'var(--text3)',minWidth:80,flexShrink:0}}>{label}:</span>
+                        <span style={{color:'var(--text)',fontWeight:500}}>{val}</span>
+                      </div>
+                    ):null)}
+                  </div>
+                  {v.description&&<div style={{marginTop:8,fontSize:12,color:'var(--text2)',borderTop:'1px solid var(--border)',paddingTop:8,lineHeight:1.6}}>{v.description}</div>}
+                  {v.rationale&&<div style={{marginTop:6,fontSize:12,color:'var(--text3)',fontStyle:'italic'}}><strong>Rationale:</strong> {v.rationale}</div>}
+                </div>
+              );
+            })}
+          </div>
+        )}}
 
       </div>
     </div>
@@ -1454,7 +1590,7 @@ function MembersModal({projectId, onClose}) {
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
   const isLocked = isEdit && ['Approved','Verified'].includes(req?.status);
-  const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
+  const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',stakeholder:'',requirement_type:'Functional',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
   const [form,setForm]=useState(init);
   const [tab,setTab]=useState('basic');
   const [saving,setSaving]=useState(false);
@@ -1512,6 +1648,10 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
             <div className="form-row">
               <div className="form-group"><label className="form-label">Parent</label><select className="form-select" value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value="">— None —</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,34)}</option>)}</select></div>
               <div className="form-group"><label className="form-label">Owner</label><input className="form-input" value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder="Name or role" disabled={isLocked}/></div>
+            </div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Stakeholder</label><input className="form-input" value={form.stakeholder} onChange={e=>set('stakeholder',e.target.value)} placeholder="e.g. Operations, Safety Authority" disabled={isLocked}/></div>
+              <div className="form-group"><label className="form-label">Requirement Type</label><select className="form-select" value={form.requirement_type} onChange={e=>set('requirement_type',e.target.value)} disabled={isLocked}>{REQ_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
             </div>
             <div className="form-group"><label className="form-label">Rationale</label><textarea className="form-textarea" value={form.rationale} onChange={e=>set('rationale',e.target.value)} disabled={isLocked}/></div>
           </>}
