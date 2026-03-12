@@ -27,7 +27,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* -- TOPBAR -- */
+/* ── TOPBAR ── */
 .topbar{display:flex;align-items:center;gap:12px;padding:0 20px;height:54px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
 .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--c1),var(--c5));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:700;color:#000;flex-shrink:0}
 .topbar-title{font-weight:700;font-size:15px}
@@ -35,7 +35,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .topbar-sub{color:var(--text2);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
 .topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
 
-/* -- BUTTONS -- */
+/* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid transparent;white-space:nowrap;line-height:1}
 .btn-primary{background:var(--c1);color:#000;border-color:var(--c1)}
 .btn-primary:hover{background:#33ddff}
@@ -52,13 +52,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .btn-sm{padding:5px 10px;font-size:12px}
 .btn-icon{padding:6px}
 
-/* -- BADGE -- */
+/* ── BADGE ── */
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
 
-/* -- CARD -- */
+/* ── CARD ── */
 .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--rl);padding:20px}
 
-/* -- FORMS -- */
+/* ── FORMS ── */
 .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
 .form-group:last-child{margin-bottom:0}
 .form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
@@ -69,7 +69,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .form-select option{background:var(--panel)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 
-/* -- MODAL -- */
+/* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(4px);animation:fadeIn .15s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal{background:var(--panel);border:1px solid var(--border2);border-radius:var(--rl);width:100%;max-width:620px;max-height:90vh;overflow-y:auto;animation:slideUp .2s ease}
@@ -80,7 +80,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .modal-body{padding:22px}
 .modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--panel)}
 
-/* -- MISC -- */
+/* ── MISC ── */
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:60px 20px;text-align:center}
 .empty-icon{font-size:36px;opacity:.25}
 .empty h3{font-size:15px;font-weight:600;color:var(--text2)}
@@ -93,7 +93,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .err{color:var(--c4);font-size:13px;margin-bottom:14px;padding:8px 12px;background:rgba(255,107,53,.08);border-radius:8px}
 .divider{height:1px;background:var(--border);margin:16px 0}
 
-/* -- AUTH SCREEN -- */
+/* ── AUTH SCREEN ── */
 .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .auth-card{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:400px}
 .auth-logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--c1),var(--c5));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:18px;font-weight:700;color:#000;margin:0 auto 20px}
@@ -102,10 +102,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .auth-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--text2)}
 .auth-switch button{background:none;border:none;color:var(--c1);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600}
 
-/* -- ROLE BADGE -- */
+/* ── ROLE BADGE ── */
 .role-badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px}
 
-/* -- NOTIFICATION BELL -- */
+/* ── NOTIFICATION BELL ── */
 .notif-wrap{position:relative}
 .notif-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--c4);border:2px solid var(--surface)}
 .notif-panel{position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--panel);border:1px solid var(--border2);border-radius:var(--rl);z-index:300;overflow:hidden;animation:slideUp .15s ease}
@@ -118,7 +118,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .notif-item .ni-time{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px}
 .notif-empty{padding:24px;text-align:center;color:var(--text3);font-size:13px}
 
-/* -- USER MENU -- */
+/* ── USER MENU ── */
 .user-menu-wrap{position:relative}
 .user-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;color:#000;cursor:pointer;flex-shrink:0;border:2px solid transparent;transition:border-color .2s}
 .user-avatar:hover{border-color:var(--c1)}
@@ -130,7 +130,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .ud-name .name{font-weight:700;font-size:14px}
 .ud-name .role{font-size:11px;color:var(--text3);font-family:var(--mono)}
 
-/* -- WORKFLOW STATUS -- */
+/* ── WORKFLOW STATUS ── */
 .wf-bar{display:flex;align-items:center;gap:0;margin:16px 0}
 .wf-step{display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--raised)}
 .wf-step:first-child{border-radius:8px 0 0 8px}
@@ -140,7 +140,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .wf-step.rejected{background:rgba(255,107,53,.08);border-color:rgba(255,107,53,.2);color:var(--c4)}
 .wf-arrow{color:var(--text3);font-size:11px;margin:0 -1px;z-index:1}
 
-/* -- COMMENT THREAD -- */
+/* ── COMMENT THREAD ── */
 .comment{display:flex;gap:10px;margin-bottom:12px}
 .comment-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px}
 .comment-body{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:10px 13px}
@@ -152,14 +152,14 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .action-reject{border-color:rgba(255,107,53,.3)!important;background:rgba(255,107,53,.05)!important}
 .action-changes{border-color:rgba(255,209,102,.3)!important;background:rgba(255,209,102,.05)!important}
 
-/* -- ADMIN PANEL -- */
+/* ── ADMIN PANEL ── */
 .admin-table{width:100%;border-collapse:collapse}
 .admin-table th{text-align:left;padding:10px 14px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
 .admin-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
 .admin-table tr:last-child td{border-bottom:none}
 .admin-table tr:hover td{background:rgba(255,255,255,.02)}
 
-/* -- QUEUE -- */
+/* ── QUEUE ── */
 .queue-item{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;cursor:pointer;transition:all .2s}
 .queue-item:hover{border-color:var(--border2);transform:translateY(-1px)}
 .queue-item .qi-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
@@ -171,15 +171,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-presets="react,env">
+<script type="text/babel">
 const {useState,useEffect,useCallback,useRef} = React;
 
-// -- CONFIG --------------------------------------------------------------------
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://zozoihjcbmtadzlwpzoz.supabase.co';
 const SUPA_KEY = 'sb_publishable_QMOQAPb1nG4Zl22oPcRYVg_lZ2m_LQH';
 const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// -- CONSTANTS -----------------------------------------------------------------
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const LEVELS   = ['Stakeholder','System','Subsystem','Component','Verification'];
 const PREFIXES = {Stakeholder:'STK',System:'SYS',Subsystem:'SUB',Component:'CMP',Verification:'VER'};
 const LEVEL_CLR= {Stakeholder:'#00d4ff',System:'#7fff6b',Subsystem:'#ffd166',Component:'#ff6b35',Verification:'#c77dff'};
@@ -206,35 +206,35 @@ const PROJECT_ROLES = ['Designer','Reviewer','Approver','Verifier','Admin'];
 const ROLE_CLR = {Unassigned:'#64748b',Designer:'#00d4ff',Reviewer:'#ffd166',Approver:'#7fff6b',Verifier:'#c77dff',Admin:'#ff6b35'};
 const PHASE_CLR= {Concept:'#00d4ff',Development:'#ffd166',Qualification:'#ff6b35',Production:'#7fff6b'};
 
-// -- ICONS ---------------------------------------------------------------------
+// ── ICONS ─────────────────────────────────────────────────────────────────────
 const Ic = ({d,s=14,c='currentColor'}) => (
-  <svg width={s} height={s} viewBox={'0 0 24 24'} fill={'none'} stroke={c} strokeWidth={'2'} strokeLinecap={'round'} strokeLinejoin={'round'}>
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d={d}/>
   </svg>
 );
-const IPlus   = ({s}) => <Ic s={s} d={'M12 5v14M5 12h14'}/>;
-const IBack   = ({s}) => <Ic s={s} d={'M19 12H5M12 19l-7-7 7-7'}/>;
-const IX      = ({s}) => <Ic s={s} d={'M18 6L6 18M6 6l12 12'}/>;
-const IEdit   = ({s}) => <Ic s={s} d={'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z'}/>;
-const ITrash  = ({s}) => <Ic s={s} d={'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6'}/>;
-const IChevR  = ({s}) => <Ic s={s} d={'M9 18l6-6-6-6'}/>;
-const IChevD  = ({s}) => <Ic s={s} d={'M6 9l6 6 6-6'}/>;
-const ISearch = ({s}) => <Ic s={s} d={'M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z'}/>;
-const IFolder = ({s}) => <Ic s={s} d={'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z'}/>;
-const IBell   = ({s}) => <Ic s={s} d={'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0'}/>;
-const ICheck  = ({s}) => <Ic s={s} d={'M20 6L9 17l-5-5'}/>;
-const IMsg    = ({s}) => <Ic s={s} d={'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'}/>;
-const IUsers  = ({s}) => <Ic s={s} d={'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75'}/>;
-const IShield = ({s}) => <Ic s={s} d={'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'}/>;
-const IList   = ({s}) => <Ic s={s} d={'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01'}/>;
+const IPlus   = ({s}) => <Ic s={s} d="M12 5v14M5 12h14"/>;
+const IBack   = ({s}) => <Ic s={s} d="M19 12H5M12 19l-7-7 7-7"/>;
+const IX      = ({s}) => <Ic s={s} d="M18 6L6 18M6 6l12 12"/>;
+const IEdit   = ({s}) => <Ic s={s} d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>;
+const ITrash  = ({s}) => <Ic s={s} d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>;
+const IChevR  = ({s}) => <Ic s={s} d="M9 18l6-6-6-6"/>;
+const IChevD  = ({s}) => <Ic s={s} d="M6 9l6 6 6-6"/>;
+const ISearch = ({s}) => <Ic s={s} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>;
+const IFolder = ({s}) => <Ic s={s} d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>;
+const IBell   = ({s}) => <Ic s={s} d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>;
+const ICheck  = ({s}) => <Ic s={s} d="M20 6L9 17l-5-5"/>;
+const IMsg    = ({s}) => <Ic s={s} d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>;
+const IUsers  = ({s}) => <Ic s={s} d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>;
+const IShield = ({s}) => <Ic s={s} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>;
+const IList   = ({s}) => <Ic s={s} d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>;
 
-// -- HELPERS -------------------------------------------------------------------
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function Badge({children,bg,color,bd}) {
-  return <span className={'badge'} style={{background:bg,color,border:`1px solid ${bd}`}}>{children}</span>;
+  return <span className="badge" style={{background:bg,color,border:`1px solid ${bd}`}}>{children}</span>;
 }
 function RoleBadge({role}) {
   const c = ROLE_CLR[role]||'#64748b';
-  return <span className={'role-badge'} style={{background:`${c}18`,color:c,border:`1px solid ${c}33`}}>{role}</span>;
+  return <span className="role-badge" style={{background:`${c}18`,color:c,border:`1px solid ${c}33`}}>{role}</span>;
 }
 function initials(name) {
   if (!name) return '?';
@@ -250,7 +250,7 @@ function timeAgo(ts) {
   return new Date(ts).toLocaleString('es-ES', {timeZone:'Europe/Madrid',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
-// -- APP ROOT ------------------------------------------------------------------
+// ── APP ROOT ──────────────────────────────────────────────────────────────────
 function App() {
   const [session, setSession] = useState(undefined);
   const [profile, setProfile] = useState(null);
@@ -286,9 +286,9 @@ function App() {
     if (session) loadNotifications();
   }, [session]);
 
-  if (session === undefined) return <Splash text={'Loading...'}/>;
+  if (session === undefined) return <Splash text="Loading…"/>;
   if (!session) return <AuthScreen/>;
-  if (!profile) return <Splash text={'Loading profile...'}/>;
+  if (!profile) return <Splash text="Loading profile…"/>;
   // Unassigned users get read-only access;
 
   return (
@@ -302,13 +302,13 @@ function App() {
   );
 }
 
-// -- WAITING SCREEN ------------------------------------------------------------------------------
+// ── WAITING SCREEN ──────────────────────────────────────────────────────────────────────────────
 function WaitingScreen({profile}) {
   async function signOut() { await db.auth.signOut(); }
   return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
       <div style={{background:'var(--panel)',border:'1px solid var(--border)',borderRadius:20,padding:40,width:'100%',maxWidth:420,textAlign:'center'}}>
-        <div style={{fontSize:48,marginBottom:16}}></div>
+        <div style={{fontSize:48,marginBottom:16}}>⏳</div>
         <h1 style={{fontSize:22,fontWeight:800,marginBottom:8}}>Waiting for access</h1>
         <p style={{color:'var(--text2)',fontSize:14,lineHeight:1.7,marginBottom:24}}>
           Your account <strong style={{color:'var(--text)'}}>{profile.full_name}</strong> has been created successfully.<br/>
@@ -317,7 +317,7 @@ function WaitingScreen({profile}) {
         <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'12px 16px',marginBottom:24,fontSize:13,color:'var(--text2)'}}>
           Ask your Admin to go to <strong style={{color:'var(--text)'}}>Users</strong> and assign you a role.
         </div>
-        <button className={'btn btn-ghost'} style={{width:'100%',justifyContent:'center'}} onClick={signOut}>Sign Out</button>
+        <button className="btn btn-ghost" style={{width:'100%',justifyContent:'center'}} onClick={signOut}>Sign Out</button>
       </div>
     </div>
   );
@@ -326,18 +326,18 @@ function WaitingScreen({profile}) {
 const AppContext = React.createContext(null);
 const useApp = () => React.useContext(AppContext);
 
-// -- SPLASH --------------------------------------------------------------------
+// ── SPLASH ────────────────────────────────────────────────────────────────────
 function Splash({text}) {
   return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:14}}>
-      <div className={'logo'} style={{width:56,height:56,fontSize:18,animation:'pulse 1.5s ease-in-out infinite'}}>RF</div>
+      <div className="logo" style={{width:56,height:56,fontSize:18,animation:'pulse 1.5s ease-in-out infinite'}}>RF</div>
       <div style={{fontFamily:'var(--mono)',fontSize:12,color:'var(--text3)'}}>{text}</div>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
     </div>
   );
 }
 
-// -- AUTH SCREEN ---------------------------------------------------------------
+// ── AUTH SCREEN ───────────────────────────────────────────────────────────────
 function AuthScreen() {
   const [mode, setMode]     = useState('login');
   const [email, setEmail]   = useState('');
@@ -363,31 +363,31 @@ function AuthScreen() {
   function onKey(e) { if (e.key==='Enter') submit(); }
 
   return (
-    <div className={'auth-wrap'}>
-      <div className={'auth-card'}>
-        <div className={'auth-logo'}>RF</div>
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-logo">RF</div>
         <h1>ReqFlow</h1>
-        <div className={'auth-sub'}>{mode==='login'?'Sign in to continue':'Create your account'}</div>
-        {err && <div className={'err'}>{err}</div>}
+        <div className="auth-sub">{mode==='login'?'Sign in to continue':'Create your account'}</div>
+        {err && <div className="err">{err}</div>}
         {msg && <div style={{color:'var(--c2)',fontSize:13,marginBottom:14,padding:'8px 12px',background:'rgba(127,255,107,.08)',borderRadius:8}}>{msg}</div>}
         {mode==='register' && (
-          <div className={'form-group'}>
-            <label className={'form-label'}>Full Name</label>
-            <input className={'form-input'} placeholder={'Your name'} value={name} onChange={e=>setName(e.target.value)} onKeyDown={onKey}/>
+          <div className="form-group">
+            <label className="form-label">Full Name</label>
+            <input className="form-input" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)} onKeyDown={onKey}/>
           </div>
         )}
-        <div className={'form-group'}>
-          <label className={'form-label'}>Email</label>
-          <input className={'form-input'} type={'email'} placeholder={'you@company.com'} value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={onKey}/>
+        <div className="form-group">
+          <label className="form-label">Email</label>
+          <input className="form-input" type="email" placeholder="you@company.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={onKey}/>
         </div>
-        <div className={'form-group'}>
-          <label className={'form-label'}>Password</label>
-          <input className={'form-input'} type={'password'} placeholder={'********'} value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={onKey}/>
+        <div className="form-group">
+          <label className="form-label">Password</label>
+          <input className="form-input" type="password" placeholder="••••••••" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={onKey}/>
         </div>
-        <button className={'btn btn-primary'} style={{width:'100%',justifyContent:'center',marginTop:8}} onClick={submit} disabled={loading}>
-          {loading?'Please wait...':mode==='login'?'Sign In':'Create Account'}
+        <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',marginTop:8}} onClick={submit} disabled={loading}>
+          {loading?'Please wait…':mode==='login'?'Sign In':'Create Account'}
         </button>
-        <div className={'auth-switch'}>
+        <div className="auth-switch">
           {mode==='login'?<>No account? <button onClick={()=>{setMode('register');setErr('')}}>Register</button></>
                          :<>Have an account? <button onClick={()=>{setMode('login');setErr('')}}>Sign In</button></>}
         </div>
@@ -396,7 +396,7 @@ function AuthScreen() {
   );
 }
 
-// -- TOPBAR COMPONENT ----------------------------------------------------------
+// ── TOPBAR COMPONENT ──────────────────────────────────────────────────────────
 function Topbar({title, sub, actions, children}) {
   const {profile, notifications, loadNotifications} = useApp();
   const [showNotif, setShowNotif] = useState(false);
@@ -424,48 +424,48 @@ function Topbar({title, sub, actions, children}) {
   const ac = avatarColor(profile?.full_name);
 
   return (
-    <div className={'topbar'}>
-      <div className={'logo'}>RF</div>
-      <div className={'topbar-title'}>{title||'ReqFlow'}</div>
-      {sub && <><div className={'topbar-sep'}>.</div><div className={'topbar-sub'}>{sub}</div></>}
-      <div className={'topbar-actions'}>
+    <div className="topbar">
+      <div className="logo">RF</div>
+      <div className="topbar-title">{title||'ReqFlow'}</div>
+      {sub && <><div className="topbar-sep">·</div><div className="topbar-sub">{sub}</div></>}
+      <div className="topbar-actions">
         {actions}
         {children}
         {/* Notification bell */}
-        <div className={'notif-wrap'} ref={notifRef}>
-          <button className={'btn btn-ghost btn-icon'} onClick={()=>{setShowNotif(v=>!v);setShowUser(false);loadNotifications()}}>
+        <div className="notif-wrap" ref={notifRef}>
+          <button className="btn btn-ghost btn-icon" onClick={()=>{setShowNotif(v=>!v);setShowUser(false);loadNotifications()}}>
             <IBell s={15}/>
           </button>
-          {unread>0 && <div className={'notif-dot'}/>}
+          {unread>0 && <div className="notif-dot"/>}
           {showNotif && (
-            <div className={'notif-panel'}>
-              <div className={'notif-head'}>
+            <div className="notif-panel">
+              <div className="notif-head">
                 <span>Notifications {unread>0&&<span style={{color:'var(--c4)',fontFamily:'var(--mono)',fontSize:11}}>({unread})</span>}</span>
-                {unread>0 && <button className={'btn btn-ghost btn-sm'} onClick={markAllRead}>Mark all read</button>}
+                {unread>0 && <button className="btn btn-ghost btn-sm" onClick={markAllRead}>Mark all read</button>}
               </div>
-              {notifications.length===0 && <div className={'notif-empty'}>No notifications yet</div>}
+              {notifications.length===0 && <div className="notif-empty">No notifications yet</div>}
               {notifications.map(n=>(
                 <div key={n.id} className={`notif-item ${n.read?'':'unread'}`} onClick={async()=>{await db.from('notifications').update({read:true}).eq('id',n.id);loadNotifications();setShowNotif(false)}}>
-                  <div className={'ni-title'}>{n.title}</div>
-                  <div className={'ni-body'}>{n.body}</div>
-                  <div className={'ni-time'}>{timeAgo(n.created_at)}</div>
+                  <div className="ni-title">{n.title}</div>
+                  <div className="ni-body">{n.body}</div>
+                  <div className="ni-time">{timeAgo(n.created_at)}</div>
                 </div>
               ))}
             </div>
           )}
         </div>
         {/* User avatar */}
-        <div className={'user-menu-wrap'} ref={userRef}>
-          <div className={'user-avatar'} style={{background:ac}} onClick={()=>{setShowUser(v=>!v);setShowNotif(false)}}>
+        <div className="user-menu-wrap" ref={userRef}>
+          <div className="user-avatar" style={{background:ac}} onClick={()=>{setShowUser(v=>!v);setShowNotif(false)}}>
             {initials(profile?.full_name)}
           </div>
           {showUser && (
-            <div className={'user-dropdown'}>
-              <div className={'ud-name'}>
-                <div className={'name'}>{profile?.full_name}</div>
-                <div className={'role'}><RoleBadge role={profile?.role}/></div>
+            <div className="user-dropdown">
+              <div className="ud-name">
+                <div className="name">{profile?.full_name}</div>
+                <div className="role"><RoleBadge role={profile?.role}/></div>
               </div>
-              <div className={'ud-item'} onClick={signOut}><IX s={13}/> Sign Out</div>
+              <div className="ud-item" onClick={signOut}><IX s={13}/> Sign Out</div>
             </div>
           )}
         </div>
@@ -474,7 +474,7 @@ function Topbar({title, sub, actions, children}) {
   );
 }
 
-// -- PROJECT LIST --------------------------------------------------------------
+// ── PROJECT LIST ──────────────────────────────────────────────────────────────
 function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
   const {profile, isReadOnly} = useApp();
   const [projects, setProjects] = useState([]);
@@ -529,10 +529,10 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
     <div style={{minHeight:'100vh'}}>
       <Topbar actions={
         <>
-          {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onQueue}><IList s={13}/> My Queue</button>}
-          {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onAdmin}><IUsers s={13}/> Users</button>}
-          {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onOptions}><IShield s={13}/> Options</button>}
-          {isAdmin && <button className={'btn btn-primary btn-sm'} onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
+          {!isReadOnly && <button className="btn btn-ghost btn-sm" onClick={onQueue}><IList s={13}/> My Queue</button>}
+          {isAdmin && <button className="btn btn-ghost btn-sm" onClick={onAdmin}><IUsers s={13}/> Users</button>}
+          {isAdmin && <button className="btn btn-ghost btn-sm" onClick={onOptions}><IShield s={13}/> Options</button>}
+          {isAdmin && <button className="btn btn-primary btn-sm" onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
           {isReadOnly && <span style={{fontFamily:'var(--mono)',fontSize:11,padding:'4px 10px',borderRadius:6,background:'rgba(100,116,139,.15)',color:'var(--text3)',border:'1px solid rgba(100,116,139,.25)'}}>READ ONLY</span>}
         </>
       }/>
@@ -541,13 +541,13 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
           <h1 style={{fontSize:24,fontWeight:800,marginBottom:4}}>Projects</h1>
           <p style={{color:'var(--text2)',fontSize:13}}>Select a project to manage its requirements</p>
         </div>
-        {loading && <div className={'empty'}><div className={'empty-icon'}></div><h3>Loading...</h3></div>}
+        {loading && <div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>}
         {!loading && projects.length===0 && (
-          <div className={'empty'}>
-            <div className={'empty-icon'}></div>
+          <div className="empty">
+            <div className="empty-icon">📂</div>
             <h3>{isAdmin ? 'No projects yet' : 'No projects assigned'}</h3>
             <p>{isAdmin ? '' : 'Ask an Admin to add you to a project'}</p>
-            {isAdmin && <button className={'btn btn-primary'} onClick={()=>setShowNew(true)}><IPlus s={13}/> Create Project</button>}
+            {isAdmin && <button className="btn btn-primary" onClick={()=>setShowNew(true)}><IPlus s={13}/> Create Project</button>}
           </div>
         )}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:14}}>
@@ -556,20 +556,20 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
             const myRole = myRoles[p.id];
             const rc = myRole ? (ROLE_CLR[myRole]||'#64748b') : null;
             return (
-              <div key={p.id} className={'card'} onClick={()=>onOpen({...p, myProjectRole: myRole||'Admin'})} style={{cursor:'pointer',transition:'all .2s'}}
+              <div key={p.id} className="card" onClick={()=>onOpen({...p, myProjectRole: myRole||'Admin'})} style={{cursor:'pointer',transition:'all .2s'}}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--border2)';e.currentTarget.style.transform='translateY(-2px)'}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='none'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                   <div style={{width:38,height:38,borderRadius:9,background:`${pc}18`,border:`1px solid ${pc}33`,display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <IFolder s={16}/>
                   </div>
-                  {isAdmin && !isReadOnly && <button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
+                  {isAdmin && !isReadOnly && <button className="btn btn-ghost btn-sm btn-icon" onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
                 </div>
                 <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
                 {p.description && <div style={{color:'var(--text2)',fontSize:12,marginBottom:10,lineHeight:1.5}}>{p.description.slice(0,80)}{p.description.length>80?'..':''}</div>}
                 <div style={{display:'flex',gap:7,flexWrap:'wrap',marginTop:8}}>
                   <Badge bg={`${pc}18`} color={pc} bd={`${pc}33`}>{p.phase}</Badge>
-                  <Badge bg={'var(--raised)'} color={'var(--text2)'} bd={'var(--border)'}>{counts[p.id]||0} reqs</Badge>
+                  <Badge bg="var(--raised)" color="var(--text2)" bd="var(--border)">{counts[p.id]||0} reqs</Badge>
                   {myRole && <Badge bg={`${rc}18`} color={rc} bd={`${rc}33`}>{myRole}</Badge>}
                 </div>
               </div>
@@ -596,25 +596,25 @@ function ProjectModal({onClose,onSaved}) {
     onSaved();
   }
   return (
-    <div className={'modal-overlay'} onClick={onClose}>
-      <div className={'modal'} onClick={e=>e.stopPropagation()}>
-        <div className={'modal-header'}><h2>New Project</h2><button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={15}/></button></div>
-        <div className={'modal-body'}>
-          {err&&<div className={'err'}>{err}</div>}
-          <div className={'form-group'}><label className={'form-label'}>Name *</label><input className={'form-input'} placeholder={'e.g. Brake Control Unit'} value={form.name} onChange={e=>set('name',e.target.value)} autoFocus/></div>
-          <div className={'form-group'}><label className={'form-label'}>Description</label><textarea className={'form-textarea'} value={form.description} onChange={e=>set('description',e.target.value)}/></div>
-          <div className={'form-group'}><label className={'form-label'}>Phase</label><select className={'form-select'} value={form.phase} onChange={e=>set('phase',e.target.value)}>{PHASES.map(p=><option key={p}>{p}</option>)}</select></div>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header"><h2>New Project</h2><button className="btn btn-ghost btn-icon" onClick={onClose}><IX s={15}/></button></div>
+        <div className="modal-body">
+          {err&&<div className="err">{err}</div>}
+          <div className="form-group"><label className="form-label">Name *</label><input className="form-input" placeholder="e.g. Brake Control Unit" value={form.name} onChange={e=>set('name',e.target.value)} autoFocus/></div>
+          <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={form.description} onChange={e=>set('description',e.target.value)}/></div>
+          <div className="form-group"><label className="form-label">Phase</label><select className="form-select" value={form.phase} onChange={e=>set('phase',e.target.value)}>{PHASES.map(p=><option key={p}>{p}</option>)}</select></div>
         </div>
-        <div className={'modal-footer'}>
-          <button className={'btn btn-ghost'} onClick={onClose}>Cancel</button>
-          <button className={'btn btn-primary'} onClick={save} disabled={saving}>{saving?'Creating...':'Create Project'}</button>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>{saving?'Creating…':'Create Project'}</button>
         </div>
       </div>
     </div>
   );
 }
 
-// -- PROJECT VIEW --------------------------------------------------------------
+// ── PROJECT VIEW ──────────────────────────────────────────────────────────────
 function ProjectView({project,onBack}) {
   const {profile, isReadOnly} = useApp();
   const [reqs,setReqs]         = useState([]);
@@ -628,11 +628,6 @@ function ProjectView({project,onBack}) {
   const [search,setSearch]     = useState('');
   const [lvlF,setLvlF]         = useState('All');
   const [stF,setStF]           = useState('All');
-  const [typeF,setTypeF]       = useState('All');
-  const [silF,setSilF]         = useState('All');
-  const [verF,setVerF]         = useState('All');
-  const [ownerF,setOwnerF]     = useState('');
-  const [showFilters,setShowFilters] = useState(false);
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
@@ -674,8 +669,7 @@ function ProjectView({project,onBack}) {
     ws['!cols'] = colWidths;
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Requirements');
-    const safeName = project.name.replace(/[^a-z0-9]/gi,'_');
-    XLSX.writeFile(wb, safeName + '_requirements.xlsx');
+    XLSX.writeFile(wb,`${project.name.replace(/[^a-z0-9]/gi,'_')}_requirements.xlsx`);
   }
 
   function buildTree(flat) {
@@ -710,10 +704,10 @@ function ProjectView({project,onBack}) {
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
       <Topbar sub={project.name} actions={
         <>
-          <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-          <button className={'btn btn-ghost btn-sm'} onClick={exportExcel} title={'Export to Excel'}>v Excel</button>
-          {(myProjectRole==='Admin'||profile?.role==='Admin') && !isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
-          {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
+          <button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>
+          <button className="btn btn-ghost btn-sm" onClick={exportExcel} title="Export to Excel">↓ Excel</button>
+          {(myProjectRole==='Admin'||profile?.role==='Admin') && !isReadOnly && <button className="btn btn-ghost btn-sm" onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
+          {canEdit && <button className="btn btn-primary btn-sm" onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
       <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
@@ -736,7 +730,7 @@ function ProjectView({project,onBack}) {
             <div style={{display:'flex',gap:8,alignItems:'center'}}>
               <div style={{position:'relative',flex:1}}>
                 <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
-                <input className={'form-input'} style={{paddingLeft:30}} placeholder={'Search...'} value={search} onChange={e=>setSearch(e.target.value)}/>
+                <input className="form-input" style={{paddingLeft:30}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
               <button className={`btn btn-sm ${showFilters?'btn-primary':'btn-ghost'}`} onClick={()=>setShowFilters(f=>!f)} style={{flexShrink:0,position:'relative'}}>
                 {'Filters'}
@@ -748,49 +742,49 @@ function ProjectView({project,onBack}) {
               <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:9,padding:'10px 12px',display:'flex',gap:8,flexWrap:'wrap',alignItems:'flex-end'}}>
                 <div>
                   <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Level</div>
-                  <select className={'form-select'} style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
-                    <option value={'All'}>All</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
+                  <select className="form-select" style={{width:'auto'}} value={lvlF} onChange={e=>setLvlF(e.target.value)}>
+                    <option value="All">All</option>{LEVELS.map(l=><option key={l}>{l}</option>)}
                   </select>
                 </div>
                 <div>
                   <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Status</div>
-                  <select className={'form-select'} style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
-                    <option value={'All'}>All</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
+                  <select className="form-select" style={{width:'auto'}} value={stF} onChange={e=>setStF(e.target.value)}>
+                    <option value="All">All</option>{STATUSES.map(s=><option key={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
                   <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Type</div>
-                  <select className={'form-select'} style={{width:'auto'}} value={typeF} onChange={e=>setTypeF(e.target.value)}>
-                    <option value={'All'}>All</option>{REQ_TYPES.map(t=><option key={t}>{t}</option>)}
+                  <select className="form-select" style={{width:'auto'}} value={typeF} onChange={e=>setTypeF(e.target.value)}>
+                    <option value="All">All</option>{REQ_TYPES.map(t=><option key={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
                   <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>SIL Level</div>
-                  <select className={'form-select'} style={{width:'auto'}} value={silF} onChange={e=>setSilF(e.target.value)}>
-                    <option value={'All'}>All</option>{['SIL 0','SIL 1','SIL 2','SIL 3','SIL 4','N/A'].map(s=><option key={s}>{s}</option>)}
+                  <select className="form-select" style={{width:'auto'}} value={silF} onChange={e=>setSilF(e.target.value)}>
+                    <option value="All">All</option>{['SIL 0','SIL 1','SIL 2','SIL 3','SIL 4','N/A'].map(s=><option key={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
                   <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Verification</div>
-                  <select className={'form-select'} style={{width:'auto'}} value={verF} onChange={e=>setVerF(e.target.value)}>
-                    <option value={'All'}>All</option>{VERIFY.map(v=><option key={v}>{v}</option>)}
+                  <select className="form-select" style={{width:'auto'}} value={verF} onChange={e=>setVerF(e.target.value)}>
+                    <option value="All">All</option>{VERIFY.map(v=><option key={v}>{v}</option>)}
                   </select>
                 </div>
                 <div>
                   <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Owner / Stakeholder</div>
-                  <input className={'form-input'} style={{width:140}} placeholder={'Search...'} value={ownerF} onChange={e=>setOwnerF(e.target.value)}/>
+                  <input className="form-input" style={{width:140}} placeholder="Search…" value={ownerF} onChange={e=>setOwnerF(e.target.value)}/>
                 </div>
-                {hasActiveFilter&&<button className={'btn btn-ghost btn-sm'} onClick={()=>{setSearch('');setLvlF('All');setStF('All');setTypeF('All');setSilF('All');setVerF('All');setOwnerF('');}}>Clear all</button>}
+                {hasActiveFilter&&<button className="btn btn-ghost btn-sm" onClick={()=>{setSearch('');setLvlF('All');setStF('All');setTypeF('All');setSilF('All');setVerF('All');setOwnerF('');}}>Clear all</button>}
               </div>
             )}
           {/* Tree */}
           <div style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
-            {loading&&<div className={'empty'}><div className={'empty-icon'}></div><h3>Loading...</h3></div>}
+            {loading&&<div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>}
             {!loading&&tree.length===0&&(
-              <div className={'empty'}>
-                <div className={'empty-icon'}></div>
+              <div className="empty">
+                <div className="empty-icon">📋</div>
                 <h3>{hasActiveFilter?'No results':'No requirements yet'}</h3>
-                {canEdit&&!hasActiveFilter&&<button className={'btn btn-primary'} onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
+                {canEdit&&!hasActiveFilter&&<button className="btn btn-primary" onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
               </div>
             )}
             {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={r=>setSelected(s=>s?.id===r.id?null:r)} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
@@ -809,7 +803,7 @@ function ProjectView({project,onBack}) {
   );
 }
 
-// -- TREE NODE -----------------------------------------------------------------
+// ── TREE NODE ─────────────────────────────────────────────────────────────────
 function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAddChild,onDeleted,canEdit}) {
   const isOpen=expanded[node.id]!==false&&(expanded[node.id]||depth<2);
   const hasKids=node.children?.length>0;
@@ -832,9 +826,9 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
         {node.sil_level&&node.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[node.sil_level]}18`} color={SIL_CLR[node.sil_level]} bd={`${SIL_CLR[node.sil_level]}33`}>{node.sil_level}</Badge>}
         {(()=>{const vs2=node.verification_status||'Not Started';const vc=VS_CLR[vs2];return vs2!=='Not Started'?<Badge bg={vc.bg} color={vc.text} bd={vc.bd}>{vs2}</Badge>:null;})()}
         {canEdit&&<div style={{display:'flex',gap:2,flexShrink:0,marginLeft:4}} onClick={e=>e.stopPropagation()}>
-          <button className={'btn btn-ghost btn-sm btn-icon'} title={'Add child'} onClick={()=>onAddChild(node.id)} style={{opacity:.4}}><IPlus s={11}/></button>
-          <button className={'btn btn-ghost btn-sm btn-icon'} title={'Edit'} onClick={e=>onEdit(node,e)} style={{opacity:.4}}><IEdit s={11}/></button>
-          <button className={'btn btn-ghost btn-sm btn-icon'} title={'Delete'} onClick={del} style={{opacity:.3,color:'var(--c4)'}}>x</button>
+          <button className="btn btn-ghost btn-sm btn-icon" title="Add child" onClick={()=>onAddChild(node.id)} style={{opacity:.4}}><IPlus s={11}/></button>
+          <button className="btn btn-ghost btn-sm btn-icon" title="Edit" onClick={e=>onEdit(node,e)} style={{opacity:.4}}><IEdit s={11}/></button>
+          <button className="btn btn-ghost btn-sm btn-icon" title="Delete" onClick={del} style={{opacity:.3,color:'var(--c4)'}}>×</button>
         </div>}
       </div>
       {hasKids&&isOpen&&node.children.map(c=><TreeNode key={c.id} node={c} depth={depth+1} expanded={expanded} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} onEdit={onEdit} onAddChild={onAddChild} onDeleted={onDeleted} canEdit={canEdit}/>)}
@@ -842,7 +836,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
   );
 }
 
-// -- DETAIL PANEL --------------------------------------------------------------
+// ── DETAIL PANEL ──────────────────────────────────────────────────────────────
 function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const {profile,loadNotifications,isReadOnly} = useApp();
   const [comments,setComments]  = useState([]);
@@ -963,7 +957,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   }
 
   const actionColor={Comment:'var(--text3)',Submit:'var(--c3)',Approve:'var(--c2)',RequestChanges:'var(--c4)'};
-  const actionLabel={Comment:' Comment','Submit':' Submit','Approve':' Approve','RequestChanges':' Changes'};
+  const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
   const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
 
   const TABS=[{id:'details',label:'Details'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`},{id:'history',label:'History'}];
@@ -983,19 +977,19 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           <div style={{fontWeight:700,fontSize:15,lineHeight:1.3}}>{req.title}</div>
         </div>
         <div style={{display:'flex',gap:3,flexShrink:0}}>
-          {isDesigner&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>onEdit(req)}><IEdit s={12}/></button>}
-          {isDesigner&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={del} style={{color:'var(--c4)'}}><ITrash s={12}/></button>}
-          <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onClose}><IX s={12}/></button>
+          {isDesigner&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>onEdit(req)}><IEdit s={12}/></button>}
+          {isDesigner&&<button className="btn btn-ghost btn-sm btn-icon" onClick={del} style={{color:'var(--c4)'}}><ITrash s={12}/></button>}
+          <button className="btn btn-ghost btn-sm btn-icon" onClick={onClose}><IX s={12}/></button>
         </div>
       </div>
 
-      <div className={'tab-bar'} style={{paddingLeft:0,paddingRight:0}}>
+      <div className="tab-bar" style={{paddingLeft:0,paddingRight:0}}>
         {TABS.map(t=><button key={t.id} className={`tab ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)} style={{fontSize:12,padding:'8px 16px'}}>{t.label}</button>)}
       </div>
 
       <div style={{flex:1,overflowY:'auto',padding:18}}>
 
-        {/* -- DETAILS TAB -- */}
+        {/* ── DETAILS TAB ── */}
         {tab==='details'&&<>
           <div style={{marginBottom:16}}>
             <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:6}}>Description</div>
@@ -1012,7 +1006,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:6}}>Safety & Standards</div>
             <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
               {req.sil_level&&req.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[req.sil_level]}18`} color={SIL_CLR[req.sil_level]} bd={`${SIL_CLR[req.sil_level]}33`}>{req.sil_level}</Badge>}
-              {req.regulatory_body?.map(b=><Badge key={b} bg={'rgba(199,125,255,.08)'} color={'var(--c5)'} bd={'rgba(199,125,255,.2)'}>{b}</Badge>)}
+              {req.regulatory_body?.map(b=><Badge key={b} bg="rgba(199,125,255,.08)" color="var(--c5)" bd="rgba(199,125,255,.2)">{b}</Badge>)}
             </div>
           </div>}
           {(parent||children.length>0)&&<div>
@@ -1030,7 +1024,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             </div>)}
           </div>}
           <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',borderTop:'1px solid var(--border)',paddingTop:10,marginTop:10}}>
-            Created {new Date(req.created_at).toLocaleString()} . Updated {new Date(req.updated_at).toLocaleString()}
+            Created {new Date(req.created_at).toLocaleString()} · Updated {new Date(req.updated_at).toLocaleString()}
           </div>
         
 
@@ -1038,14 +1032,14 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           {/* Status flow */}
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Current Status</div>
-            <div className={'wf-bar'}>
+            <div className="wf-bar">
               {['Draft','In Review','Approved'].map((s,i)=>(
                 <React.Fragment key={s}>
-                  {i>0&&<div className={'wf-arrow'}>></div>}
+                  {i>0&&<div className="wf-arrow">›</div>}
                   <div className={`wf-step ${req.status===s?'active':['Approved'].includes(req.status)&&i<2?'done':''}`}>{s}</div>
                 </React.Fragment>
               ))}
-              <div className={'wf-arrow'}>^</div>
+              <div className="wf-arrow">↕</div>
               <div className={`wf-step ${req.status==='Changes Requested'?'rejected':''}`}>Changes Requested</div>
             </div>
           </div>
@@ -1065,7 +1059,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                     <div style={{fontSize:13,fontWeight:600}}>{p.full_name}</div>
                     <RoleBadge role={p.role}/>
                   </div>
-                  {(isDesigner||profile?.role==='Admin')&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>assignApprover(p.id)}><IX s={11}/></button>}
+                  {(isDesigner||profile?.role==='Admin')&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>assignApprover(p.id)}><IX s={11}/></button>}
                 </div>
               );
             })}
@@ -1075,7 +1069,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                 <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:6}}>Assign Approver</div>
                 <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
                   {approversInProject.filter(p=>!assignments.some(a=>a.approver_id===p.id)).map(p=>(
-                    <button key={p.id} className={'btn btn-ghost btn-sm'} onClick={()=>assignApprover(p.id)}>
+                    <button key={p.id} className="btn btn-ghost btn-sm" onClick={()=>assignApprover(p.id)}>
                       <IPlus s={11}/> {p.full_name}
                     </button>
                   ))}
@@ -1088,29 +1082,29 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           {/* Request Changes form */}
           {showChangesForm&&<div style={{background:'var(--bg)',border:'2px solid rgba(255,107,53,.3)',borderRadius:10,padding:14,marginBottom:12}}>
             <div style={{fontSize:13,fontWeight:700,color:'var(--c4)',marginBottom:10}}>Request Changes</div>
-            <div className={'form-group'} style={{marginBottom:8}}>
-              <label className={'form-label'}>Summary of required changes *</label>
-              <textarea className={'form-textarea'} style={{minHeight:80}} placeholder={'Describe what needs to be changed and why...'} value={changesSummary} onChange={e=>setChangesSummary(e.target.value)} autoFocus/>
+            <div className="form-group" style={{marginBottom:8}}>
+              <label className="form-label">Summary of required changes *</label>
+              <textarea className="form-textarea" style={{minHeight:80}} placeholder="Describe what needs to be changed and why..." value={changesSummary} onChange={e=>setChangesSummary(e.target.value)} autoFocus/>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button className={'btn btn-danger btn-sm'} disabled={submitting||!changesSummary.trim()} onClick={async()=>{await addComment('RequestChanges',changesSummary.trim());setShowChangesForm(false);setChangesSummary('');}}>Submit Request</button>
-              <button className={'btn btn-ghost btn-sm'} onClick={()=>{setShowChangesForm(false);setChangesSummary('');}}>Cancel</button>
+              <button className="btn btn-danger btn-sm" disabled={submitting||!changesSummary.trim()} onClick={async()=>{await addComment('RequestChanges',changesSummary.trim());setShowChangesForm(false);setChangesSummary('');}}>Submit Request</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>{setShowChangesForm(false);setChangesSummary('');}}>Cancel</button>
             </div>
           </div>}
           {!isReadOnly && <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            {canSubmit&&<button className={'btn btn-warn'} onClick={()=>addComment('Submit')} disabled={submitting}> Submit for Review</button>}
+            {canSubmit&&<button className="btn btn-warn" onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
             {canApprove&&<>
-              <button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}> Approve</button>
-              <button className={'btn btn-danger'} onClick={()=>setShowChangesForm(true)} disabled={submitting}> Request Changes</button>
+              <button className="btn btn-success" onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
+              <button className="btn btn-danger" onClick={()=>setShowChangesForm(true)} disabled={submitting}>🔄 Request Changes</button>
             </>}
-            {req.status==='Approved'&&isDesigner&&<button className={'btn btn-ghost btn-sm'} onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
+            {req.status==='Approved'&&isDesigner&&<button className="btn btn-ghost btn-sm" onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
           </div>}
         </>}
 
-                {/* -- VERIFICATION TAB -- */}
+                {/* ── VERIFICATION TAB ── */}
         {tab==='verification'&&<VerificationTab req={req} evidence={evidence} evProfiles={evProfiles} isVerifier={isVerifier} onRefresh={loadEvidence} onStatusChanged={onStatusChanged} vs={vs} vsc={vsc}/>}
 
-        {/* -- COMMENTS TAB -- */}
+        {/* ── COMMENTS TAB ── */}
         {tab==='comments'&&<>
           <div style={{marginBottom:16}}>
             {comments.length===0&&<div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic',marginBottom:16}}>No comments yet.</div>}
@@ -1120,17 +1114,17 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
               const isAction=c.action!=='Comment';
               return(
                 <div key={c.id} className={`comment ${c.action==='Approve'?'action-approve':c.action==='RequestChanges'?'action-reject':c.action==='Submit'?'action-changes':''}`}>
-                  <div className={'comment-avatar'} style={{background:ac,color:'#000'}}>{initials(p?.full_name)}</div>
-                  <div className={'comment-body'} style={{borderColor:isAction?(c.action==='Approve'?'rgba(127,255,107,.3)':c.action==='RequestChanges'?'rgba(255,107,53,.3)':'rgba(255,209,102,.3)'):'var(--border)'}}>
-                    <div className={'comment-meta'}>
-                      <span className={'comment-name'}>{p?.full_name||'Unknown'}</span>
+                  <div className="comment-avatar" style={{background:ac,color:'#000'}}>{initials(p?.full_name)}</div>
+                  <div className="comment-body" style={{borderColor:isAction?(c.action==='Approve'?'rgba(127,255,107,.3)':c.action==='RequestChanges'?'rgba(255,107,53,.3)':'rgba(255,209,102,.3)'):'var(--border)'}}>
+                    <div className="comment-meta">
+                      <span className="comment-name">{p?.full_name||'Unknown'}</span>
                       {p&&<RoleBadge role={p.role}/>}
                       {isAction&&<span style={{fontSize:11,fontWeight:700,color:actionColor[c.action]}}>{actionLabel[c.action]}</span>}
                       {c.req_status&&<span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:ST_CLR[c.req_status]?.bg,color:ST_CLR[c.req_status]?.text,border:`1px solid ${ST_CLR[c.req_status]?.bd}`}}>{c.req_status}</span>}
-                      <span className={'comment-time'}>{timeAgo(c.created_at)}</span>
-                      {profile?.role==='Admin'&&<button onClick={async()=>{if(!confirm('Delete this comment?'))return;await db.from('comments').delete().eq('id',c.id);loadComments();}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--c4)',opacity:.5,padding:'0 2px',fontSize:13,lineHeight:1}} title={'Delete comment'}>x</button>}
+                      <span className="comment-time">{timeAgo(c.created_at)}</span>
+                      {profile?.role==='Admin'&&<button onClick={async()=>{if(!confirm('Delete this comment?'))return;await db.from('comments').delete().eq('id',c.id);loadComments();}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--c4)',opacity:.5,padding:'0 2px',fontSize:13,lineHeight:1}} title="Delete comment">×</button>}
                     </div>
-                    <div className={'comment-text'}>{c.content}</div>
+                    <div className="comment-text">{c.content}</div>
                   </div>
                 </div>
               );
@@ -1138,8 +1132,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           </div>
           {/* Comment input */}
           {!isReadOnly && <div>
-            <textarea className={'form-textarea'} placeholder={'Add a comment...'} value={comment} onChange={e=>setComment(e.target.value)} style={{marginBottom:8}}/>
-            <button className={'btn btn-ghost btn-sm'} onClick={()=>addComment('Comment')} disabled={submitting||!comment.trim()}>
+            <textarea className="form-textarea" placeholder="Add a comment…" value={comment} onChange={e=>setComment(e.target.value)} style={{marginBottom:8}}/>
+            <button className="btn btn-ghost btn-sm" onClick={()=>addComment('Comment')} disabled={submitting||!comment.trim()}>
               <IMsg s={12}/> Add Comment
             </button>
           </div>}
@@ -1157,7 +1151,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                     <span style={{fontFamily:'var(--mono)',fontSize:13,fontWeight:800,color:'var(--c1)'}}>v{v.version}.0</span>
                     <span style={{fontFamily:'var(--mono)',fontSize:11,padding:'2px 8px',borderRadius:4,background:'rgba(127,255,107,.1)',color:'var(--c2)',border:'1px solid rgba(127,255,107,.2)'}}>Approved</span>
                     <span style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',marginLeft:'auto'}}>
-                      {approver?.full_name||'Unknown'} - {new Date(v.approved_at).toLocaleString('es-ES',{timeZone:'Europe/Madrid',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+                      {approver?.full_name||'Unknown'} — {new Date(v.approved_at).toLocaleString('es-ES',{timeZone:'Europe/Madrid',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
                     </span>
                   </div>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px 16px',fontSize:12}}>
@@ -1181,7 +1175,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   );
 }
 
-// -- REQUIREMENT MODAL ---------------------------------------------------------
+// ── REQUIREMENT MODAL ─────────────────────────────────────────────────────────
 
 // -- VERIFICATION TAB --
 function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusChanged,vs,vsc}) {
@@ -1282,7 +1276,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
 
   return (
     <div>
-      {/* -- ACTIVITY SECTION -- */}
+      {/* ── ACTIVITY SECTION ── */}
       <div style={{marginBottom:20}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
           <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4}}>Verification Activity</div>
@@ -1323,8 +1317,8 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
                 <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:`${methodColor[activity.method]||'#64748b'}18`,color:methodColor[activity.method]||'#64748b',border:`1px solid ${methodColor[activity.method]||'#64748b'}33`}}>{activity.method}</span>
               </div>
               <div style={{fontSize:13,color:'var(--text)',lineHeight:1.6,marginBottom:activity.activity_document_url?6:0}}>{activity.description}</div>
-              {activity.activity_document_url&&<a href={activity.activity_document_url} target={'_blank'} rel={'noopener noreferrer'} style={{fontSize:12,color:'var(--c1)',textDecoration:'none'}}>Open activity document</a>}
-              {canAct&&<button className={'btn btn-ghost btn-sm'} style={{marginTop:8,opacity:.6}} onClick={()=>{setDefineForm({description:activity.description||'',method:activity.method||'Test',activity_document_url:activity.activity_document_url||''});setShowDefineForm(true);}}>Edit</button>}
+              {activity.activity_document_url&&<a href={activity.activity_document_url} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:'var(--c1)',textDecoration:'none'}}>Open activity document</a>}
+              {canAct&&<button className="btn btn-ghost btn-sm" style={{marginTop:8,opacity:.6}} onClick={()=>{setDefineForm({description:activity.description||'',method:activity.method||'Test',activity_document_url:activity.activity_document_url||''});setShowDefineForm(true);}}>Edit</button>}
             </div>
 
             {/* Planned record */}
@@ -1334,7 +1328,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
                   <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:'rgba(255,209,102,.08)',color:'var(--c3)',border:'1px solid rgba(255,209,102,.2)'}}>PLANNED</span>
                 </div>
                 <div style={{fontSize:13,color:'var(--text)'}}>Forecast date: <strong>{fmtDate(activity.planned_date)}</strong></div>
-                {canAct&&actStatus==='Planned'&&<button className={'btn btn-ghost btn-sm'} style={{marginTop:8,opacity:.6}} onClick={()=>{setPlanForm({planned_date:activity.planned_date||''});setShowPlanForm(true);}}>Edit</button>}
+                {canAct&&actStatus==='Planned'&&<button className="btn btn-ghost btn-sm" style={{marginTop:8,opacity:.6}} onClick={()=>{setPlanForm({planned_date:activity.planned_date||''});setShowPlanForm(true);}}>Edit</button>}
               </div>
             )}
 
@@ -1349,10 +1343,10 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
                 {/* Verified / Failed outcome buttons */}
                 {!notApproved && canAct && !showVerifyForm && (
                   <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                    <button className={'btn btn-success btn-sm'} onClick={()=>{setPendingStatus('Verified');setShowVerifyForm(true);}}>
+                    <button className="btn btn-success btn-sm" onClick={()=>{setPendingStatus('Verified');setShowVerifyForm(true);}}>
                       + evidence &nbsp;Verified
                     </button>
-                    <button className={'btn btn-danger btn-sm'} onClick={()=>{setPendingStatus('Failed');setShowVerifyForm(true);}}>
+                    <button className="btn btn-danger btn-sm" onClick={()=>{setPendingStatus('Failed');setShowVerifyForm(true);}}>
                       + reason &nbsp;Failed
                     </button>
                     {(vs==='Verified'||vs==='Failed')&&<span style={{fontSize:12,color:vs==='Verified'?'var(--c2)':'var(--c4)',alignSelf:'center',fontWeight:600}}>Currently: {vs}</span>}
@@ -1367,10 +1361,10 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
         {/* Action buttons for current step */}
         {canAct && !showDefineForm && !showPlanForm && !showFinishForm && !showVerifyForm && (
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            {actStatus==='Not Defined'&&<button className={'btn btn-ghost btn-sm'} onClick={()=>setShowDefineForm(true)}>Define Activity</button>}
-            {actStatus==='Defined'&&<button className={'btn btn-warn btn-sm'} onClick={()=>setShowPlanForm(true)}>Plan Activity</button>}
-            {actStatus==='Planned'&&<button className={'btn btn-ghost btn-sm'} onClick={markInProgress}>Mark In Progress</button>}
-            {actStatus==='In Progress'&&<button className={'btn btn-success btn-sm'} onClick={()=>setShowFinishForm(true)}>Mark Finished</button>}
+            {actStatus==='Not Defined'&&<button className="btn btn-ghost btn-sm" onClick={()=>setShowDefineForm(true)}>Define Activity</button>}
+            {actStatus==='Defined'&&<button className="btn btn-warn btn-sm" onClick={()=>setShowPlanForm(true)}>Plan Activity</button>}
+            {actStatus==='Planned'&&<button className="btn btn-ghost btn-sm" onClick={markInProgress}>Mark In Progress</button>}
+            {actStatus==='In Progress'&&<button className="btn btn-success btn-sm" onClick={()=>setShowFinishForm(true)}>Mark Finished</button>}
           </div>
         )}
 
@@ -1378,25 +1372,25 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
         {showDefineForm&&canAct&&(
           <div style={{background:'var(--bg)',border:'2px solid rgba(0,212,255,.2)',borderRadius:10,padding:16,marginTop:8}}>
             <div style={{fontSize:13,fontWeight:700,color:'var(--c1)',marginBottom:12}}>Define Verification Activity</div>
-            <div className={'form-group'}>
-              <label className={'form-label'}>Activity Description *</label>
-              <textarea className={'form-textarea'} style={{minHeight:70}} placeholder={'Describe how this requirement will be verified...'} value={defineForm.description} onChange={e=>setDefineForm(f=>({...f,description:e.target.value}))} autoFocus/>
+            <div className="form-group">
+              <label className="form-label">Activity Description *</label>
+              <textarea className="form-textarea" style={{minHeight:70}} placeholder="Describe how this requirement will be verified..." value={defineForm.description} onChange={e=>setDefineForm(f=>({...f,description:e.target.value}))} autoFocus/>
             </div>
-            <div className={'form-row'}>
-              <div className={'form-group'}>
-                <label className={'form-label'}>Method</label>
-                <select className={'form-select'} value={defineForm.method} onChange={e=>setDefineForm(f=>({...f,method:e.target.value}))}>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Method</label>
+                <select className="form-select" value={defineForm.method} onChange={e=>setDefineForm(f=>({...f,method:e.target.value}))}>
                   {['Test','Analysis','Inspection','Demonstration'].map(m=><option key={m}>{m}</option>)}
                 </select>
               </div>
-              <div className={'form-group'}>
-                <label className={'form-label'}>Activity Document (URL)</label>
-                <input className={'form-input'} placeholder={'Link to test plan, procedure...'} value={defineForm.activity_document_url} onChange={e=>setDefineForm(f=>({...f,activity_document_url:e.target.value}))}/>
+              <div className="form-group">
+                <label className="form-label">Activity Document (URL)</label>
+                <input className="form-input" placeholder="Link to test plan, procedure..." value={defineForm.activity_document_url} onChange={e=>setDefineForm(f=>({...f,activity_document_url:e.target.value}))}/>
               </div>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button className={'btn btn-primary btn-sm'} onClick={saveDefine} disabled={saving||!defineForm.description.trim()}>{saving?'Saving...':'Save'}</button>
-              <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowDefineForm(false)}>Cancel</button>
+              <button className="btn btn-primary btn-sm" onClick={saveDefine} disabled={saving||!defineForm.description.trim()}>{saving?'Saving...':'Save'}</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>setShowDefineForm(false)}>Cancel</button>
             </div>
           </div>
         )}
@@ -1405,8 +1399,8 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
         {showPlanForm&&canAct&&(
           <div style={{background:'var(--bg)',border:'2px solid rgba(255,209,102,.2)',borderRadius:10,padding:16,marginTop:8}}>
             <div style={{fontSize:13,fontWeight:700,color:'var(--c3)',marginBottom:12}}>Plan Verification Activity</div>
-            <div className={'form-group'}>
-              <label className={'form-label'}>Forecast Date *</label>
+            <div className="form-group">
+              <label className="form-label">Forecast Date *</label>
               <div style={{display:'flex',gap:6,alignItems:'center'}}>
                 <input className='form-input' type='date' value={planForm.planned_date} onChange={e=>setPlanForm(f=>({...f,planned_date:e.target.value}))} autoFocus style={{flex:1}}/>
                 <input className='form-input' type='text' placeholder='dd/mm/yyyy' style={{width:110}} maxLength={10}
@@ -1416,8 +1410,8 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
               </div>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button className={'btn btn-warn btn-sm'} onClick={savePlan} disabled={saving||!planForm.planned_date}>{saving?'Saving...':'Save'}</button>
-              <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowPlanForm(false)}>Cancel</button>
+              <button className="btn btn-warn btn-sm" onClick={savePlan} disabled={saving||!planForm.planned_date}>{saving?'Saving...':'Save'}</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>setShowPlanForm(false)}>Cancel</button>
             </div>
           </div>
         )}
@@ -1426,8 +1420,8 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
         {showFinishForm&&canAct&&(
           <div style={{background:'var(--bg)',border:'2px solid rgba(127,255,107,.2)',borderRadius:10,padding:16,marginTop:8}}>
             <div style={{fontSize:13,fontWeight:700,color:'var(--c2)',marginBottom:12}}>Mark Activity as Finished</div>
-            <div className={'form-group'}>
-              <label className={'form-label'}>Actual Completion Date</label>
+            <div className="form-group">
+              <label className="form-label">Actual Completion Date</label>
               <div style={{display:'flex',gap:6,alignItems:'center'}}>
                 <input className='form-input' type='date' value={finishForm.actual_date} onChange={e=>setFinishForm(f=>({...f,actual_date:e.target.value}))} autoFocus style={{flex:1}}/>
                 <input className='form-input' type='text' placeholder='dd/mm/yyyy' style={{width:110}} maxLength={10}
@@ -1437,8 +1431,8 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
               </div>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button className={'btn btn-success btn-sm'} onClick={saveFinish} disabled={saving}>{saving?'Saving...':'Mark Finished'}</button>
-              <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowFinishForm(false)}>Cancel</button>
+              <button className="btn btn-success btn-sm" onClick={saveFinish} disabled={saving}>{saving?'Saving...':'Mark Finished'}</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>setShowFinishForm(false)}>Cancel</button>
             </div>
           </div>
         )}
@@ -1449,31 +1443,31 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
             <div style={{fontSize:13,fontWeight:700,color:pendingStatus==='Verified'?'var(--c2)':'var(--c4)',marginBottom:12}}>
               {pendingStatus==='Verified'?'Submit Verification Evidence':'Record Failure Reason'}
             </div>
-            <div className={'form-group'}>
-              <label className={'form-label'}>Title *</label>
-              <input className={'form-input'} placeholder={pendingStatus==='Verified'?'e.g. Test report v1.2':'e.g. Threshold exceeded'} value={evidenceForm.title} onChange={e=>setEvidenceForm(f=>({...f,title:e.target.value}))} autoFocus/>
+            <div className="form-group">
+              <label className="form-label">Title *</label>
+              <input className="form-input" placeholder={pendingStatus==='Verified'?'e.g. Test report v1.2':'e.g. Threshold exceeded'} value={evidenceForm.title} onChange={e=>setEvidenceForm(f=>({...f,title:e.target.value}))} autoFocus/>
             </div>
-            <div className={'form-group'}>
-              <label className={'form-label'}>Description</label>
-              <textarea className={'form-textarea'} style={{minHeight:70}} placeholder={'Summary of results, observations...'} value={evidenceForm.description} onChange={e=>setEvidenceForm(f=>({...f,description:e.target.value}))}/>
+            <div className="form-group">
+              <label className="form-label">Description</label>
+              <textarea className="form-textarea" style={{minHeight:70}} placeholder="Summary of results, observations..." value={evidenceForm.description} onChange={e=>setEvidenceForm(f=>({...f,description:e.target.value}))}/>
             </div>
-            <div className={'form-row'}>
-              <div className={'form-group'}>
-                <label className={'form-label'}>Method</label>
-                <select className={'form-select'} value={evidenceForm.method} onChange={e=>setEvidenceForm(f=>({...f,method:e.target.value}))}>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Method</label>
+                <select className="form-select" value={evidenceForm.method} onChange={e=>setEvidenceForm(f=>({...f,method:e.target.value}))}>
                   {['Test','Analysis','Inspection','Demonstration'].map(m=><option key={m}>{m}</option>)}
                 </select>
               </div>
-              <div className={'form-group'}>
-                <label className={'form-label'}>Evidence Link (URL)</label>
-                <input className={'form-input'} placeholder={'Link to report or document...'} value={evidenceForm.evidence_url} onChange={e=>setEvidenceForm(f=>({...f,evidence_url:e.target.value}))}/>
+              <div className="form-group">
+                <label className="form-label">Evidence Link (URL)</label>
+                <input className="form-input" placeholder="Link to report or document..." value={evidenceForm.evidence_url} onChange={e=>setEvidenceForm(f=>({...f,evidence_url:e.target.value}))}/>
               </div>
             </div>
             <div style={{display:'flex',gap:8,marginTop:8}}>
               <button className={`btn ${pendingStatus==='Verified'?'btn-success':'btn-danger'}`} onClick={submitVerification} disabled={saving||!evidenceForm.title.trim()}>
                 {saving?'Submitting...':pendingStatus==='Verified'?'Submit & Mark Verified':'Submit & Mark Failed'}
               </button>
-              <button className={'btn btn-ghost'} onClick={()=>{setShowVerifyForm(false);setPendingStatus(null);}}>Cancel</button>
+              <button className="btn btn-ghost" onClick={()=>{setShowVerifyForm(false);setPendingStatus(null);}}>Cancel</button>
             </div>
           </div>
         )}
@@ -1497,12 +1491,12 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
                   <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 8px',borderRadius:4,background:`${mc}18`,color:mc,border:`1px solid ${mc}33`}}>{ev.method}</span>
                 </div>
                 {ev.description&&<div style={{fontSize:12,color:'var(--text2)',lineHeight:1.6,marginBottom:6}}>{ev.description}</div>}
-                {ev.evidence_url&&<a href={ev.evidence_url} target={'_blank'} rel={'noopener noreferrer'} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:12,color:'var(--c1)',textDecoration:'none'}}>Open evidence file</a>}
+                {ev.evidence_url&&<a href={ev.evidence_url} target="_blank" rel="noopener noreferrer" style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:12,color:'var(--c1)',textDecoration:'none'}}>Open evidence file</a>}
                 <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',marginTop:6}}>
-                  {p?.full_name||'Unknown'} - {new Date(ev.created_at).toLocaleDateString('es-ES')}
+                  {p?.full_name||'Unknown'} — {new Date(ev.created_at).toLocaleDateString('es-ES')}
                 </div>
               </div>
-              {isVerifier&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>delEvidence(ev.id)} style={{color:'var(--c4)',opacity:.5,flexShrink:0}}><ITrash s={11}/></button>}
+              {isVerifier&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>delEvidence(ev.id)} style={{color:'var(--c4)',opacity:.5,flexShrink:0}}><ITrash s={11}/></button>}
             </div>
           </div>
         );
@@ -1557,10 +1551,10 @@ function MembersModal({projectId, onClose}) {
   const memberProfiles = members.map(m=>({...m, profile:allUsers.find(u=>u.id===m.user_id)})).filter(m=>m.profile);
 
   return (
-    <div className={'modal-overlay'} onClick={onClose}>
-      <div className={'modal'} onClick={e=>e.stopPropagation()}>
-        <div className={'modal-header'}><h2>Project Members</h2><button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={15}/></button></div>
-        <div className={'modal-body'}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header"><h2>Project Members</h2><button className="btn btn-ghost btn-icon" onClick={onClose}><IX s={15}/></button></div>
+        <div className="modal-body">
           {loading ? <div style={{textAlign:'center',padding:20,color:'var(--text3)'}}>Loading...</div> : <>
             {/* Member list */}
             {memberProfiles.length===0 && <div style={{color:'var(--text3)',fontSize:13,marginBottom:16}}>No members yet.</div>}
@@ -1574,10 +1568,10 @@ function MembersModal({projectId, onClose}) {
                     <div style={{fontWeight:600,fontSize:13}}>{m.profile.full_name}</div>
                     <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)'}}>{m.profile.role} (global)</div>
                   </div>
-                  <select className={'form-select'} style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={m.role} onChange={e=>changeRole(m.user_id,e.target.value)}>
+                  <select className="form-select" style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={m.role} onChange={e=>changeRole(m.user_id,e.target.value)}>
                     {PROJECT_ROLES.map(r=><option key={r}>{r}</option>)}
                   </select>
-                  <button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>removeMember(m.user_id)} style={{color:'var(--c4)',opacity:.6}}><IX s={12}/></button>
+                  <button className="btn btn-ghost btn-sm btn-icon" onClick={()=>removeMember(m.user_id)} style={{color:'var(--c4)',opacity:.6}}><IX s={12}/></button>
                 </div>
               );
             })}
@@ -1586,20 +1580,20 @@ function MembersModal({projectId, onClose}) {
               <div style={{height:1,background:'var(--border)',margin:'14px 0'}}/>
               <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Add Member</div>
               <div style={{display:'flex',gap:8,alignItems:'flex-end'}}>
-                <div className={'form-group'} style={{flex:1,marginBottom:0}}>
-                  <label className={'form-label'}>User</label>
-                  <select className={'form-select'} value={addUserId} onChange={e=>setAddUserId(e.target.value)}>
-                    <option value={''}>Select user...</option>
+                <div className="form-group" style={{flex:1,marginBottom:0}}>
+                  <label className="form-label">User</label>
+                  <select className="form-select" value={addUserId} onChange={e=>setAddUserId(e.target.value)}>
+                    <option value="">Select user...</option>
                     {nonMembers.map(u=><option key={u.id} value={u.id}>{u.full_name}</option>)}
                   </select>
                 </div>
-                <div className={'form-group'} style={{width:130,marginBottom:0}}>
-                  <label className={'form-label'}>Role</label>
-                  <select className={'form-select'} value={addRole} onChange={e=>setAddRole(e.target.value)}>
+                <div className="form-group" style={{width:130,marginBottom:0}}>
+                  <label className="form-label">Role</label>
+                  <select className="form-select" value={addRole} onChange={e=>setAddRole(e.target.value)}>
                     {PROJECT_ROLES.map(r=><option key={r}>{r}</option>)}
                   </select>
                 </div>
-                <button className={'btn btn-primary'} onClick={addMember} disabled={saving||!addUserId} style={{flexShrink:0,marginBottom:0}}><IPlus s={13}/> Add</button>
+                <button className="btn btn-primary" onClick={addMember} disabled={saving||!addUserId} style={{flexShrink:0,marginBottom:0}}><IPlus s={13}/> Add</button>
               </div>
             </>}
             {nonMembers.length===0 && allUsers.filter(u=>u.role!=='Unassigned').length>0 && (
@@ -1607,8 +1601,8 @@ function MembersModal({projectId, onClose}) {
             )}
           </>}
         </div>
-        <div className={'modal-footer'}>
-          <button className={'btn btn-primary'} onClick={onClose}>Done</button>
+        <div className="modal-footer">
+          <button className="btn btn-primary" onClick={onClose}>Done</button>
         </div>
       </div>
     </div>
@@ -1656,53 +1650,53 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const TABS=[{id:'basic',label:'Basic'},{id:'safety',label:'Safety'}];
 
   return (
-    <div className={'modal-overlay'} onClick={onClose}>
-      <div className={'modal'} onClick={e=>e.stopPropagation()}>
-        <div className={'modal-header'}><h2>{isEdit?'Edit Requirement':'New Requirement'}</h2><button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={15}/></button></div>
-        <div className={'tab-bar'}>{TABS.map(t=><button key={t.id} className={`tab ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>{t.label}</button>)}</div>
-        <div className={'modal-body'}>
-          {err&&<div className={'err'}>{err}</div>}
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header"><h2>{isEdit?'Edit Requirement':'New Requirement'}</h2><button className="btn btn-ghost btn-icon" onClick={onClose}><IX s={15}/></button></div>
+        <div className="tab-bar">{TABS.map(t=><button key={t.id} className={`tab ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>{t.label}</button>)}</div>
+        <div className="modal-body">
+          {err&&<div className="err">{err}</div>}
           {tab==='basic'&&<>
-            <div className={'form-row'}>
-              <div className={'form-group'}><label className={'form-label'}>Level</label><select className={'form-select'} value={form.level} onChange={e=>onLvl(e.target.value)} disabled={isLocked}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>ID *</label><input className={'form-input'} value={form.req_id} onChange={e=>set('req_id',e.target.value)} disabled={isLocked}/></div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Level</label><select className="form-select" value={form.level} onChange={e=>onLvl(e.target.value)} disabled={isLocked}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">ID *</label><input className="form-input" value={form.req_id} onChange={e=>set('req_id',e.target.value)} disabled={isLocked}/></div>
             </div>
-            <div className={'form-group'}><label className={'form-label'}>Title *</label><input className={'form-input'} value={form.title} onChange={e=>set('title',e.target.value)} autoFocus disabled={isLocked}/></div>
-            <div className={'form-group'}><label className={'form-label'}>Description (Shall Statement)</label><textarea className={'form-textarea'} value={form.description} onChange={e=>set('description',e.target.value)} placeholder={'The system shall...'} disabled={isLocked}/></div>
-            <div className={'form-row'}>
-              <div className={'form-group'}><label className={'form-label'}>Status</label><select className={'form-select'} value={form.status} onChange={e=>set('status',e.target.value)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>Verification Method</label><select className={'form-select'} value={form.verification_method} onChange={e=>set('verification_method',e.target.value)} disabled={isLocked}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Title *</label><input className="form-input" value={form.title} onChange={e=>set('title',e.target.value)} autoFocus disabled={isLocked}/></div>
+            <div className="form-group"><label className="form-label">Description (Shall Statement)</label><textarea className="form-textarea" value={form.description} onChange={e=>set('description',e.target.value)} placeholder="The system shall…" disabled={isLocked}/></div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Status</label><select className="form-select" value={form.status} onChange={e=>set('status',e.target.value)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Verification Method</label><select className="form-select" value={form.verification_method} onChange={e=>set('verification_method',e.target.value)} disabled={isLocked}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
             </div>
-            <div className={'form-row'}>
-              <div className={'form-group'}><label className={'form-label'}>Parent</label><select className={'form-select'} value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value={''}>- None -</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} - {r.title.slice(0,34)}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>Owner</label><input className={'form-input'} value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder={'Name or role'} disabled={isLocked}/></div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Parent</label><select className="form-select" value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value="">— None —</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,34)}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">Owner</label><input className="form-input" value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder="Name or role" disabled={isLocked}/></div>
             </div>
-            <div className={'form-row'}>
-              <div className={'form-group'}><label className={'form-label'}>Stakeholder</label><input className={'form-input'} value={form.stakeholder} onChange={e=>set('stakeholder',e.target.value)} placeholder={'e.g. Operations, Safety Authority'} disabled={isLocked}/></div>
-              <div className={'form-group'}><label className={'form-label'}>Requirement Type</label><select className={'form-select'} value={form.requirement_type} onChange={e=>set('requirement_type',e.target.value)} disabled={isLocked}>{REQ_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Stakeholder</label><input className="form-input" value={form.stakeholder} onChange={e=>set('stakeholder',e.target.value)} placeholder="e.g. Operations, Safety Authority" disabled={isLocked}/></div>
+              <div className="form-group"><label className="form-label">Requirement Type</label><select className="form-select" value={form.requirement_type} onChange={e=>set('requirement_type',e.target.value)} disabled={isLocked}>{REQ_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
             </div>
-            <div className={'form-group'}><label className={'form-label'}>Rationale</label><textarea className={'form-textarea'} value={form.rationale} onChange={e=>set('rationale',e.target.value)} disabled={isLocked}/></div>
+            <div className="form-group"><label className="form-label">Rationale</label><textarea className="form-textarea" value={form.rationale} onChange={e=>set('rationale',e.target.value)} disabled={isLocked}/></div>
           </>}
           {tab==='safety'&&<>
-            <div className={'form-row'}>
-              <div className={'form-group'}><label className={'form-label'}>Safety Class</label><select className={'form-select'} value={form.safety_class} onChange={e=>set('safety_class',e.target.value)}>{SAFETY.map(s=><option key={s}>{s}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>SIL Level</label><select className={'form-select'} value={form.sil_level} onChange={e=>set('sil_level',e.target.value)}>{SILS.map(s=><option key={s}>{s}</option>)}</select></div>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Safety Class</label><select className="form-select" value={form.safety_class} onChange={e=>set('safety_class',e.target.value)}>{SAFETY.map(s=><option key={s}>{s}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">SIL Level</label><select className="form-select" value={form.sil_level} onChange={e=>set('sil_level',e.target.value)}>{SILS.map(s=><option key={s}>{s}</option>)}</select></div>
             </div>
-            <div className={'form-group'}><label className={'form-label'}>Safety Category</label><select className={'form-select'} value={form.safety_category} onChange={e=>set('safety_category',e.target.value)}>{SAFECAT.map(s=><option key={s}>{s}</option>)}</select></div>
-            <div className={'form-group'}><label className={'form-label'}>Standards</label><div style={{display:'flex',flexWrap:'wrap',gap:7,marginTop:4}}>{standards.map(b=><div key={b} className={`chip ${form.regulatory_body.includes(b)?'on':''}`} onClick={()=>toggleReg(b)}>{b}</div>)}</div></div>
+            <div className="form-group"><label className="form-label">Safety Category</label><select className="form-select" value={form.safety_category} onChange={e=>set('safety_category',e.target.value)}>{SAFECAT.map(s=><option key={s}>{s}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Standards</label><div style={{display:'flex',flexWrap:'wrap',gap:7,marginTop:4}}>{standards.map(b=><div key={b} className={`chip ${form.regulatory_body.includes(b)?'on':''}`} onClick={()=>toggleReg(b)}>{b}</div>)}</div></div>
           </>}
           
         </div>
-        <div className={'modal-footer'}>
-          <button className={'btn btn-ghost'} onClick={onClose}>Cancel</button>
-          <button className={'btn btn-primary'} onClick={save} disabled={saving}>{saving?'Saving...':isEdit?'Save Changes':'Create'}</button>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>{saving?'Saving…':isEdit?'Save Changes':'Create'}</button>
         </div>
       </div>
     </div>
   );
 }
 
-// -- APPROVAL QUEUE ------------------------------------------------------------
+// ── APPROVAL QUEUE ────────────────────────────────────────────────────────────
 function ApprovalQueue({onBack, onOpen}) {
   const {profile} = useApp();
   const [items,setItems] = useState([]);
@@ -1732,26 +1726,26 @@ function ApprovalQueue({onBack, onOpen}) {
 
   return (
     <div style={{minHeight:'100vh'}}>
-      <Topbar sub={'My Queue'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>}/>
+      <Topbar sub="My Queue" actions={<button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>}/>
       <div style={{padding:'28px 24px',maxWidth:760,margin:'0 auto'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>My Queue</h1>
           <p style={{color:'var(--text2)',fontSize:13}}>{profile.role==='Approver'?'Requirements awaiting your approval':'Requirements in review or recently acted on'}</p>
         </div>
-        {loading&&<div className={'empty'}><div className={'empty-icon'}></div><h3>Loading...</h3></div>}
-        {!loading&&items.length===0&&<div className={'empty'}><div className={'empty-icon'}></div><h3>Queue is empty</h3><p>Nothing pending right now</p></div>}
+        {loading&&<div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>}
+        {!loading&&items.length===0&&<div className="empty"><div className="empty-icon">✅</div><h3>Queue is empty</h3><p>Nothing pending right now</p></div>}
         {items.map(r=>{
           const sc=ST_CLR[r.status]||ST_CLR['Draft'];
           const lc=LEVEL_CLR[r.level]||'#64748b';
           return(
-            <div key={r.id} className={'queue-item'} onClick={()=>onOpen(r.projects)}>
-              <div className={'qi-top'}>
+            <div key={r.id} className="queue-item" onClick={()=>onOpen(r.projects)}>
+              <div className="qi-top">
                 <span style={{fontFamily:'var(--mono)',fontSize:11,color:lc}}>{r.req_id}</span>
                 <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{r.status}</Badge>
                 <span style={{fontSize:12,color:'var(--text3)',marginLeft:'auto'}}>{r.projects?.name}</span>
               </div>
-              <div className={'qi-title'}>{r.title}</div>
-              {r.description&&<div className={'qi-meta'}>{r.description.slice(0,100)}{r.description.length>100?'...':''}</div>}
+              <div className="qi-title">{r.title}</div>
+              {r.description&&<div className="qi-meta">{r.description.slice(0,100)}{r.description.length>100?'…':''}</div>}
             </div>
           );
         })}
@@ -1760,7 +1754,7 @@ function ApprovalQueue({onBack, onOpen}) {
   );
 }
 
-// -- ADMIN PANEL ---------------------------------------------------------------
+// ── ADMIN PANEL ───────────────────────────────────────────────────────────────
 
 // -- STANDARDS MANAGER --
 function StandardsManager({onClose}) {
@@ -1803,10 +1797,10 @@ function StandardsManager({onClose}) {
   }
 
   return (
-    <div className={'modal-overlay'} onClick={onClose}>
-      <div className={'modal'} onClick={e=>e.stopPropagation()}>
-        <div className={'modal-header'}><h2>Manage Standards</h2><button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={15}/></button></div>
-        <div className={'modal-body'}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header"><h2>Manage Standards</h2><button className="btn btn-ghost btn-icon" onClick={onClose}><IX s={15}/></button></div>
+        <div className="modal-body">
           {loading ? <div style={{textAlign:'center',padding:20,color:'var(--text3)'}}>Loading...</div> : <>
             {/* Existing standards */}
             {standards.map(s=>(
@@ -1818,7 +1812,7 @@ function StandardsManager({onClose}) {
                 <button className={`btn btn-sm ${s.active?'btn-ghost':'btn-success'}`} onClick={()=>toggleActive(s.id,s.active)}>
                   {s.active?'Disable':'Enable'}
                 </button>
-                <button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>del(s.id)} style={{color:'var(--c4)',opacity:.6}}><ITrash s={11}/></button>
+                <button className="btn btn-ghost btn-sm btn-icon" onClick={()=>del(s.id)} style={{color:'var(--c4)',opacity:.6}}><ITrash s={11}/></button>
               </div>
             ))}
             {standards.length===0 && <div style={{color:'var(--text3)',fontSize:13,marginBottom:12}}>No standards yet.</div>}
@@ -1826,22 +1820,22 @@ function StandardsManager({onClose}) {
             {/* Add new */}
             <div style={{height:1,background:'var(--border)',margin:'16px 0'}}/>
             <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Add Standard</div>
-            {err && <div className={'err'}>{err}</div>}
-            <div className={'form-row'}>
-              <div className={'form-group'} style={{marginBottom:0}}>
-                <label className={'form-label'}>Name *</label>
-                <input className={'form-input'} placeholder={'e.g. EN 50159'} value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+            {err && <div className="err">{err}</div>}
+            <div className="form-row">
+              <div className="form-group" style={{marginBottom:0}}>
+                <label className="form-label">Name *</label>
+                <input className="form-input" placeholder="e.g. EN 50159" value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
               </div>
-              <div className={'form-group'} style={{marginBottom:0}}>
-                <label className={'form-label'}>Description (optional)</label>
-                <input className={'form-input'} placeholder={'Short description'} value={newDesc} onChange={e=>setNewDesc(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+              <div className="form-group" style={{marginBottom:0}}>
+                <label className="form-label">Description (optional)</label>
+                <input className="form-input" placeholder="Short description" value={newDesc} onChange={e=>setNewDesc(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
               </div>
             </div>
           </>}
         </div>
-        <div className={'modal-footer'}>
-          <button className={'btn btn-ghost'} onClick={onClose}>Close</button>
-          <button className={'btn btn-primary'} onClick={add} disabled={saving||!newName.trim()}>{saving?'Adding...':'Add Standard'}</button>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Close</button>
+          <button className="btn btn-primary" onClick={add} disabled={saving||!newName.trim()}>{saving?'Adding...':'Add Standard'}</button>
         </div>
       </div>
     </div>
@@ -1870,15 +1864,15 @@ function AdminPanel({onBack}) {
 
   return(
     <div style={{minHeight:'100vh'}}>
-      <Topbar sub={'User Management'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>}/>
+      <Topbar sub="User Management" actions={<button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>}/>
       <div style={{padding:'28px 24px',maxWidth:860,margin:'0 auto'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>User Management</h1>
           <p style={{color:'var(--text2)',fontSize:13}}>Manage roles for all registered users. First user is always Admin.</p>
         </div>
-        <div className={'card'} style={{padding:0,overflow:'hidden'}}>
-          {loading?<div className={'empty'}><div className={'empty-icon'}></div><h3>Loading...</h3></div>:(
-            <table className={'admin-table'}>
+        <div className="card" style={{padding:0,overflow:'hidden'}}>
+          {loading?<div className="empty"><div className="empty-icon">⏳</div><h3>Loading…</h3></div>:(
+            <table className="admin-table">
               <thead>
                 <tr><th>User</th><th>Email</th><th>Role</th><th>Joined</th></tr>
               </thead>
@@ -1890,15 +1884,15 @@ function AdminPanel({onBack}) {
                       <td>
                         <div style={{display:'flex',alignItems:'center',gap:10}}>
                           <div style={{width:32,height:32,borderRadius:'50%',background:ac,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--mono)',fontSize:12,fontWeight:700,color:'#000',flexShrink:0}}>{initials(u.full_name)}</div>
-                          <div style={{fontWeight:600}}>{u.full_name||'-'}</div>
+                          <div style={{fontWeight:600}}>{u.full_name||'—'}</div>
                         </div>
                       </td>
-                      <td style={{color:'var(--text2)',fontFamily:'var(--mono)',fontSize:12}}>{u.id===me.id?<span style={{color:'var(--c1)'}}>You</span>:''} {u.id.slice(0,8)}...</td>
+                      <td style={{color:'var(--text2)',fontFamily:'var(--mono)',fontSize:12}}>{u.id===me.id?<span style={{color:'var(--c1)'}}>You</span>:''} {u.id.slice(0,8)}…</td>
                       <td>
                         {u.id===me.id?(
                           <RoleBadge role={u.role}/>
                         ):(
-                          <select className={'form-select'} style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={u.role} onChange={e=>changeRole(u.id,e.target.value)}>
+                          <select className="form-select" style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={u.role} onChange={e=>changeRole(u.id,e.target.value)}>
                             {['Unassigned','User','Admin'].map(r=><option key={r}>{r}</option>)}
                           </select>
                         )}
@@ -1913,7 +1907,7 @@ function AdminPanel({onBack}) {
         </div>
         <div style={{marginTop:16,padding:'14px 18px',background:'var(--panel)',borderRadius:10,border:'1px solid var(--border)',fontSize:13,color:'var(--text2)'}}>
           <strong style={{color:'var(--text)'}}>Role permissions: </strong>
-          Designer - creates & edits requirements, submits for review . Reviewer - comments . Approver - approves or requests changes (when assigned) . Verifier - tracks verification . Admin - full access
+          Designer — creates & edits requirements, submits for review · Reviewer — comments · Approver — approves or requests changes (when assigned) · Verifier — tracks verification · Admin — full access
         </div>
       </div>
     </div>
@@ -1927,11 +1921,11 @@ function OptionsPage({onBack}) {
   const TABS = [{id:'standards',label:'Standards'}];
   return (
     <div style={{minHeight:'100vh'}}>
-      <Topbar sub={'Options'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>}/>
+      <Topbar sub="Options" actions={<button className="btn btn-ghost btn-sm btn-icon" onClick={onBack}><IBack s={15}/></button>}/>
       <div style={{maxWidth:860,margin:'0 auto',padding:'28px 24px'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>Options</h1>
-          <p style={{color:'var(--text2)',fontSize:13}}>System configuration - Admin only</p>
+          <p style={{color:'var(--text2)',fontSize:13}}>System configuration — Admin only</p>
         </div>
         <div style={{display:'flex',gap:20}}>
           {/* Sidebar */}
@@ -1993,20 +1987,20 @@ function StandardsPanel() {
     <div>
       <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>Standards</div>
       <div style={{fontSize:13,color:'var(--text2)',marginBottom:20}}>Manage the standards available for selection when creating or editing requirements.</div>
-      <div className={'card'} style={{padding:0,overflow:'hidden',marginBottom:16}}>
+      <div className="card" style={{padding:0,overflow:'hidden',marginBottom:16}}>
         {loading ? <div style={{padding:24,textAlign:'center',color:'var(--text3)'}}>Loading...</div> : (
-          <table className={'admin-table'}>
+          <table className="admin-table">
             <thead><tr><th>Name</th><th>Description</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {standards.map(s=>(
                 <tr key={s.id} style={{opacity:s.active?1:.45}}>
                   <td><span style={{fontFamily:'var(--mono)',fontSize:12,color:s.active?'var(--c1)':'var(--text3)',fontWeight:700}}>{s.name}</span></td>
-                  <td style={{color:'var(--text2)'}}>{s.description||'-'}</td>
+                  <td style={{color:'var(--text2)'}}>{s.description||'—'}</td>
                   <td><span style={{fontFamily:'var(--mono)',fontSize:11,padding:'2px 8px',borderRadius:4,background:s.active?'rgba(127,255,107,.1)':'rgba(100,116,139,.1)',color:s.active?'var(--c2)':'var(--text3)',border:`1px solid ${s.active?'rgba(127,255,107,.2)':'rgba(100,116,139,.2)'}`}}>{s.active?'Active':'Disabled'}</span></td>
                   <td style={{textAlign:'right'}}>
                     <div style={{display:'flex',gap:6,justifyContent:'flex-end'}}>
                       <button className={`btn btn-sm ${s.active?'btn-ghost':'btn-success'}`} onClick={()=>toggleActive(s.id,s.active)}>{s.active?'Disable':'Enable'}</button>
-                      <button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>del(s.id)} style={{color:'var(--c4)',opacity:.6}}><ITrash s={11}/></button>
+                      <button className="btn btn-ghost btn-sm btn-icon" onClick={()=>del(s.id)} style={{color:'var(--c4)',opacity:.6}}><ITrash s={11}/></button>
                     </div>
                   </td>
                 </tr>
@@ -2017,21 +2011,21 @@ function StandardsPanel() {
         )}
       </div>
       {/* Add new */}
-      <div className={'card'}>
+      <div className="card">
         <div style={{fontSize:13,fontWeight:700,marginBottom:14}}>Add Standard</div>
-        {err&&<div className={'err'}>{err}</div>}
-        <div className={'form-row'}>
-          <div className={'form-group'} style={{marginBottom:0}}>
-            <label className={'form-label'}>Name *</label>
-            <input className={'form-input'} placeholder={'e.g. EN 50159'} value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+        {err&&<div className="err">{err}</div>}
+        <div className="form-row">
+          <div className="form-group" style={{marginBottom:0}}>
+            <label className="form-label">Name *</label>
+            <input className="form-input" placeholder="e.g. EN 50159" value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
           </div>
-          <div className={'form-group'} style={{marginBottom:0}}>
-            <label className={'form-label'}>Description (optional)</label>
-            <input className={'form-input'} placeholder={'Short description'} value={newDesc} onChange={e=>setNewDesc(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          <div className="form-group" style={{marginBottom:0}}>
+            <label className="form-label">Description (optional)</label>
+            <input className="form-input" placeholder="Short description" value={newDesc} onChange={e=>setNewDesc(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
           </div>
         </div>
         <div style={{marginTop:12}}>
-          <button className={'btn btn-primary'} onClick={add} disabled={saving||!newName.trim()}>{saving?'Adding...':'Add Standard'}</button>
+          <button className="btn btn-primary" onClick={add} disabled={saving||!newName.trim()}>{saving?'Adding...':'Add Standard'}</button>
         </div>
       </div>
     </div>
@@ -2039,7 +2033,7 @@ function StandardsPanel() {
 }
 
 
-// -- RENDER --------------------------------------------------------------------
+// ── RENDER ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
