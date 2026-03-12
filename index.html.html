@@ -674,7 +674,8 @@ function ProjectView({project,onBack}) {
     ws['!cols'] = colWidths;
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Requirements');
-    XLSX.writeFile(wb,`${project.name.replace(/[^a-z0-9]/gi,'_')}_requirements.xlsx`);
+    const safeName = project.name.replace(/[^a-z0-9]/gi,'_');
+    XLSX.writeFile(wb, safeName + '_requirements.xlsx');
   }
 
   function buildTree(flat) {
