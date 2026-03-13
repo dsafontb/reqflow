@@ -192,6 +192,7 @@ const ST_CLR   = {
 };
 const SIL_CLR  = {'SIL 4':'#b94000','SIL 3':'#b94000','SIL 2':'#8a6a00','SIL 1':'#8a6a00','SIL 0':'#1a7a4a','N/A':'#8aaad4'};
 const VS       = ['Not Started','In Progress','Verified','Failed'];
+const ACT_STATUSES = ['Not Defined','Defined','Planned','In Progress','Finished'];
 const VS_CLR   = {'Not Started':{bg:'rgba(138,170,212,.1)',text:'#5a7aaa',bd:'rgba(138,170,212,.25)'},'In Progress':{bg:'rgba(255,209,102,.12)',text:'#8a6a00',bd:'rgba(255,209,102,.25)'},'Verified':{bg:'rgba(127,255,107,.12)',text:'#1a7a4a',bd:'rgba(127,255,107,.25)'},'Failed':{bg:'rgba(255,107,53,.12)',text:'#b94000',bd:'rgba(255,107,53,.25)'}};
 const VERIFY   = ['Test','Analysis','Inspection','Demonstration'];
 const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
@@ -1134,7 +1135,6 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
   const [finishForm, setFinishForm]     = useState({actual_date:''});
   const [evidenceForm, setEvidenceForm] = useState({title:'',description:'',method:'Test',evidence_url:''});
 
-  const ACT_STATUSES = ['Not Defined','Defined','Planned','In Progress','Finished'];
   const ACT_CLR = {
     'Not Defined': {bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},
     'Defined':     {bg:'rgba(0,212,255,.10)',  text:'#005EB8',bd:'rgba(0,212,255,.25)'},
