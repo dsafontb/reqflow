@@ -730,9 +730,9 @@ function ProjectView({project,onBack}) {
                     <input className={'form-input'} placeholder={'Search...'} value={ownerF} onChange={e=>setOwnerF(e.target.value)}/>
                   </div>
                   <div>
-                    <div style={{fontSize:10,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:4}}>Activity Status</div>
+                    <div style={{fontSize:10,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:4}}>Verif. Act. Status</div>
                     <select className={'form-select'} value={vsF} onChange={e=>setVsF(e.target.value)}>
-                      <option value={'All'}>All</option>{VS.map(s=><option key={s}>{s}</option>)}
+                      <option value={'All'}>All</option>{ACT_STATUSES.map(s=><option key={s}>{s}</option>)}
                     </select>
                   </div>
                   <div style={{gridColumn:'span 2'}}>
