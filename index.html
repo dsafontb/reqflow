@@ -192,7 +192,7 @@ const ST_CLR   = {
 };
 const SIL_CLR  = {'SIL 4':'#b94000','SIL 3':'#b94000','SIL 2':'#8a6a00','SIL 1':'#8a6a00','SIL 0':'#1a7a4a','N/A':'#8aaad4'};
 const VS       = ['Not Started','In Progress','Verified','Failed'];
-const VS_CLR   = {'Not Started':{bg:'rgba(138,170,212,.1)',text:'#5a7aaa',bd:'rgba(138,170,212,.25)'},'In Progress':{bg:'rgba(255,209,102,.12)',text:'#8a6a00',bd:'rgba(255,209,102,.25)'},'Verified':{bg:'rgba(127,255,107,.12)',text:'#1a7a4a',bd:'rgba(127,255,107,.25)'},'Failed':{bg:'rgba(255,107,53,.12)',text:'#b94000',bd:'rgba(255,107,53,.25)'}};
+const VS_CLR   = {'Not Defined':{bg:'rgba(138,170,212,.1)',text:'#5a7aaa',bd:'rgba(138,170,212,.25)'},'Defined':{bg:'rgba(0,94,184,.1)',text:'#005EB8',bd:'rgba(0,94,184,.25)'},'Planned':{bg:'rgba(74,106,170,.1)',text:'#4a6aaa',bd:'rgba(74,106,170,.25)'},'In Progress':{bg:'rgba(138,106,0,.1)',text:'#8a6a00',bd:'rgba(138,106,0,.28)'},'Finished':{bg:'rgba(26,122,74,.1)',text:'#1a7a4a',bd:'rgba(26,122,74,.28)'}};
 const VERIFY   = ['Test','Analysis','Inspection','Demonstration'];
 const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
 const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
@@ -730,7 +730,7 @@ function ProjectView({project,onBack}) {
                     <input className={'form-input'} placeholder={'Search...'} value={ownerF} onChange={e=>setOwnerF(e.target.value)}/>
                   </div>
                   <div>
-                    <div style={{fontSize:10,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:4}}>Activity Status</div>
+                    <div style={{fontSize:10,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:4}}>Verification Activity</div>
                     <select className={'form-select'} value={vsF} onChange={e=>setVsF(e.target.value)}>
                       <option value={'All'}>All</option>{VS.map(s=><option key={s}>{s}</option>)}
                     </select>
@@ -809,7 +809,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
         <span style={{fontSize:13,fontWeight:500,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{node.title}</span>
         <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{node.status}</Badge>
         {node.sil_level&&node.sil_level!=='N/A'&&<Badge bg={`${SIL_CLR[node.sil_level]}18`} color={SIL_CLR[node.sil_level]} bd={`${SIL_CLR[node.sil_level]}33`}>{node.sil_level}</Badge>}
-        {(()=>{const vs2=node.verification_status||'Not Started';const vc=VS_CLR[vs2];return vs2!=='Not Started'?<Badge bg={vc.bg} color={vc.text} bd={vc.bd}>{vs2}</Badge>:null;})()}
+        {(()=>{const vs2=node.verification_status||'Not Defined';const vc=VS_CLR[vs2];return vs2!=='Not Defined'?<Badge bg={vc.bg} color={vc.text} bd={vc.bd}>{vs2}</Badge>:null;})()}
         {canEdit&&<div style={{display:'flex',gap:2,flexShrink:0,marginLeft:4}} onClick={e=>e.stopPropagation()}>
           <button className={'btn btn-ghost btn-sm btn-icon'} title={'Add child'} onClick={()=>onAddChild(node.id)} style={{opacity:.4}}><IPlus s={11}/></button>
           <button className={'btn btn-ghost btn-sm btn-icon'} title={'Edit'} onClick={e=>onEdit(node,e)} style={{opacity:.4}}><IEdit s={11}/></button>
@@ -869,8 +869,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const isDesigner = pr==='Designer'||pr==='Admin'||isAdmin;
   const isApprover = pr==='Approver'||pr==='Admin'||isAdmin;
   const isVerifier = pr==='Verifier'||pr==='Admin'||isAdmin;
-  const vs = req.verification_status||'Not Started';
-  const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
+  const vs = req.verification_status||'Not Defined';
+  const vsc = VS_CLR[vs]||VS_CLR['Not Defined'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
   const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
   const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
