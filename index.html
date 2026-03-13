@@ -830,6 +830,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const [allProfiles,setAllProfiles] = useState([]);
   const [comment,setComment]    = useState('');
   const [submitting,setSubmitting] = useState(false);
+  const [showChangesForm,setShowChangesForm] = useState(false);
+  const [changesNote,setChangesNote] = useState('');
   const [tab,setTab]            = useState('details');
   const [evidence,setEvidence]  = useState([]);
   const [evProfiles,setEvProfiles] = useState({});
@@ -875,10 +877,10 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
   const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
 
-  async function addComment(action='Comment') {
+  async function addComment(action='Comment', note='') {
     if (!comment.trim()&&action==='Comment') return;
     setSubmitting(true);
-    const content = comment.trim()||`Status changed to: ${action==='Approve'?'Approved':action==='RequestChanges'?'Changes Requested':''}`;
+    const content = action==='RequestChanges'&&note.trim() ? note.trim() : comment.trim()||`Status changed to: ${action==='Approve'?'Approved':action==='RequestChanges'?'Changes Requested':''}`;
     await db.from('comments').insert([{requirement_id:req.id,author_id:profile.id,role:profile.role,content,action,req_status:req.status}]);
     // Update requirement status
     let newStatus=req.status;
@@ -900,6 +902,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
       loadNotifications();
     }
     setComment('');
+    setChangesNote('');
+    setShowChangesForm(false);
     setSubmitting(false);
     loadComments();
   }
@@ -1046,8 +1050,18 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           {!isReadOnly && <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {canSubmit&&<button className={'btn btn-warn'} onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
             {canApprove&&<>
-              <button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
-              <button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
+              <button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}>Approve</button>
+              {!showChangesForm
+                ? <button className={'btn btn-danger'} onClick={()=>setShowChangesForm(true)} disabled={submitting}>Request Changes</button>
+                : <div style={{background:'var(--raised)',border:'1px solid var(--border2)',borderRadius:8,padding:'12px 14px',width:'100%',marginTop:4}}>
+                    <div style={{fontSize:12,fontWeight:600,color:'var(--c4)',marginBottom:8}}>Summarise the changes required</div>
+                    <textarea className={'form-textarea'} style={{marginBottom:8,minHeight:72}} placeholder={'Describe what needs to be changed...'} value={changesNote} onChange={e=>setChangesNote(e.target.value)}/>
+                    <div style={{display:'flex',gap:6}}>
+                      <button className={'btn btn-danger btn-sm'} onClick={()=>addComment('RequestChanges',changesNote)} disabled={submitting||!changesNote.trim()}>Submit</button>
+                      <button className={'btn btn-ghost btn-sm'} onClick={()=>{setShowChangesForm(false);setChangesNote('');}}>Cancel</button>
+                    </div>
+                  </div>
+              }
             </>}
             {req.status==='Approved'&&isDesigner&&<button className={'btn btn-ghost btn-sm'} onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
           </div>}
