@@ -1305,7 +1305,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
             {actStatus==='Defined'&&<button className={'btn btn-warn btn-sm'} onClick={()=>setShowPlanForm(true)}>Plan Activity</button>}
             {actStatus==='Planned'&&<button className={'btn btn-ghost btn-sm'} onClick={markInProgress}>Mark In Progress</button>}
             {actStatus==='In Progress'&&<button className={'btn btn-success btn-sm'} onClick={()=>setShowFinishForm(true)}>Mark Finished</button>}
-            {stepIdx>0&&canAct&&<button className={'btn btn-ghost btn-sm'} style={{opacity:.6,marginLeft:4}} onClick={async()=>{if(window.confirm(`Go back to "${ACT_STATUSES[stepIdx-1]}"?`)){await db.from('verification_activities').update({activity_status:ACT_STATUSES[stepIdx-1]}).eq('requirement_id',req.id);onStatusChanged();onRefresh();}}}>&#8592; Go back</button>}
+            {stepIdx>0&&canAct&&<button className={'btn btn-ghost btn-sm'} style={{opacity:.6,marginLeft:4}} onClick={async()=>{if(window.confirm('Go back to "'+ACT_STATUSES[stepIdx-1]+'"?')){await db.from('verification_activities').update({activity_status:ACT_STATUSES[stepIdx-1]}).eq('requirement_id',req.id);loadActivity();onRefresh();if(onStatusChanged)onStatusChanged();}}}>&#8592; Go back</button>}
           </div>
         )}
 
