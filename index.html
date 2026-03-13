@@ -959,29 +959,29 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             {req.description?<div style={{fontSize:13,lineHeight:1.7,background:'var(--bg)',padding:'10px 13px',borderRadius:8,border:'1px solid var(--border)',fontStyle:'italic'}}>{req.description}</div>
               :<div style={{color:'var(--text3)',fontSize:13,fontStyle:'italic'}}>No description.</div>}
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px',marginBottom:16}}>
-            <div>
-              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>Level</div>
-              <div style={{fontSize:13}}>{req.level||'—'}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:16}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,minWidth:140}}>Level</span>
+              <span style={{fontSize:13}}>{req.level||'—'}</span>
             </div>
-            <div>
-              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>Type</div>
-              <div style={{fontSize:13}}>{req.requirement_type||'—'}</div>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,minWidth:140}}>Type</span>
+              <span style={{fontSize:13}}>{req.requirement_type||'—'}</span>
             </div>
-            <div>
-              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>Owner</div>
-              <div style={{fontSize:13}}>{req.owner||'—'}</div>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,minWidth:140}}>Owner</span>
+              <span style={{fontSize:13}}>{req.owner||'—'}</span>
             </div>
-            <div>
-              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>Stakeholder</div>
-              <div style={{fontSize:13}}>{req.stakeholder||'—'}</div>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,minWidth:140}}>Stakeholder</span>
+              <span style={{fontSize:13}}>{req.stakeholder||'—'}</span>
             </div>
-            <div>
-              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>Status</div>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,minWidth:140}}>Status</span>
               <Badge bg={ST_CLR[req.status]?.bg} color={ST_CLR[req.status]?.text} bd={ST_CLR[req.status]?.bd}>{req.status}</Badge>
             </div>
-            <div>
-              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>Verification Activity</div>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,minWidth:140}}>Verification Activity</span>
               <Badge bg={vsc.bg} color={vsc.text} bd={vsc.bd}>{vs}</Badge>
             </div>
           </div>
