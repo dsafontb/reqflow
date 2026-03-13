@@ -956,18 +956,23 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
         {tab==='details'&&<>
           <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
             <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>General</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px'}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px',marginBottom:12}}>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Level</label><div style={{fontSize:13,paddingTop:2}}>{req.level||'—'}</div></div>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Type</label><div style={{fontSize:13,paddingTop:2}}>{req.requirement_type||'—'}</div></div>
+            </div>
+            <div className={'form-group'} style={{margin:0}}>
+              <label className={'form-label'}>Description</label>
+              {req.description?<div style={{fontSize:13,lineHeight:1.7,fontStyle:'italic',color:'var(--text)',paddingTop:2}}>{req.description}</div>:<div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',paddingTop:2}}>No description.</div>}
+            </div>
+          </div>
+          <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+            <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>People & Status</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px'}}>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Owner</label><div style={{fontSize:13,paddingTop:2}}>{req.owner||'—'}</div></div>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Stakeholder</label><div style={{fontSize:13,paddingTop:2}}>{req.stakeholder||'—'}</div></div>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Status</label><div style={{paddingTop:3}}><Badge bg={ST_CLR[req.status]?.bg} color={ST_CLR[req.status]?.text} bd={ST_CLR[req.status]?.bd}>{req.status}</Badge></div></div>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Verification Activity</label><div style={{paddingTop:3}}><Badge bg={vsc.bg} color={vsc.text} bd={vsc.bd}>{vs}</Badge></div></div>
             </div>
-          </div>
-          <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
-            <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>Description</div>
-            {req.description?<div style={{fontSize:13,lineHeight:1.7,fontStyle:'italic',color:'var(--text)'}}>{req.description}</div>:<div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic'}}>No description.</div>}
           </div>
           <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
             <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>Rationale</div>
@@ -1294,6 +1299,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
             {actStatus==='Defined'&&<button className={'btn btn-warn btn-sm'} onClick={()=>setShowPlanForm(true)}>Plan Activity</button>}
             {actStatus==='Planned'&&<button className={'btn btn-ghost btn-sm'} onClick={markInProgress}>Mark In Progress</button>}
             {actStatus==='In Progress'&&<button className={'btn btn-success btn-sm'} onClick={()=>setShowFinishForm(true)}>Mark Finished</button>}
+            {stepIdx>0&&canAct&&<button className={'btn btn-ghost btn-sm'} style={{opacity:.6,marginLeft:4}} onClick={async()=>{if(window.confirm(`Go back to "${ACT_STATUSES[stepIdx-1]}"?`)){await db.from('verification_activities').update({activity_status:ACT_STATUSES[stepIdx-1]}).eq('requirement_id',req.id);onStatusChanged();onRefresh();}}}>&#8592; Go back</button>}
           </div>
         )}
 
