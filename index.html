@@ -1032,7 +1032,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
               const approver=versionProfiles[v.approved_by];
               const isCurrent=v.version_number===(req.version_number||0);
               return(
-                <div key={v.version_number} style={{background:'var(--bg)',border:`1px solid ${isCurrent?'rgba(0,56,130,.3)':'var(--border)'}`,borderRadius:10,padding:'14px 16px',marginBottom:10,boxShadow:isCurrent?'0 0 0 2px rgba(0,56,130,.07)':'none'}}>
+                <div key={v.version_number} style={{background:'var(--bg)',border:isCurrent?'1px solid rgba(0,56,130,.3)':'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:10,boxShadow:isCurrent?'0 0 0 2px rgba(0,56,130,.07)':'none'}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10,paddingBottom:8,borderBottom:'1px solid var(--border)'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <span style={{fontFamily:'var(--mono)',fontWeight:700,fontSize:15,color:'var(--c1)'}}>v{v.version_number}</span>
@@ -1043,7 +1043,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                       {approver&&<div style={{fontSize:11,color:'var(--text2)',marginTop:1}}>approved by {approver.full_name}</div>}
                     </div>
                   </div>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px',marginBottom:v.description||v.rationale?10:0}}>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px',marginBottom:10}}>
                     <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Level</label><div style={{fontSize:13,paddingTop:2}}>{v.level||'—'}</div></div>
                     <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Type</label><div style={{fontSize:13,paddingTop:2}}>{v.requirement_type||'—'}</div></div>
                     <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Owner</label><div style={{fontSize:13,paddingTop:2}}>{v.owner||'—'}</div></div>
