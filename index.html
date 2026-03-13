@@ -965,7 +965,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           </div>
           {req.rationale&&<div style={{marginBottom:16}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:4}}>Rationale</div><div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6}}>{req.rationale}</div></div>}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px 14px',marginBottom:16}}>
-            {[['Owner',req.owner],['Verification',req.verification_method],['Phase',req.project_phase],['Safety Class',req.safety_class!=='None'?req.safety_class:null],['Source',req.source_document]].map(([l,v])=>v?(
+            {[['Owner',req.owner],['Stakeholder',req.stakeholder],['Type',req.requirement_type],['Verification',req.verification_method],['Safety Class',req.safety_class!=='None'?req.safety_class:null]].map(([l,v])=>v?(
               <div key={l} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:2}}>{l}</div><div style={{fontSize:13}}>{v}</div></div>
             ):null)}
           </div>
