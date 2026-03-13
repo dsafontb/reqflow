@@ -1570,7 +1570,7 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   }
 
   const parents=allReqs.filter(r=>r.id!==req?.id);
-  const TABS=[{id:'basic',label:'Basic'},{id:'safety',label:'Safety'},{id:'meta',label:'Meta'}];
+  const TABS=[{id:'basic',label:'Basic'},{id:'safety',label:'Safety'}];
 
   return (
     <div className={'modal-overlay'} onClick={onClose}>
@@ -1608,12 +1608,7 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
             <div className={'form-group'}><label className={'form-label'}>Safety Category</label><select className={'form-select'} value={form.safety_category} onChange={e=>set('safety_category',e.target.value)}>{SAFECAT.map(s=><option key={s}>{s}</option>)}</select></div>
             <div className={'form-group'}><label className={'form-label'}>Standards</label><div style={{display:'flex',flexWrap:'wrap',gap:7,marginTop:4}}>{standards.map(b=><div key={b} className={`chip ${form.regulatory_body.includes(b)?'on':''}`} onClick={()=>toggleReg(b)}>{b}</div>)}</div></div>
           </>}
-          {tab==='meta'&&<>
-            <div className={'form-row'}>
-              <div className={'form-group'}><label className={'form-label'}>Phase</label><select className={'form-select'} value={form.project_phase} onChange={e=>set('project_phase',e.target.value)}>{PHASES.map(p=><option key={p}>{p}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>Source Document</label><input className={'form-input'} value={form.source_document} onChange={e=>set('source_document',e.target.value)}/></div>
-            </div>
-          </>}
+
         </div>
         <div className={'modal-footer'}>
           <button className={'btn btn-ghost'} onClick={onClose}>Cancel</button>
