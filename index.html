@@ -959,6 +959,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px',marginBottom:12}}>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Level</label><div style={{fontSize:13,paddingTop:2}}>{req.level||'—'}</div></div>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Type</label><div style={{fontSize:13,paddingTop:2}}>{req.requirement_type||'—'}</div></div>
+              <div className={'form-group'} style={{margin:0,gridColumn:'span 2'}}><label className={'form-label'}>Verification Method</label><div style={{fontSize:13,paddingTop:2}}>{req.verification_method||'—'}</div></div>
             </div>
             <div className={'form-group'} style={{margin:0}}>
               <label className={'form-label'}>Description</label>
@@ -966,11 +967,16 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             </div>
           </div>
           <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
-            <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>People & Status</div>
+            <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>People</div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px'}}>
-              <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Owner</label><div style={{fontSize:13,paddingTop:2}}>{req.owner||'—'}</div></div>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Stakeholder</label><div style={{fontSize:13,paddingTop:2}}>{req.stakeholder||'—'}</div></div>
-              <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Status</label><div style={{paddingTop:3}}><Badge bg={ST_CLR[req.status]?.bg} color={ST_CLR[req.status]?.text} bd={ST_CLR[req.status]?.bd}>{req.status}</Badge></div></div>
+              <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Owner</label><div style={{fontSize:13,paddingTop:2}}>{req.owner||'—'}</div></div>
+            </div>
+          </div>
+          <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+            <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>Status</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px'}}>
+              <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Requirement Status</label><div style={{paddingTop:3}}><Badge bg={ST_CLR[req.status]?.bg} color={ST_CLR[req.status]?.text} bd={ST_CLR[req.status]?.bd}>{req.status}</Badge></div></div>
               <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Verification Activity</label><div style={{paddingTop:3}}><Badge bg={vsc.bg} color={vsc.text} bd={vsc.bd}>{vs}</Badge></div></div>
             </div>
           </div>
