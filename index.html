@@ -637,7 +637,15 @@ function ProjectView({project,onBack}) {
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
-    if(data)setReqs(data);
+    if(data){
+      const reqIds=(data||[]).map(r=>r.id);
+      let actMap={};
+      if(reqIds.length){
+        const {data:acts}=await db.from('verification_activities').select('requirement_id,activity_status').in('requirement_id',reqIds);
+        (acts||[]).forEach(a=>{actMap[a.requirement_id]=a.activity_status||'Not Defined';});
+      }
+      setReqs(data.map(r=>({...r,_actStatus:actMap[r.id]||'Not Defined'})));
+    }
     setLoading(false);
   },[project.id]);
   const myProjectRole = project.myProjectRole || (profile?.role==='Admin'?'Admin':'Designer');
@@ -660,7 +668,7 @@ function ProjectView({project,onBack}) {
     const mst=stF==='All'||r.status===stF;
     const mown=!ownerF||( r.owner||'').toLowerCase().includes(ownerF.toLowerCase());
     const mstk=!stakeholderF||(r.stakeholder||'').toLowerCase().includes(stakeholderF.toLowerCase());
-    const mvs=vsF==='All'||r.verification_status===vsF;
+    const mvs=vsF==='All'||(r._actStatus||'Not Defined')===vsF;
     const mwc=!wcVal||r[wcField]===wcVal||(Array.isArray(r[wcField])&&r[wcField].includes(wcVal));
     return ms&&ml&&mst&&mown&&mstk&&mvs&&mwc;
   });
