@@ -930,7 +930,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
   const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
 
-  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`},{id:'versions',label:`Versions${(req.version_number||0)>0?` (v${req.version_number})`:''}` }];
+  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:'Comments'+(comments.length?' ('+comments.length+')':'')},{id:'versions',label:'Versions'+((req.version_number||0)>0?' (v'+req.version_number+')':'')}];
 
   return (
     <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
