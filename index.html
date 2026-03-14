@@ -615,8 +615,302 @@ function ProjectModal({onClose,onSaved}) {
 }
 
 
+// ── BASELINE VIEWER ─────────────────────────────────────────────────────────
+function BaselineViewer({baseline,project,onBack}) {
+  var {profile,loadNotifications} = useApp();
+  var snap = baseline.snapshot||[];
+  var [selected,setSelected] = React.useState(null);
+  var [expanded,setExpanded] = React.useState({});
+
+  // Build tree from snapshot
+  function buildTree(flat) {
+    var map={};flat.forEach(function(r){map[r.id]={...r,children:[]};});
+    var roots=[];
+    flat.forEach(function(r){
+      if(r.parent_id&&map[r.parent_id]){map[r.parent_id].children.push(map[r.id]);}
+      else{roots.push(map[r.id]);}
+    });
+    return roots;
+  }
+  var tree = buildTree(snap);
+
+  // Enrich selected with _comments/_activity/_evidence from snapshot
+  var enriched = selected ? snap.find(function(r){return r.id===selected.id;})||selected : null;
+
+  var dt = new Date(baseline.created_at);
+  var ds = dt.toLocaleDateString('es-ES')+' '+dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+
+  return (
+    <AppContext.Provider value={{profile:profile,loadNotifications:loadNotifications,isReadOnly:true}}>
+      <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+        <div style={{background:'var(--c1)',color:'#fff',padding:'0 20px',height:54,display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
+          <button className={'btn btn-ghost btn-sm btn-icon'} style={{color:'#fff',opacity:.8}} onClick={onBack}><IBack s={15}/></button>
+          <div style={{flex:1,minWidth:0}}>
+            <span style={{fontWeight:700,fontSize:14}}>{project.name}</span>
+            <span style={{opacity:.6,margin:'0 8px'}}>·</span>
+            <span style={{fontWeight:600,fontSize:13}}>Baseline: {baseline.name}</span>
+            <span style={{opacity:.6,margin:'0 8px'}}>·</span>
+            <span style={{fontSize:12,opacity:.7}}>{ds}</span>
+          </div>
+          <span style={{fontSize:11,padding:'3px 10px',borderRadius:5,background:'rgba(255,255,255,.15)',border:'1px solid rgba(255,255,255,.25)'}}>READ-ONLY</span>
+        </div>
+        <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
+          <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',transition:'width .2s',overflow:'hidden'}}>
+            <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',alignItems:'center',gap:12}}>
+              <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{snap.length} requirements</span>
+              {baseline.description&&<span style={{fontSize:12,color:'var(--text2)',fontStyle:'italic'}}>{baseline.description}</span>}
+            </div>
+            <div style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
+              {tree.map(function(n){return <BaselineTreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={function(id){setExpanded(function(e){var x={...e};x[id]=!x[id];return x;});}} selectedId={selected&&selected.id} onSelect={function(r){setSelected(function(s){return s&&s.id===r.id?null:r;});}}/>;})}
+            </div>
+          </div>
+          {enriched&&(
+            <div style={{flex:1,overflowY:'auto',background:'var(--surface)'}}>
+              <BaselineDetailPanel req={enriched} allReqs={snap} onClose={function(){setSelected(null);}}/>
+            </div>
+          )}
+        </div>
+      </div>
+    </AppContext.Provider>
+  );
+}
+
+function BaselineTreeNode({node,depth,expanded,onToggle,selectedId,onSelect}) {
+  var isOpen=expanded[node.id]!==false&&(expanded[node.id]||depth<2);
+  var hasKids=node.children&&node.children.length>0;
+  var isSel=selectedId===node.id;
+  var lc=LEVEL_CLR[node.level]||'#64748b';
+  var sc=ST_CLR[node.status]||ST_CLR['Draft'];
+  return (
+    <div>
+      <div onClick={function(){onSelect(node);}} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 16px 5px '+(16+depth*18)+'px',cursor:'pointer',background:isSel?'rgba(0,56,130,.07)':'transparent',borderLeft:isSel?'3px solid var(--c1)':'3px solid transparent'}}>
+        {hasKids&&<button onClick={function(e){e.stopPropagation();onToggle(node.id);}} style={{background:'none',border:'none',padding:'0 2px',cursor:'pointer',color:'var(--text3)',fontSize:10}}>{isOpen?'▾':'▸'}</button>}
+        {!hasKids&&<span style={{width:14}}/>}
+        <span style={{fontFamily:'var(--mono)',fontSize:11,color:lc,fontWeight:600,flexShrink:0}}>{node.req_id}</span>
+        <span style={{fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text)'}}>{node.title}</span>
+        <span style={{fontSize:10,padding:'1px 6px',borderRadius:4,background:sc.bg,color:sc.text,border:'1px solid '+sc.bd,flexShrink:0}}>{node.status}</span>
+      </div>
+      {hasKids&&isOpen&&node.children.map(function(c){return <BaselineTreeNode key={c.id} node={c} depth={depth+1} expanded={expanded} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect}/>;})}
+    </div>
+  );
+}
+
+function BaselineDetailPanel({req,allReqs,onClose}) {
+  var [tab,setTab] = React.useState('details');
+  var lc=LEVEL_CLR[req.level]||'#64748b';
+  var sc=ST_CLR[req.status]||ST_CLR['Draft'];
+  var vs=req._activity?req._activity.activity_status||'Not Defined':'Not Defined';
+  var vsc=ACT_CLR[vs]||ACT_CLR['Not Defined'];
+  var vh=req.version_history||[];
+  var comments=req._comments||[];
+  var activity=req._activity||null;
+  var evidence=req._evidence||[];
+  var parent=req.parent_id?allReqs.find(function(r){return r.id===req.parent_id;}):null;
+  var children=allReqs.filter(function(r){return r.parent_id===req.id;});
+  var TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:'Comments'+(comments.length?' ('+comments.length+')':'')},{id:'versions',label:'Versions'+(vh.length?' (v'+vh.length+')':'')}];
+
+  return (
+    <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
+      <div style={{padding:'13px 18px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'flex-start',gap:10,background:'var(--panel)',flexShrink:0}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4,flexWrap:'wrap'}}>
+            <span style={{fontFamily:'var(--mono)',fontSize:12,color:lc,fontWeight:700}}>{req.req_id}</span>
+            <Badge bg={lc+'18'} color={lc} bd={lc+'33'}>{req.level}</Badge>
+            <Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{req.status}</Badge>
+            {req.sil_level&&req.sil_level!=='N/A'&&<Badge bg={SIL_CLR[req.sil_level]+'18'} color={SIL_CLR[req.sil_level]} bd={SIL_CLR[req.sil_level]+'33'}>{req.sil_level}</Badge>}
+            <Badge bg={vsc.bg} color={vsc.text} bd={vsc.bd}>{vs}</Badge>
+          </div>
+          <div style={{fontWeight:700,fontSize:15,lineHeight:1.3}}>{req.title}</div>
+        </div>
+        <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onClose}><IX s={12}/></button>
+      </div>
+      <div className={'tab-bar'} style={{paddingLeft:0,paddingRight:0}}>
+        {TABS.map(function(t){return <button key={t.id} className={'tab'+(tab===t.id?' active':'')} onClick={function(){setTab(t.id);}} style={{fontSize:12,padding:'8px 16px'}}>{t.label}</button>;})}
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:18}}>
+
+        {tab==='details'&&(
+          <div>
+            <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>General</div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px',marginBottom:12}}>
+                <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Level</label><div style={{fontSize:13,paddingTop:2}}>{req.level||'—'}</div></div>
+                <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Type</label><div style={{fontSize:13,paddingTop:2}}>{req.requirement_type||'—'}</div></div>
+                <div className={'form-group'} style={{margin:0,gridColumn:'span 2'}}><label className={'form-label'}>Verification Method</label><div style={{fontSize:13,paddingTop:2}}>{req.verification_method||'—'}</div></div>
+              </div>
+              <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Description</label>
+                {req.description?<div style={{fontSize:13,lineHeight:1.7,fontStyle:'italic',color:'var(--text)',paddingTop:2}}>{req.description}</div>:<div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',paddingTop:2}}>No description.</div>}
+              </div>
+            </div>
+            <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>People</div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px'}}>
+                <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Stakeholder</label><div style={{fontSize:13,paddingTop:2}}>{req.stakeholder||'—'}</div></div>
+                <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Owner</label><div style={{fontSize:13,paddingTop:2}}>{req.owner||'—'}</div></div>
+              </div>
+            </div>
+            <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>Status</div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px'}}>
+                <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Requirement Status</label><div style={{paddingTop:3}}><Badge bg={sc.bg} color={sc.text} bd={sc.bd}>{req.status}</Badge></div></div>
+                <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Verification Activity</label><div style={{paddingTop:3}}><Badge bg={vsc.bg} color={vsc.text} bd={vsc.bd}>{vs}</Badge></div></div>
+              </div>
+            </div>
+            <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>Rationale</div>
+              {req.rationale?<div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6}}>{req.rationale}</div>:<div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic'}}>No rationale provided.</div>}
+            </div>
+            {(req.sil_level&&req.sil_level!=='N/A'||(req.regulatory_body&&req.regulatory_body.length>0))&&(
+              <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>Safety</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px 16px'}}>
+                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Safety Class</label><div style={{fontSize:13,paddingTop:2}}>{req.safety_class||'—'}</div></div>
+                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>SIL Level</label><div style={{fontSize:13,paddingTop:2}}>{req.sil_level||'—'}</div></div>
+                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Safety Category</label><div style={{fontSize:13,paddingTop:2}}>{req.safety_category||'—'}</div></div>
+                  {req.regulatory_body&&req.regulatory_body.length>0&&<div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Standards</label><div style={{fontSize:13,paddingTop:2}}>{req.regulatory_body.join(', ')}</div></div>}
+                </div>
+              </div>
+            )}
+            {(parent||children.length>0)&&(
+              <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:12}}>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8,paddingBottom:6,borderBottom:'1px solid var(--border)'}}>Hierarchy</div>
+                {parent&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'7px 11px',background:'var(--surface)',borderRadius:8,border:'1px solid var(--border)',marginBottom:5}}>
+                  <span style={{fontFamily:'var(--mono)',fontSize:11,color:LEVEL_CLR[parent.level]||'#64748b'}}>{parent.req_id}</span>
+                  <span style={{fontSize:12,color:'var(--text2)',flex:1}}>{parent.title}</span>
+                  <span style={{fontSize:10,color:'var(--text3)'}}>parent</span>
+                </div>}
+                {children.map(function(c){return(
+                  <div key={c.id} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 11px',background:'var(--surface)',borderRadius:8,border:'1px solid var(--border)',marginBottom:4}}>
+                    <span style={{fontFamily:'var(--mono)',fontSize:11,color:LEVEL_CLR[c.level]||'#64748b'}}>{c.req_id}</span>
+                    <span style={{fontSize:12,color:'var(--text2)',flex:1}}>{c.title}</span>
+                    <Badge bg={ST_CLR[c.status]&&ST_CLR[c.status].bg} color={ST_CLR[c.status]&&ST_CLR[c.status].text} bd={ST_CLR[c.status]&&ST_CLR[c.status].bd}>{c.status}</Badge>
+                  </div>
+                );})}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab==='workflow'&&(
+          <div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Requirement Status at Baseline</div>
+              <div className={'wf-bar'}>
+                {['Draft','In Review','Approved'].map(function(s,i){return(
+                  <React.Fragment key={s}>
+                    {i>0&&<div className={'wf-arrow'}>›</div>}
+                    <div className={'wf-step'+(req.status===s?' active':(['Approved'].includes(req.status)&&i<2?' done':''))}>{s}</div>
+                  </React.Fragment>
+                );})}
+                <div className={'wf-arrow'}>↕</div>
+                <div className={'wf-step'+(req.status==='Changes Requested'?' rejected':'')}>Changes Requested</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab==='verification'&&(
+          <div>
+            {activity?(
+              <div>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                  <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4}}>Verification Activity</div>
+                  <span style={{fontFamily:'var(--mono)',fontSize:10,padding:'3px 9px',borderRadius:5,background:vsc.bg,color:vsc.text,border:'1px solid '+vsc.bd}}>{vs}</span>
+                </div>
+                <div style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:9,padding:'10px 14px',marginBottom:8}}>
+                  <div style={{fontSize:13,color:'var(--text)',lineHeight:1.6,marginBottom:6}}>{activity.description||'No description.'}</div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px 14px'}}>
+                    <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Method</label><div style={{fontSize:13,paddingTop:2}}>{activity.method||'—'}</div></div>
+                    {activity.planned_date&&<div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Planned Date</label><div style={{fontSize:13,paddingTop:2}}>{activity.planned_date}</div></div>}
+                    {activity.actual_date&&<div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Actual Date</label><div style={{fontSize:13,paddingTop:2}}>{activity.actual_date}</div></div>}
+                  </div>
+                </div>
+                {evidence.length>0&&(
+                  <div>
+                    <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:8}}>Evidence</div>
+                    {evidence.map(function(e){return(
+                      <div key={e.id} style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:9,padding:'10px 14px',marginBottom:8}}>
+                        <div style={{fontWeight:600,fontSize:13,marginBottom:4}}>{e.title}</div>
+                        {e.description&&<div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5,marginBottom:4}}>{e.description}</div>}
+                        {e.evidence_url&&<a href={e.evidence_url} target={'_blank'} rel={'noopener noreferrer'} style={{fontSize:12,color:'var(--c1)'}}>View evidence</a>}
+                      </div>
+                    );})}
+                  </div>
+                )}
+              </div>
+            ):(
+              <div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',padding:'20px 0',textAlign:'center'}}>No verification activity recorded at baseline time.</div>
+            )}
+          </div>
+        )}
+
+        {tab==='comments'&&(
+          <div>
+            {comments.length===0&&<div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',padding:'20px 0',textAlign:'center'}}>No comments at baseline time.</div>}
+            {comments.map(function(c){
+              var isAction=c.action&&c.action!=='Comment';
+              var actionClr={Approve:'rgba(127,255,107,.12)',RequestChanges:'rgba(255,107,53,.12)',Submit:'rgba(255,209,102,.08)'};
+              return(
+                <div key={c.id} style={{marginBottom:12,padding:'10px 14px',borderRadius:9,background:isAction?(actionClr[c.action]||'var(--bg)'):'var(--bg)',border:'1px solid var(--border)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <span style={{fontSize:12,fontWeight:600,color:'var(--text)'}}>{c.role||'User'}</span>
+                    <span style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)'}}>{new Date(c.created_at).toLocaleString('es-ES',{timeZone:'Europe/Madrid'})}</span>
+                    {isAction&&<span style={{fontSize:10,padding:'1px 6px',borderRadius:4,background:'rgba(0,0,0,.06)',color:'var(--text2)'}}>{c.action}</span>}
+                  </div>
+                  <div style={{fontSize:13,color:'var(--text)',lineHeight:1.6}}>{c.content}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {tab==='versions'&&(
+          <div>
+            {vh.length===0&&<div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',padding:'20px 0',textAlign:'center'}}>No versions at baseline time.</div>}
+            {vh.slice().reverse().map(function(v){
+              var d=new Date(v.approved_at);
+              var ds=d.toLocaleDateString('es-ES')+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+              var prev=v.v>1?vh[v.v-2]:null;
+              function chg(cur,old){return prev&&String(cur||'')!==String(old||'');}
+              var diffBg='rgba(255,209,102,.10)';var diffBd='rgba(255,209,102,.35)';var diffClr='#8a6a00';
+              function fld(label,cur,old){
+                var changed=chg(cur,old);
+                return(
+                  <div className={'form-group'} style={{margin:0,background:changed?diffBg:'transparent',border:changed?('1px solid '+diffBd):'1px solid transparent',borderRadius:6,padding:changed?'4px 7px':'0'}}>
+                    <label className={'form-label'}>{label}{changed&&<span style={{marginLeft:5,fontSize:9,color:diffClr,fontWeight:700,textTransform:'uppercase',letterSpacing:.3}}>changed</span>}</label>
+                    <div style={{fontSize:13,paddingTop:2}}>{cur||'—'}</div>
+                    {changed&&<div style={{fontSize:11,color:diffClr,marginTop:2}}>was: {old||'—'}</div>}
+                  </div>
+                );
+              }
+              return(
+                <div key={v.v} style={{border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:10,background:'var(--bg)'}}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingBottom:8,marginBottom:12,borderBottom:'1px solid var(--border)'}}>
+                    <span style={{fontFamily:'var(--mono)',fontWeight:700,fontSize:15,color:'var(--c1)'}}>v{v.v}</span>
+                    <div style={{textAlign:'right'}}>
+                      <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)'}}>{ds}</div>
+                      <div style={{fontSize:11,color:'var(--text2)'}}>approved by {v.approved_by}</div>
+                    </div>
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px'}}>
+                    {fld('Level',v.level,prev&&prev.level)}
+                    {fld('Type',v.requirement_type,prev&&prev.requirement_type)}
+                    {fld('Owner',v.owner,prev&&prev.owner)}
+                    {fld('Stakeholder',v.stakeholder,prev&&prev.stakeholder)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
 // ── BASELINES PANEL ─────────────────────────────────────────────────────────
-function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated}) {
+function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpenBaseline}) {
   var [view,setView]         = React.useState('list');
   var [selected,setSelected] = React.useState(null);
   var [name,setName]         = React.useState('');
@@ -630,16 +924,31 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated}) {
     if(!name.trim()){setErr('Baseline name is required');return;}
     if(approvedReqs.length===0){setErr('No approved requirements to baseline.');return;}
     setSaving(true);setErr('');
+    var ids = approvedReqs.map(function(r){return r.id;});
+    var commentsRes = await db.from('comments').select('*').in('requirement_id',ids).order('created_at');
+    var activitiesRes = await db.from('verification_activities').select('*').in('requirement_id',ids);
+    var evidenceRes = await db.from('evidence').select('*').in('requirement_id',ids).order('created_at',{ascending:false});
+    var commentMap = {};
+    (commentsRes.data||[]).forEach(function(c){if(!commentMap[c.requirement_id])commentMap[c.requirement_id]=[];commentMap[c.requirement_id].push(c);});
+    var actMap = {};
+    (activitiesRes.data||[]).forEach(function(a){actMap[a.requirement_id]=a;});
+    var evMap = {};
+    (evidenceRes.data||[]).forEach(function(e){if(!evMap[e.requirement_id])evMap[e.requirement_id]=[];evMap[e.requirement_id].push(e);});
     var snap = approvedReqs.map(function(r){
       return {
-        req_id:r.req_id||'',title:r.title||'',level:r.level||'',
+        id:r.id,req_id:r.req_id||'',title:r.title||'',level:r.level||'',
         requirement_type:r.requirement_type||'',status:r.status||'',
         verification_method:r.verification_method||'',owner:r.owner||'',
         stakeholder:r.stakeholder||'',description:r.description||'',
         rationale:r.rationale||'',safety_class:r.safety_class||'',
         sil_level:r.sil_level||'',safety_category:r.safety_category||'',
-        regulatory_body:(r.regulatory_body||[]).join(', '),
-        version_number:(r.version_history||[]).length
+        regulatory_body:(r.regulatory_body||[]),
+        parent_id:r.parent_id||null,sort_order:r.sort_order||0,
+        version_history:r.version_history||[],
+        created_at:r.created_at,updated_at:r.updated_at,
+        _comments:commentMap[r.id]||[],
+        _activity:actMap[r.id]||null,
+        _evidence:evMap[r.id]||[]
       };
     });
     var res = await db.from('project_baselines').insert([{
@@ -687,13 +996,16 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated}) {
                 var dt=new Date(b.created_at);
                 var ds=dt.toLocaleDateString('es-ES')+' '+dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
                 return (
-                  <div key={b.id} style={{border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:10,background:'var(--bg)',cursor:'pointer'}} onClick={()=>{setSelected(b);setView('detail');}}>
+                  <div key={b.id} style={{border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:10,background:'var(--bg)'}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
                       <span style={{fontWeight:700,fontSize:14,color:'var(--c1)'}}>{b.name}</span>
                       <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{ds}</span>
                     </div>
                     {b.description&&<div style={{fontSize:13,color:'var(--text2)',marginBottom:6}}>{b.description}</div>}
-                    <div style={{fontSize:12,color:'var(--text3)'}}>{b.req_count} approved requirements</div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:8}}>
+                      <div style={{fontSize:12,color:'var(--text3)'}}>{b.req_count} approved requirements</div>
+                      <button className={'btn btn-ghost btn-sm'} onClick={function(){onClose();onOpenBaseline(b);}}>View Baseline</button>
+                    </div>
                   </div>
                 );
               })}
@@ -781,6 +1093,7 @@ function ProjectView({project,onBack}) {
   const [showFilters,setShowFilters] = useState(false);
   const [showBaselines,setShowBaselines] = useState(false);
   const [baselines,setBaselines] = useState([]);
+  const [viewingBaseline,setViewingBaseline] = useState(null);
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
@@ -831,6 +1144,7 @@ function ProjectView({project,onBack}) {
 
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
+  if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
       <Topbar sub={project.name} actions={
@@ -943,7 +1257,7 @@ function ProjectView({project,onBack}) {
           </div>
         )}
       </div>
-      {showBaselines&&<BaselinesPanel project={project} reqs={reqs} baselines={baselines} profile={profile} onClose={()=>setShowBaselines(false)} onCreated={()=>{loadBaselines();}}/>}
+      {showBaselines&&<BaselinesPanel project={project} reqs={reqs} baselines={baselines} profile={profile} onClose={()=>setShowBaselines(false)} onCreated={()=>{loadBaselines();}} onOpenBaseline={function(b){setViewingBaseline(b);setShowBaselines(false);}}/>}
       {showModal&&<ReqModal projectId={project.id} req={editReq} defParentId={defParent} allReqs={reqs} onClose={()=>setShowModal(false)} onSaved={()=>{setShowModal(false);load();}}/> }
       {showMembers&&<MembersModal projectId={project.id} onClose={()=>setShowMembers(false)}/>}
     </div>
