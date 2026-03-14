@@ -1244,7 +1244,7 @@ function ProjectView({project,onBack}) {
     const mst=stF==='All'||r.status===stF;
     const mown=!ownerF||( r.owner||'').toLowerCase().includes(ownerF.toLowerCase());
     const mstk=!stakeholderF||(r.stakeholder||'').toLowerCase().includes(stakeholderF.toLowerCase());
-    const mvs=vsF==='All'||(r._actStatus||'Not Defined')===vsF;
+    const mvs=vsF==='All'||(vsF==='Verified'||vsF==='Failed'?r.verification_status===vsF:(r._actStatus||'Not Defined')===vsF);
     const mwc=!wcVal||r[wcField]===wcVal||(Array.isArray(r[wcField])&&r[wcField].includes(wcVal));
     return ms&&ml&&mst&&mown&&mstk&&mvs&&mwc;
   });
@@ -1319,7 +1319,12 @@ function ProjectView({project,onBack}) {
                   <div>
                     <div style={{fontSize:10,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:4}}>Verif. Act. Status</div>
                     <select className={'form-select'} value={vsF} onChange={e=>setVsF(e.target.value)}>
-                      <option value={'All'}>All</option>{ACT_STATUSES.map(s=><option key={s}>{s}</option>)}
+                      <option value={'All'}>All</option>
+                      <option disabled={true}>— Activity —</option>
+                      {ACT_STATUSES.map(s=><option key={s}>{s}</option>)}
+                      <option disabled={true}>— Outcome —</option>
+                      <option value={'Verified'}>Verified</option>
+                      <option value={'Failed'}>Failed</option>
                     </select>
                   </div>
                   <div style={{gridColumn:'span 2'}}>
