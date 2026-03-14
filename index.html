@@ -206,13 +206,11 @@ const VERIFY   = ['Test','Analysis','Inspection','Demonstration'];
 const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
 const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
 const SAFECAT  = ['Quality','Functional Safety','Security','Dependability','RAMS'];
-const PHASES   = ['Concept','Development','Qualification','Production'];
 const REQ_TYPES = ['Functional','Performance','Interface','Safety','Reliability','Maintainability','Physical','Environmental','Operational'];
 const REGS_DEFAULT = ['EN 50126','EN 50128','EN 50129','EN 50155','ISO 22163','ISO 9001']; // fallback only
 const ROLES    = ['Unassigned','User','Admin'];
 const PROJECT_ROLES = ['Designer','Reviewer','Approver','Verifier','Admin'];
 const ROLE_CLR = {Unassigned:'#8aaad4',Designer:'#005EB8',Reviewer:'#8a6a00',Approver:'#1a7a4a',Verifier:'#4a6aaa',Admin:'#b94000'};
-const PHASE_CLR= {Concept:'#005EB8',Development:'#8a6a00',Qualification:'#b94000',Production:'#1a7a4a'};
 
 // ── ICONS ─────────────────────────────────────────────────────────────────────
 const Ic = ({d,s=14,c='currentColor'}) => (
@@ -560,7 +558,6 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
         )}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:14}}>
           {projects.map(p=>{
-            const pc=PHASE_CLR[p.phase]||'#005EB8';
             const myRole = myRoles[p.id];
             const rc = myRole ? (ROLE_CLR[myRole]||'#64748b') : null;
             return (
@@ -568,7 +565,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
                 onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--border2)';e.currentTarget.style.transform='translateY(-2px)'}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='none'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
-                  <div style={{width:38,height:38,borderRadius:9,background:`${pc}18`,border:`1px solid ${pc}33`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <div style={{width:38,height:38,borderRadius:9,background:'rgba(0,94,184,.1)',border:'1px solid rgba(0,94,184,.2)',display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <IFolder s={16}/>
                   </div>
                   {isAdmin && !isReadOnly && <button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
@@ -576,7 +573,6 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
                 <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
                 {p.description && <div style={{color:'var(--text2)',fontSize:12,marginBottom:10,lineHeight:1.5}}>{p.description.slice(0,80)}{p.description.length>80?'..':''}</div>}
                 <div style={{display:'flex',gap:7,flexWrap:'wrap',marginTop:8}}>
-                  <Badge bg={`${pc}18`} color={pc} bd={`${pc}33`}>{p.phase}</Badge>
                   <Badge bg={'var(--raised)'} color={'var(--text2)'} bd={'var(--border)'}>{counts[p.id]||0} reqs</Badge>
                   {myRole && <Badge bg={`${rc}18`} color={rc} bd={`${rc}33`}>{myRole}</Badge>}
                 </div>
@@ -591,14 +587,14 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
 }
 
 function ProjectModal({onClose,onSaved}) {
-  const [form,setForm]=useState({name:'',description:'',phase:'Concept'});
+  const [form,setForm]=useState({name:'',description:''});
   const [saving,setSaving]=useState(false);
   const [err,setErr]=useState('');
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
   async function save() {
     if (!form.name.trim()){setErr('Name required');return;}
     setSaving(true);
-    const {error}=await db.from('projects').insert([{name:form.name.trim(),description:form.description,phase:form.phase}]);
+    const {error}=await db.from('projects').insert([{name:form.name.trim(),description:form.description}]);
     setSaving(false);
     if (error){setErr(error.message);return;}
     onSaved();
@@ -611,7 +607,6 @@ function ProjectModal({onClose,onSaved}) {
           {err&&<div className={'err'}>{err}</div>}
           <div className={'form-group'}><label className={'form-label'}>Name *</label><input className={'form-input'} placeholder={'e.g. Brake Control Unit'} value={form.name} onChange={e=>set('name',e.target.value)} autoFocus/></div>
           <div className={'form-group'}><label className={'form-label'}>Description</label><textarea className={'form-textarea'} value={form.description} onChange={e=>set('description',e.target.value)}/></div>
-          <div className={'form-group'}><label className={'form-label'}>Phase</label><select className={'form-select'} value={form.phase} onChange={e=>set('phase',e.target.value)}>{PHASES.map(p=><option key={p}>{p}</option>)}</select></div>
         </div>
         <div className={'modal-footer'}>
           <button className={'btn btn-ghost'} onClick={onClose}>Cancel</button>
@@ -1218,7 +1213,10 @@ function ProjectView({project,onBack}) {
         const {data:acts}=await db.from('verification_activities').select('requirement_id,activity_status').in('requirement_id',reqIds);
         (acts||[]).forEach(a=>{actMap[a.requirement_id]=a.activity_status||'Not Defined';});
       }
-      setReqs(data.map(r=>({...r,_actStatus:actMap[r.id]||'Not Defined'})));
+      var loaded=data.map(r=>({...r,_actStatus:actMap[r.id]||'Not Defined'}));
+      setReqs(loaded);
+      var allExpanded={};loaded.forEach(function(r){allExpanded[r.id]=true;});
+      setExpanded(allExpanded);
     }
     setLoading(false);
   },[project.id]);
