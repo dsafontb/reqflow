@@ -167,6 +167,7 @@ body::before{content:'';position:fixed;inset:0;background-image:none;pointer-eve
 
 @media(max-width:600px){.form-row{grid-template-columns:1fr}}
 </style>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -946,6 +947,41 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
     onCreated();
   }
 
+  function exportBaseline(b) {
+    if(!window.XLSX){alert('Export library not loaded. Please refresh the page.');return;}
+    var snap = b.snapshot||[];
+    var rows = snap.map(function(r){
+      var actStatus = r._activity?r._activity.activity_status||'Not Defined':'Not Defined';
+      return {
+        'ID':                  r.req_id||'',
+        'Title':               r.title||'',
+        'Level':               r.level||'',
+        'Type':                r.requirement_type||'',
+        'Status':              r.status||'',
+        'Verification Activity': actStatus,
+        'Verification Method': r.verification_method||'',
+        'Owner':               r.owner||'',
+        'Stakeholder':         r.stakeholder||'',
+        'Safety Class':        r.safety_class||'',
+        'SIL Level':           r.sil_level||'',
+        'Safety Category':     r.safety_category||'',
+        'Standards':           Array.isArray(r.regulatory_body)?r.regulatory_body.join(', '):(r.regulatory_body||''),
+        'Description':         r.description||'',
+        'Rationale':           r.rationale||''
+      };
+    });
+    var ws = window.XLSX.utils.json_to_sheet(rows);
+    var colWidths = [{wch:12},{wch:45},{wch:14},{wch:16},{wch:18},{wch:22},{wch:20},{wch:18},{wch:18},{wch:14},{wch:10},{wch:16},{wch:24},{wch:50},{wch:50}];
+    ws['!cols'] = colWidths;
+    var wb = window.XLSX.utils.book_new();
+    var sheetName = (b.name||'Baseline').replace(/[\/*?:\[\]]/g,'').slice(0,31);
+    window.XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    var dt = new Date(b.created_at);
+    var dateStr = dt.getFullYear()+'-'+(dt.getMonth()+1<10?'0':'')+(dt.getMonth()+1)+'-'+(dt.getDate()<10?'0':'')+dt.getDate();
+    var fname = (b.name||'Baseline').replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+dateStr+'.xlsx';
+    window.XLSX.writeFile(wb,fname);
+  }
+
   var approvedReqs = reqs.filter(function(r){return r.status==='Approved';});
 
   async function createBaseline() {
@@ -1054,7 +1090,8 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
                           <div style={{display:'flex',gap:6}}>
                             {canManage&&<button className={'btn btn-ghost btn-sm'} onClick={function(){setEditingId(b.id);setEditName(b.name);setEditDesc(b.description||'');}}>Rename</button>}
                             {canManage&&<button className={'btn btn-ghost btn-sm'} style={{color:'var(--c4)'}} onClick={function(){deleteBaseline(b.id,b.name);}}>Delete</button>}
-                            <button className={'btn btn-ghost btn-sm'} onClick={function(){onClose();onOpenBaseline(b);}}>View</button>
+                            <button className={'btn btn-ghost btn-sm'} onClick={function(){exportBaseline(b);}}>Export</button>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){onClose();onOpenBaseline(b);}}>View</button>
                           </div>
                         </div>
                       </div>
