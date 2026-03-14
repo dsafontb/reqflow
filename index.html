@@ -614,6 +614,151 @@ function ProjectModal({onClose,onSaved}) {
   );
 }
 
+
+// ── BASELINES PANEL ─────────────────────────────────────────────────────────
+function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated}) {
+  var [view,setView]         = React.useState('list');
+  var [selected,setSelected] = React.useState(null);
+  var [name,setName]         = React.useState('');
+  var [desc,setDesc]         = React.useState('');
+  var [saving,setSaving]     = React.useState(false);
+  var [err,setErr]           = React.useState('');
+
+  var approvedReqs = reqs.filter(function(r){return r.status==='Approved';});
+
+  async function createBaseline() {
+    if(!name.trim()){setErr('Baseline name is required');return;}
+    if(approvedReqs.length===0){setErr('No approved requirements to baseline.');return;}
+    setSaving(true);setErr('');
+    var snap = approvedReqs.map(function(r){
+      return {
+        req_id:r.req_id||'',title:r.title||'',level:r.level||'',
+        requirement_type:r.requirement_type||'',status:r.status||'',
+        verification_method:r.verification_method||'',owner:r.owner||'',
+        stakeholder:r.stakeholder||'',description:r.description||'',
+        rationale:r.rationale||'',safety_class:r.safety_class||'',
+        sil_level:r.sil_level||'',safety_category:r.safety_category||'',
+        regulatory_body:(r.regulatory_body||[]).join(', '),
+        version_number:(r.version_history||[]).length
+      };
+    });
+    var res = await db.from('project_baselines').insert([{
+      project_id:project.id,
+      name:name.trim(),
+      description:desc.trim()||null,
+      req_count:snap.length,
+      snapshot:snap,
+      created_by:profile.id
+    }]);
+    setSaving(false);
+    if(res.error){setErr(res.error.message);return;}
+    setName('');setDesc('');setView('list');
+    onCreated();
+  }
+
+  return (
+    <div style={{position:'fixed',inset:0,zIndex:200,display:'flex'}}>
+      <div style={{flex:1,background:'rgba(0,0,0,.35)'}} onClick={onClose}/>
+      <div style={{width:520,background:'var(--surface)',display:'flex',flexDirection:'column',boxShadow:'-4px 0 24px rgba(0,0,0,.18)',overflow:'hidden'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+          <div>
+            <div style={{fontWeight:700,fontSize:16}}>Baselines</div>
+            <div style={{fontSize:12,color:'var(--text3)',marginTop:1}}>{project.name}</div>
+          </div>
+          <button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={16}/></button>
+        </div>
+
+        <div style={{display:'flex',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+          <button className={'tab'+(view==='list'?' active':'')} style={{fontSize:12}} onClick={()=>setView('list')}>History</button>
+          <button className={'tab'+(view==='create'?' active':'')} style={{fontSize:12}} onClick={()=>{setView('create');setSelected(null);}}>Create Baseline</button>
+          {selected&&<button className={'tab'+(view==='detail'?' active':'')} style={{fontSize:12}} onClick={()=>setView('detail')}>{selected.name}</button>}
+        </div>
+
+        <div style={{flex:1,overflowY:'auto',padding:20}}>
+
+          {view==='list'&&(
+            <div>
+              {baselines.length===0&&(
+                <div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',textAlign:'center',padding:'40px 0'}}>
+                  No baselines yet. Create one to freeze the current approved spec.
+                </div>
+              )}
+              {baselines.map(function(b){
+                var dt=new Date(b.created_at);
+                var ds=dt.toLocaleDateString('es-ES')+' '+dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+                return (
+                  <div key={b.id} style={{border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:10,background:'var(--bg)',cursor:'pointer'}} onClick={()=>{setSelected(b);setView('detail');}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+                      <span style={{fontWeight:700,fontSize:14,color:'var(--c1)'}}>{b.name}</span>
+                      <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{ds}</span>
+                    </div>
+                    {b.description&&<div style={{fontSize:13,color:'var(--text2)',marginBottom:6}}>{b.description}</div>}
+                    <div style={{fontSize:12,color:'var(--text3)'}}>{b.req_count} approved requirements</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {view==='create'&&(
+            <div>
+              <div style={{fontSize:13,color:'var(--text2)',marginBottom:16,padding:'10px 14px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border)'}}>
+                This will freeze a snapshot of all <strong>{approvedReqs.length} approved</strong> requirements as a new baseline. Draft and In Review requirements are excluded.
+              </div>
+              {err&&<div className={'err'} style={{marginBottom:12}}>{err}</div>}
+              <div className={'form-group'}>
+                <label className={'form-label'}>Baseline Name *</label>
+                <input className={'form-input'} placeholder={'e.g. v1.0, Issue A, PDR Baseline'} value={name} onChange={function(e){setName(e.target.value);}}/>
+              </div>
+              <div className={'form-group'}>
+                <label className={'form-label'}>Description</label>
+                <textarea className={'form-textarea'} placeholder={'Optional — milestone, reason for release...'} value={desc} onChange={function(e){setDesc(e.target.value);}}/>
+              </div>
+              <button className={'btn btn-primary'} onClick={createBaseline} disabled={saving||approvedReqs.length===0}>
+                {saving?'Creating...':'Create Baseline'}
+              </button>
+              {approvedReqs.length===0&&<div style={{fontSize:12,color:'var(--c4)',marginTop:8}}>No approved requirements found. Approve requirements before creating a baseline.</div>}
+            </div>
+          )}
+
+          {view==='detail'&&selected&&(
+            <div>
+              <div style={{marginBottom:16}}>
+                <div style={{fontSize:16,fontWeight:700,color:'var(--c1)',marginBottom:2}}>{selected.name}</div>
+                {selected.description&&<div style={{fontSize:13,color:'var(--text2)',marginBottom:6}}>{selected.description}</div>}
+                <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)'}}>
+                  {new Date(selected.created_at).toLocaleString('es-ES',{timeZone:'Europe/Madrid'})} · {selected.req_count} requirements
+                </div>
+              </div>
+              <div style={{borderTop:'1px solid var(--border)',paddingTop:14}}>
+                {(selected.snapshot||[]).map(function(r){
+                  return (
+                    <div key={r.req_id} style={{border:'1px solid var(--border)',borderRadius:8,padding:'10px 14px',marginBottom:8,background:'var(--bg)'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                        <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--c1)',fontWeight:600}}>{r.req_id}</span>
+                        <span style={{fontSize:12,color:'var(--text2)',flex:1}}>{r.title}</span>
+                        <span style={{fontSize:10,color:'var(--text3)'}}>{r.level}</span>
+                      </div>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px 12px'}}>
+                        <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Owner</label><div style={{fontSize:12,paddingTop:1}}>{r.owner||'—'}</div></div>
+                        <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Stakeholder</label><div style={{fontSize:12,paddingTop:1}}>{r.stakeholder||'—'}</div></div>
+                        <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Verif. Method</label><div style={{fontSize:12,paddingTop:1}}>{r.verification_method||'—'}</div></div>
+                        <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Safety Class</label><div style={{fontSize:12,paddingTop:1}}>{r.safety_class||'—'}</div></div>
+                      </div>
+                      {r.description&&<div style={{marginTop:6}}><div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.3,marginBottom:2}}>Description</div><div style={{fontSize:12,fontStyle:'italic',color:'var(--text)',lineHeight:1.5}}>{r.description}</div></div>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── PROJECT VIEW ──────────────────────────────────────────────────────────────
 function ProjectView({project,onBack}) {
   const {profile, isReadOnly} = useApp();
@@ -634,6 +779,8 @@ function ProjectView({project,onBack}) {
   const [wcField,setWcField]   = useState('verification_method');
   const [wcVal,setWcVal]       = useState('');
   const [showFilters,setShowFilters] = useState(false);
+  const [showBaselines,setShowBaselines] = useState(false);
+  const [baselines,setBaselines] = useState([]);
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
@@ -650,7 +797,11 @@ function ProjectView({project,onBack}) {
   },[project.id]);
   const myProjectRole = project.myProjectRole || (profile?.role==='Admin'?'Admin':'Designer');
 
-  useEffect(()=>{load();},[load]);
+  async function loadBaselines() {
+    const {data}=await db.from('project_baselines').select('*').eq('project_id',project.id).order('created_at',{ascending:false});
+    if(data)setBaselines(data);
+  }
+  useEffect(()=>{load();loadBaselines();},[load]);
 
   function buildTree(flat) {
     const map={};flat.forEach(r=>map[r.id]={...r,children:[]});
@@ -686,6 +837,7 @@ function ProjectView({project,onBack}) {
         <>
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
           {(myProjectRole==='Admin'||profile?.role==='Admin') && !isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
+          {(myProjectRole==='Admin'||myProjectRole==='Approver'||profile?.role==='Admin') && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>}
           {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
@@ -791,6 +943,7 @@ function ProjectView({project,onBack}) {
           </div>
         )}
       </div>
+      {showBaselines&&<BaselinesPanel project={project} reqs={reqs} baselines={baselines} profile={profile} onClose={()=>setShowBaselines(false)} onCreated={()=>{loadBaselines();}}/>}
       {showModal&&<ReqModal projectId={project.id} req={editReq} defParentId={defParent} allReqs={reqs} onClose={()=>setShowModal(false)} onSaved={()=>{setShowModal(false);load();}}/> }
       {showMembers&&<MembersModal projectId={project.id} onClose={()=>setShowMembers(false)}/>}
     </div>
