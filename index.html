@@ -1288,7 +1288,7 @@ function ProjectView({project,onBack}) {
                 <span style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',display:'flex'}}><ISearch s={13}/></span>
                 <input className={'form-input'} style={{paddingLeft:30}} placeholder={'Search...'} value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
-              <button className={'btn btn-sm'} style={{flexShrink:0,background:showFilters||hasActiveFilter?'var(--c1)':'var(--raised)',color:showFilters||hasActiveFilter?'#000':'var(--text2)',border:'1px solid '+(showFilters||hasActiveFilter?'var(--c1)':'var(--border)'),position:'relative'}} onClick={()=>setShowFilters(f=>!f)}>
+              <button className={'btn btn-sm'} style={{flexShrink:0,background:showFilters||hasActiveFilter?'var(--c1)':'var(--raised)',color:showFilters||hasActiveFilter?'#fff':'var(--text2)',border:'1px solid '+(showFilters||hasActiveFilter?'var(--c1)':'var(--border)'),position:'relative'}} onClick={()=>setShowFilters(f=>!f)}>
                 <IList s={13}/> Filters
                 {hasActiveFilter&&<span style={{position:'absolute',top:-4,right:-4,width:8,height:8,borderRadius:'50%',background:'var(--c4)'}}/>}
               </button>
