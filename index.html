@@ -896,7 +896,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     if(action==='Submit') newStatus='In Review';
     if(newStatus!==req.status) {
       if(action==='Approve') {
-        const snap={v:(req.version_history||[]).length+1,title:req.title,description:req.description||'',rationale:req.rationale||'',level:req.level||'',requirement_type:req.requirement_type||'',verification_method:req.verification_method||'',owner:req.owner||'',stakeholder:req.stakeholder||'',approved_by:profile.full_name,approved_at:new Date().toISOString()};
+        const snap={v:(req.version_history||[]).length+1,req_id:req.req_id||'',title:req.title||'',description:req.description||'',rationale:req.rationale||'',level:req.level||'',requirement_type:req.requirement_type||'',verification_method:req.verification_method||'',owner:req.owner||'',stakeholder:req.stakeholder||'',safety_class:req.safety_class||'',sil_level:req.sil_level||'',safety_category:req.safety_category||'',regulatory_body:(req.regulatory_body||[]).join(', '),approved_by:profile.full_name,approved_at:new Date().toISOString()};
         const history=JSON.parse(JSON.stringify(req.version_history||[]));
         history.push(snap);
         await db.from('requirements').update({status:newStatus,version_history:history}).eq('id',req.id);
@@ -1036,27 +1036,59 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             var d=new Date(v.approved_at);
             var ds=d.toLocaleDateString('es-ES')+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
             var isCurrent=v.v===vh.length;
+            var prev=v.v>1?vh[v.v-2]:null;
+            function chg(cur,old){return prev&&String(cur||'')!==String(old||'');}
+            var diffBg='rgba(255,209,102,.10)';
+            var diffBd='rgba(255,209,102,.35)';
+            var diffClr='#8a6a00';
+            function fld(label,cur,old){
+              var changed=chg(cur,old);
+              return (
+                <div className={'form-group'} style={{margin:0,background:changed?diffBg:'transparent',border:changed?('1px solid '+diffBd):'1px solid transparent',borderRadius:6,padding:changed?'4px 7px':'0'}}>
+                  <label className={'form-label'}>{label}{changed&&<span style={{marginLeft:5,fontSize:9,color:diffClr,fontWeight:700,textTransform:'uppercase',letterSpacing:.3}}>changed</span>}</label>
+                  <div style={{fontSize:13,paddingTop:2}}>{cur||'—'}</div>
+                  {changed&&<div style={{fontSize:11,color:diffClr,marginTop:2}}>was: {old||'—'}</div>}
+                </div>
+              );
+            }
             return (
               <div key={v.v} style={{border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:10,background:'var(--bg)'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingBottom:8,marginBottom:10,borderBottom:'1px solid var(--border)'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingBottom:8,marginBottom:12,borderBottom:'1px solid var(--border)'}}>
                   <div style={{display:'flex',alignItems:'center',gap:8}}>
                     <span style={{fontFamily:'var(--mono)',fontWeight:700,fontSize:15,color:'var(--c1)'}}>v{v.v}</span>
                     {isCurrent&&<span style={{fontSize:10,padding:'2px 7px',borderRadius:4,background:'rgba(0,56,130,.1)',color:'var(--c1)',border:'1px solid rgba(0,56,130,.2)',fontWeight:600}}>current</span>}
+                    {prev&&!isCurrent&&<span style={{fontSize:10,color:'var(--text3)'}}>archived</span>}
                   </div>
                   <div style={{textAlign:'right'}}>
                     <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)'}}>{ds}</div>
                     <div style={{fontSize:11,color:'var(--text2)'}}>approved by {v.approved_by}</div>
                   </div>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px',marginBottom:8}}>
-                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Level</label><div style={{fontSize:13,paddingTop:2}}>{v.level||'—'}</div></div>
-                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Type</label><div style={{fontSize:13,paddingTop:2}}>{v.requirement_type||'—'}</div></div>
-                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Owner</label><div style={{fontSize:13,paddingTop:2}}>{v.owner||'—'}</div></div>
-                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Stakeholder</label><div style={{fontSize:13,paddingTop:2}}>{v.stakeholder||'—'}</div></div>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8}}>General</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px',marginBottom:12}}>
+                  {fld('ID',v.req_id,prev&&prev.req_id)}
+                  {fld('Level',v.level,prev&&prev.level)}
+                  {fld('Type',v.requirement_type,prev&&prev.requirement_type)}
+                  {fld('Verif. Method',v.verification_method,prev&&prev.verification_method)}
                 </div>
-                {v.title&&(<div className={'form-group'} style={{margin:'0 0 6px'}}><label className={'form-label'}>Title</label><div style={{fontSize:13,paddingTop:2}}>{v.title}</div></div>)}
-                {v.description&&(<div className={'form-group'} style={{margin:'0 0 6px'}}><label className={'form-label'}>Description</label><div style={{fontSize:13,fontStyle:'italic',lineHeight:1.6,paddingTop:2}}>{v.description}</div></div>)}
-                {v.rationale&&(<div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Rationale</label><div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,paddingTop:2}}>{v.rationale}</div></div>)}
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8}}>People</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px',marginBottom:12}}>
+                  {fld('Stakeholder',v.stakeholder,prev&&prev.stakeholder)}
+                  {fld('Owner',v.owner,prev&&prev.owner)}
+                </div>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8}}>Safety</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px',marginBottom:12}}>
+                  {fld('Safety Class',v.safety_class,prev&&prev.safety_class)}
+                  {fld('SIL Level',v.sil_level,prev&&prev.sil_level)}
+                  {fld('Safety Category',v.safety_category,prev&&prev.safety_category)}
+                  {fld('Standards',v.regulatory_body,prev&&prev.regulatory_body)}
+                </div>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:8}}>Content</div>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {fld('Title',v.title,prev&&prev.title)}
+                  {fld('Description',v.description,prev&&prev.description)}
+                  {fld('Rationale',v.rationale,prev&&prev.rationale)}
+                </div>
               </div>
             );
           })}
