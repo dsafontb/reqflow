@@ -627,9 +627,11 @@ function BaselineViewer({baseline,project,onBack}) {
 
   // Build tree from snapshot
   function buildTree(flat) {
-    var map={};flat.forEach(function(r){map[r.id]={...r,children:[]};});
+    var sorted=flat.slice().sort(function(a,b){return (a.sort_order||0)-(b.sort_order||0);});
+    var map={};
+    sorted.forEach(function(r){map[r.id]={...r,children:[]};});
     var roots=[];
-    flat.forEach(function(r){
+    sorted.forEach(function(r){
       if(r.parent_id&&map[r.parent_id]){map[r.parent_id].children.push(map[r.id]);}
       else{roots.push(map[r.id]);}
     });
@@ -950,7 +952,7 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
     if(!name.trim()){setErr('Baseline name is required');return;}
     if(approvedReqs.length===0){setErr('No approved requirements to baseline.');return;}
     setSaving(true);setErr('');
-    var ids = approvedReqs.map(function(r){return r.id;});
+    var ids = reqs.map(function(r){return r.id;});
     var commentsRes = await db.from('comments').select('*').in('requirement_id',ids).order('created_at');
     var activitiesRes = await db.from('verification_activities').select('*').in('requirement_id',ids);
     var evidenceRes = await db.from('evidence').select('*').in('requirement_id',ids).order('created_at',{ascending:false});
@@ -961,7 +963,7 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
     var evMap = {};
     (evidenceRes.data||[]).forEach(function(e){if(!evMap[e.requirement_id])evMap[e.requirement_id]=[];evMap[e.requirement_id].push(e);});
     var seen={};
-    var snap = approvedReqs.filter(function(r){if(seen[r.id])return false;seen[r.id]=true;return true;}).map(function(r){
+    var snap = reqs.filter(function(r){if(seen[r.id])return false;seen[r.id]=true;return true;}).map(function(r){
       return {
         id:r.id,req_id:r.req_id||'',title:r.title||'',level:r.level||'',
         requirement_type:r.requirement_type||'',status:r.status||'',
