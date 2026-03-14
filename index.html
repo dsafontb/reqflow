@@ -1006,7 +1006,7 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
 
         <div style={{display:'flex',borderBottom:'1px solid var(--border)',flexShrink:0}}>
           <button className={'tab'+(view==='list'?' active':'')} style={{fontSize:12}} onClick={()=>setView('list')}>History</button>
-          <button className={'tab'+(view==='create'?' active':'')} style={{fontSize:12}} onClick={()=>{setView('create');setSelected(null);}}>Create Baseline</button>
+          {canManage&&<button className={'tab'+(view==='create'?' active':'')} style={{fontSize:12}} onClick={()=>{setView('create');setSelected(null);}}>Create Baseline</button>}
           {selected&&<button className={'tab'+(view==='detail'?' active':'')} style={{fontSize:12}} onClick={()=>setView('detail')}>{selected.name}</button>}
         </div>
 
@@ -1202,7 +1202,7 @@ function ProjectView({project,onBack}) {
         <>
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
           {(myProjectRole==='Admin'||profile?.role==='Admin') && !isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
-          {(myProjectRole==='Admin'||myProjectRole==='Approver'||profile?.role==='Admin') && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>}
+          <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>
           {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
