@@ -950,28 +950,45 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
   function exportBaseline(b) {
     if(!window.XLSX){alert('Export library not loaded. Please refresh the page.');return;}
     var snap = b.snapshot||[];
+    var snapById={};snap.forEach(function(r){snapById[r.id]=r;});
     var rows = snap.map(function(r){
-      var actStatus = r._activity?r._activity.activity_status||'Not Defined':'Not Defined';
+      var act = r._activity||null;
+      var actStatus = act?act.activity_status||'Not Defined':'Not Defined';
+      var parentReq = r.parent_id?snapById[r.parent_id]:null;
+      var parentId = parentReq?parentReq.req_id:(r.parent_id?r.parent_id:'');
+      var version = r.version_history&&r.version_history.length>0?'v'+r.version_history.length:'';
+      var created = r.created_at?new Date(r.created_at).toLocaleDateString('es-ES'):'';
+      var updated = r.updated_at?new Date(r.updated_at).toLocaleDateString('es-ES'):'';
+      var plannedDate = act&&act.planned_date?act.planned_date:'';
+      var actualDate = act&&act.actual_date?act.actual_date:'';
+      var outcome = r.verification_status&&['Verified','Failed'].indexOf(r.verification_status)>=0?r.verification_status:'';
       return {
-        'ID':                  r.req_id||'',
-        'Title':               r.title||'',
-        'Level':               r.level||'',
-        'Type':                r.requirement_type||'',
-        'Status':              r.status||'',
-        'Verification Activity': actStatus,
-        'Verification Method': r.verification_method||'',
-        'Owner':               r.owner||'',
-        'Stakeholder':         r.stakeholder||'',
-        'Safety Class':        r.safety_class||'',
-        'SIL Level':           r.sil_level||'',
-        'Safety Category':     r.safety_category||'',
-        'Standards':           Array.isArray(r.regulatory_body)?r.regulatory_body.join(', '):(r.regulatory_body||''),
-        'Description':         r.description||'',
-        'Rationale':           r.rationale||''
+        'ID':                    r.req_id||'',
+        'Title':                 r.title||'',
+        'Level':                 r.level||'',
+        'Type':                  r.requirement_type||'',
+        'Parent':                parentId,
+        'Status':                r.status||'',
+        'Version':               version,
+        'Verif. Activity Status':actStatus,
+        'Verif. Method':         r.verification_method||'',
+        'Verif. Planned Date':   plannedDate,
+        'Verif. Actual Date':    actualDate,
+        'Verif. Outcome':        outcome,
+        'Owner':                 r.owner||'',
+        'Stakeholder':           r.stakeholder||'',
+        'Safety Class':          r.safety_class||'',
+        'SIL Level':             r.sil_level||'',
+        'Safety Category':       r.safety_category||'',
+        'Standards':             Array.isArray(r.regulatory_body)?r.regulatory_body.join(', '):(r.regulatory_body||''),
+        'Description':           r.description||'',
+        'Rationale':             r.rationale||'',
+        'Created':               created,
+        'Updated':               updated
       };
     });
     var ws = window.XLSX.utils.json_to_sheet(rows);
-    var colWidths = [{wch:12},{wch:45},{wch:14},{wch:16},{wch:18},{wch:22},{wch:20},{wch:18},{wch:18},{wch:14},{wch:10},{wch:16},{wch:24},{wch:50},{wch:50}];
+    var colWidths = [{wch:12},{wch:45},{wch:14},{wch:16},{wch:14},{wch:18},{wch:10},{wch:22},{wch:16},{wch:18},{wch:16},{wch:14},{wch:18},{wch:18},{wch:14},{wch:10},{wch:16},{wch:24},{wch:50},{wch:50},{wch:12},{wch:12}];
     ws['!cols'] = colWidths;
     var wb = window.XLSX.utils.book_new();
     var sheetName = (b.name||'Baseline').replace(/[\/*?:\[\]]/g,'').slice(0,31);
@@ -1008,6 +1025,7 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
         rationale:r.rationale||'',safety_class:r.safety_class||'',
         sil_level:r.sil_level||'',safety_category:r.safety_category||'',
         regulatory_body:(r.regulatory_body||[]),
+        verification_status:r.verification_status||'',
         parent_id:r.parent_id||null,sort_order:r.sort_order||0,
         version_history:r.version_history||[],
         created_at:r.created_at,updated_at:r.updated_at,
