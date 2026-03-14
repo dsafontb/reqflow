@@ -920,6 +920,29 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
   var [desc,setDesc]         = React.useState('');
   var [saving,setSaving]     = React.useState(false);
   var [err,setErr]           = React.useState('');
+  var [editingId,setEditingId]   = React.useState(null);
+  var [editName,setEditName]     = React.useState('');
+  var [editDesc,setEditDesc]     = React.useState('');
+  var [editSaving,setEditSaving] = React.useState(false);
+
+  var isAdmin = profile&&(profile.role==='Admin');
+  var myRole  = project&&project.myProjectRole;
+  var canManage = isAdmin || myRole==='Admin';
+
+  async function saveEdit(id) {
+    if(!editName.trim()) return;
+    setEditSaving(true);
+    await db.from('project_baselines').update({name:editName.trim(),description:editDesc.trim()||null}).eq('id',id);
+    setEditSaving(false);
+    setEditingId(null);
+    onCreated();
+  }
+
+  async function deleteBaseline(id,bname) {
+    if(!window.confirm('Delete baseline "'+bname+'"? This cannot be undone.')) return;
+    await db.from('project_baselines').delete().eq('id',id);
+    onCreated();
+  }
 
   var approvedReqs = reqs.filter(function(r){return r.status==='Approved';});
 
@@ -999,17 +1022,41 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
               {baselines.map(function(b){
                 var dt=new Date(b.created_at);
                 var ds=dt.toLocaleDateString('es-ES')+' '+dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+                var isEditing=editingId===b.id;
                 return (
                   <div key={b.id} style={{border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:10,background:'var(--bg)'}}>
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
-                      <span style={{fontWeight:700,fontSize:14,color:'var(--c1)'}}>{b.name}</span>
-                      <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{ds}</span>
-                    </div>
-                    {b.description&&<div style={{fontSize:13,color:'var(--text2)',marginBottom:6}}>{b.description}</div>}
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:8}}>
-                      <div style={{fontSize:12,color:'var(--text3)'}}>{b.req_count} approved requirements</div>
-                      <button className={'btn btn-ghost btn-sm'} onClick={function(){onClose();onOpenBaseline(b);}}>View Baseline</button>
-                    </div>
+                    {isEditing?(
+                      <div>
+                        <div className={'form-group'}>
+                          <label className={'form-label'}>Baseline Name *</label>
+                          <input className={'form-input'} value={editName} onChange={function(e){setEditName(e.target.value);}} autoFocus/>
+                        </div>
+                        <div className={'form-group'}>
+                          <label className={'form-label'}>Description</label>
+                          <input className={'form-input'} value={editDesc} onChange={function(e){setEditDesc(e.target.value);}}/>
+                        </div>
+                        <div style={{display:'flex',gap:8,marginTop:4}}>
+                          <button className={'btn btn-primary btn-sm'} onClick={function(){saveEdit(b.id);}} disabled={editSaving||!editName.trim()}>{editSaving?'Saving...':'Save'}</button>
+                          <button className={'btn btn-ghost btn-sm'} onClick={function(){setEditingId(null);}}>Cancel</button>
+                        </div>
+                      </div>
+                    ):(
+                      <div>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+                          <span style={{fontWeight:700,fontSize:14,color:'var(--c1)'}}>{b.name}</span>
+                          <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{ds}</span>
+                        </div>
+                        {b.description&&<div style={{fontSize:13,color:'var(--text2)',marginBottom:6}}>{b.description}</div>}
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:8}}>
+                          <div style={{fontSize:12,color:'var(--text3)'}}>{b.req_count} approved requirements</div>
+                          <div style={{display:'flex',gap:6}}>
+                            {canManage&&<button className={'btn btn-ghost btn-sm'} onClick={function(){setEditingId(b.id);setEditName(b.name);setEditDesc(b.description||'');}}>Rename</button>}
+                            {canManage&&<button className={'btn btn-ghost btn-sm'} style={{color:'var(--c4)'}} onClick={function(){deleteBaseline(b.id,b.name);}}>Delete</button>}
+                            <button className={'btn btn-ghost btn-sm'} onClick={function(){onClose();onOpenBaseline(b);}}>View</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
