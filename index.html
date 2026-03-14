@@ -895,7 +895,14 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     if(action==='RequestChanges') newStatus='Changes Requested';
     if(action==='Submit') newStatus='In Review';
     if(newStatus!==req.status) {
-      await db.from('requirements').update({status:newStatus}).eq('id',req.id);
+      if(action==='Approve') {
+        const snap={v:(req.version_history||[]).length+1,title:req.title,description:req.description||'',rationale:req.rationale||'',level:req.level||'',requirement_type:req.requirement_type||'',verification_method:req.verification_method||'',owner:req.owner||'',stakeholder:req.stakeholder||'',approved_by:profile.full_name,approved_at:new Date().toISOString()};
+        const history=JSON.parse(JSON.stringify(req.version_history||[]));
+        history.push(snap);
+        await db.from('requirements').update({status:newStatus,version_history:history}).eq('id',req.id);
+      } else {
+        await db.from('requirements').update({status:newStatus}).eq('id',req.id);
+      }
       // Notify relevant people
       if(action==='Submit') {
         for(const a of assignments){
@@ -932,7 +939,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
   const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
 
-  const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:`Comments${comments.length?` (${comments.length})`:''}`}];
+  const vh=req.version_history||[];const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:'Comments'+(comments.length?' ('+comments.length+')':'')},{id:'versions',label:'Versions'+(vh.length?' (v'+vh.length+')':'')}];
 
   return (
     <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
@@ -1017,6 +1024,42 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)',borderTop:'1px solid var(--border)',paddingTop:10,marginTop:10}}>
             Created {new Date(req.created_at).toLocaleString()} · Updated {new Date(req.updated_at).toLocaleString()}
           </div>
+        </>}
+
+        {tab==='versions'&&<>
+          {vh.length===0&&(
+            <div style={{fontSize:13,color:'var(--text3)',fontStyle:'italic',padding:'30px 0',textAlign:'center'}}>
+              No versions yet. A new version is saved each time the requirement is approved.
+            </div>
+          )}
+          {vh.slice().reverse().map(function(v){
+            var d=new Date(v.approved_at);
+            var ds=d.toLocaleDateString('es-ES')+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+            var isCurrent=v.v===vh.length;
+            return (
+              <div key={v.v} style={{border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px',marginBottom:10,background:'var(--bg)'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingBottom:8,marginBottom:10,borderBottom:'1px solid var(--border)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontFamily:'var(--mono)',fontWeight:700,fontSize:15,color:'var(--c1)'}}>v{v.v}</span>
+                    {isCurrent&&<span style={{fontSize:10,padding:'2px 7px',borderRadius:4,background:'rgba(0,56,130,.1)',color:'var(--c1)',border:'1px solid rgba(0,56,130,.2)',fontWeight:600}}>current</span>}
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <div style={{fontSize:11,color:'var(--text3)',fontFamily:'var(--mono)'}}>{ds}</div>
+                    <div style={{fontSize:11,color:'var(--text2)'}}>approved by {v.approved_by}</div>
+                  </div>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 16px',marginBottom:8}}>
+                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Level</label><div style={{fontSize:13,paddingTop:2}}>{v.level||'—'}</div></div>
+                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Type</label><div style={{fontSize:13,paddingTop:2}}>{v.requirement_type||'—'}</div></div>
+                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Owner</label><div style={{fontSize:13,paddingTop:2}}>{v.owner||'—'}</div></div>
+                  <div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Stakeholder</label><div style={{fontSize:13,paddingTop:2}}>{v.stakeholder||'—'}</div></div>
+                </div>
+                {v.title&&(<div className={'form-group'} style={{margin:'0 0 6px'}}><label className={'form-label'}>Title</label><div style={{fontSize:13,paddingTop:2}}>{v.title}</div></div>)}
+                {v.description&&(<div className={'form-group'} style={{margin:'0 0 6px'}}><label className={'form-label'}>Description</label><div style={{fontSize:13,fontStyle:'italic',lineHeight:1.6,paddingTop:2}}>{v.description}</div></div>)}
+                {v.rationale&&(<div className={'form-group'} style={{margin:0}}><label className={'form-label'}>Rationale</label><div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,paddingTop:2}}>{v.rationale}</div></div>)}
+              </div>
+            );
+          })}
         </>}
 
         {/* ── WORKFLOW TAB ── */}
