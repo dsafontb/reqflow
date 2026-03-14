@@ -194,6 +194,7 @@ const SIL_CLR  = {'SIL 4':'#b94000','SIL 3':'#b94000','SIL 2':'#8a6a00','SIL 1':
 const VS       = ['Not Started','In Progress','Verified','Failed'];
 const ACT_STATUSES = ['Not Defined','Defined','Planned','In Progress','Finished'];
 const VS_CLR   = {'Not Started':{bg:'rgba(138,170,212,.1)',text:'#5a7aaa',bd:'rgba(138,170,212,.25)'},'In Progress':{bg:'rgba(255,209,102,.12)',text:'#8a6a00',bd:'rgba(255,209,102,.25)'},'Verified':{bg:'rgba(127,255,107,.12)',text:'#1a7a4a',bd:'rgba(127,255,107,.25)'},'Failed':{bg:'rgba(255,107,53,.12)',text:'#b94000',bd:'rgba(255,107,53,.25)'}};
+const ACT_CLR  = {'Not Defined':{bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},'Defined':{bg:'rgba(0,212,255,.10)',text:'#005EB8',bd:'rgba(0,212,255,.25)'},'Planned':{bg:'rgba(255,209,102,.12)',text:'#8a6a00',bd:'rgba(255,209,102,.25)'},'In Progress':{bg:'rgba(199,125,255,.12)',text:'#4a6aaa',bd:'rgba(199,125,255,.25)'},'Finished':{bg:'rgba(127,255,107,.12)',text:'#1a7a4a',bd:'rgba(127,255,107,.25)'}};
 const VERIFY   = ['Test','Analysis','Inspection','Demonstration'];
 const SAFETY   = ['None','Low','Medium','High','Safety-Critical'];
 const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
@@ -934,7 +935,8 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
     (activitiesRes.data||[]).forEach(function(a){actMap[a.requirement_id]=a;});
     var evMap = {};
     (evidenceRes.data||[]).forEach(function(e){if(!evMap[e.requirement_id])evMap[e.requirement_id]=[];evMap[e.requirement_id].push(e);});
-    var snap = approvedReqs.map(function(r){
+    var seen={};
+    var snap = approvedReqs.filter(function(r){if(seen[r.id])return false;seen[r.id]=true;return true;}).map(function(r){
       return {
         id:r.id,req_id:r.req_id||'',title:r.title||'',level:r.level||'',
         requirement_type:r.requirement_type||'',status:r.status||'',
@@ -1685,13 +1687,7 @@ function VerificationTab({req,evidence,evProfiles,isVerifier,onRefresh,onStatusC
   const [finishForm, setFinishForm]     = useState({actual_date:''});
   const [evidenceForm, setEvidenceForm] = useState({title:'',description:'',method:'Test',evidence_url:''});
 
-  const ACT_CLR = {
-    'Not Defined': {bg:'rgba(100,116,139,.12)',text:'#64748b',bd:'rgba(100,116,139,.25)'},
-    'Defined':     {bg:'rgba(0,212,255,.10)',  text:'#005EB8',bd:'rgba(0,212,255,.25)'},
-    'Planned':     {bg:'rgba(255,209,102,.12)',text:'#8a6a00',bd:'rgba(255,209,102,.25)'},
-    'In Progress': {bg:'rgba(199,125,255,.12)',text:'#4a6aaa',bd:'rgba(199,125,255,.25)'},
-    'Finished':    {bg:'rgba(127,255,107,.12)',text:'#1a7a4a',bd:'rgba(127,255,107,.25)'},
-  };
+
   const methodColor = {Test:'#005EB8',Analysis:'#4a6aaa',Inspection:'#8a6a00',Demonstration:'#1a7a4a'};
 
   const notApproved = req.status !== 'Approved';
