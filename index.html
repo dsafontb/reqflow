@@ -619,7 +619,9 @@ function ProjectModal({onClose,onSaved}) {
 // ── BASELINE VIEWER ─────────────────────────────────────────────────────────
 function BaselineViewer({baseline,project,onBack}) {
   var {profile,loadNotifications} = useApp();
-  var snap = baseline.snapshot||[];
+  var snapRaw = baseline.snapshot||[];
+  var snapSeen={};
+  var snap = snapRaw.filter(function(r){var k=r.id||r.req_id;if(snapSeen[k])return false;snapSeen[k]=true;return true;});
   var [selected,setSelected] = React.useState(null);
   var [expanded,setExpanded] = React.useState({});
 
@@ -636,7 +638,7 @@ function BaselineViewer({baseline,project,onBack}) {
   var tree = buildTree(snap);
 
   // Enrich selected with _comments/_activity/_evidence from snapshot
-  var enriched = selected ? snap.find(function(r){return r.id===selected.id;})||selected : null;
+  var enriched = selected ? snap.find(function(r){return r.req_id===selected.req_id;})||selected : null;
 
   var dt = new Date(baseline.created_at);
   var ds = dt.toLocaleDateString('es-ES')+' '+dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
@@ -662,7 +664,7 @@ function BaselineViewer({baseline,project,onBack}) {
               {baseline.description&&<span style={{fontSize:12,color:'var(--text2)',fontStyle:'italic'}}>{baseline.description}</span>}
             </div>
             <div style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
-              {tree.map(function(n){return <BaselineTreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={function(id){setExpanded(function(e){var x={...e};x[id]=!x[id];return x;});}} selectedId={selected&&selected.id} onSelect={function(r){setSelected(function(s){return s&&s.id===r.id?null:r;});}}/>;})}
+              {tree.map(function(n){return <BaselineTreeNode key={n.req_id||n.id} node={n} depth={0} expanded={expanded} onToggle={function(id){setExpanded(function(e){var x={...e};x[id]=!x[id];return x;});}} selectedId={selected&&selected.req_id} onSelect={function(r){setSelected(function(s){return s&&s.req_id===r.req_id?null:r;});}}/>;})}
             </div>
           </div>
           {enriched&&(
@@ -679,7 +681,7 @@ function BaselineViewer({baseline,project,onBack}) {
 function BaselineTreeNode({node,depth,expanded,onToggle,selectedId,onSelect}) {
   var isOpen=expanded[node.id]!==false&&(expanded[node.id]||depth<2);
   var hasKids=node.children&&node.children.length>0;
-  var isSel=selectedId===node.id;
+  var isSel=selectedId===node.req_id;
   var lc=LEVEL_CLR[node.level]||'#64748b';
   var sc=ST_CLR[node.status]||ST_CLR['Draft'];
   return (
