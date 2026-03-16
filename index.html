@@ -1741,7 +1741,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
         </>}
 
         {/* ── VERIFICATION TAB ── */}
-        {tab==='verification'&&<VerificationTab req={req} evidence={evidence} evProfiles={evProfiles} isVerifier={isVerifier} onRefresh={loadEvidence} onStatusChanged={onStatusChanged} vs={vs} vsc={vsc}/>}
+        {tab==='verification'&&<VerificationTab req={req} evidence={evidence} evProfiles={evProfiles} isVerifier={isVerifier} onRefresh={()=>{loadEvidence();if(onStatusChanged)onStatusChanged();}} onStatusChanged={onStatusChanged} vs={vs} vsc={vsc}/>}
 
         {/* ── COMMENTS TAB ── */}
         {tab==='comments'&&<>
