@@ -189,13 +189,14 @@ const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 const LEVELS   = ['Stakeholder','System','Subsystem','Component','Verification'];
 const PREFIXES = {Stakeholder:'STK',System:'SYS',Subsystem:'SUB',Component:'CMP',Verification:'VER'};
 const LEVEL_CLR= {Stakeholder:'#005EB8',System:'#1a7a4a',Subsystem:'#8a6a00',Component:'#b94000',Verification:'#4a6aaa'};
-const STATUSES = ['Draft','In Review','Approved','Changes Requested','Obsolete'];
+const STATUSES = ['Draft','In Review','Approved','Changes Requested','Obsolete','Rejected'];
 const ST_CLR   = {
   'Draft':              {bg:'rgba(138,170,212,.12)',text:'#5a7aaa',bd:'rgba(138,170,212,.28)'},
   'In Review':          {bg:'rgba(138,106,0,.1)',text:'#8a6a00',bd:'rgba(138,106,0,.28)'},
   'Approved':           {bg:'rgba(26,122,74,.1)',text:'#1a7a4a',bd:'rgba(26,122,74,.28)'},
   'Changes Requested':  {bg:'rgba(185,64,0,.1)',text:'#b94000',bd:'rgba(185,64,0,.25)'},
   'Obsolete':           {bg:'rgba(138,170,212,.08)',text:'#8aaad4',bd:'rgba(138,170,212,.18)'},
+  'Rejected':           {bg:'rgba(139,0,0,.07)',text:'#8b2020',bd:'rgba(139,0,0,.2)'},
 };
 const SIL_CLR  = {'SIL 4':'#b94000','SIL 3':'#b94000','SIL 2':'#8a6a00','SIL 1':'#8a6a00','SIL 0':'#1a7a4a','N/A':'#8aaad4'};
 const VS       = ['Not Started','In Progress','Verified','Failed'];
@@ -1737,6 +1738,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
               <button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
             </>}
             {req.status==='Approved'&&isDesigner&&<button className={'btn btn-ghost btn-sm'} onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
+            {req.status!=='Rejected'&&req.status!=='Obsolete'&&isDesigner&&<button className={'btn btn-ghost btn-sm'} style={{color:'#8b2020'}} onClick={async()=>{if(window.confirm('Mark this requirement as Rejected? This cannot be undone via the workflow.')){await db.from('requirements').update({status:'Rejected'}).eq('id',req.id);onStatusChanged();}}}>Mark as Rejected</button>}
           </div>}
         </>}
 
