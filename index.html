@@ -488,6 +488,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
   const [counts, setCounts]     = useState({});
   const [loading, setLoading]   = useState(true);
   const [showNew, setShowNew]   = useState(false);
+  const [editProject, setEditProject] = useState(null);
 
   const [myRoles, setMyRoles] = useState({});
 
@@ -569,7 +570,8 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
                   <div style={{width:38,height:38,borderRadius:9,background:'rgba(0,94,184,.1)',border:'1px solid rgba(0,94,184,.2)',display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <IFolder s={16}/>
                   </div>
-                  {isAdmin && !isReadOnly && <button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
+                  {(isAdmin||(myRoles[p.id]==='Admin'))&&!isReadOnly&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>{e.stopPropagation();setEditProject(p);}}><IEdit s={12}/></button>}
+                   {isAdmin && !isReadOnly && <button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
                 </div>
                 <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
                 {p.description && <div style={{color:'var(--text2)',fontSize:12,marginBottom:10,lineHeight:1.5}}>{p.description.slice(0,80)}{p.description.length>80?'..':''}</div>}
@@ -583,19 +585,21 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
         </div>
       </div>
       {showNew && <ProjectModal onClose={()=>setShowNew(false)} onSaved={()=>{setShowNew(false);load();}}/>}
+      {editProject && <ProjectModal project={editProject} onClose={()=>setEditProject(null)} onSaved={()=>{setEditProject(null);load();}}/>}
     </div>
   );
 }
 
-function ProjectModal({onClose,onSaved}) {
-  const [form,setForm]=useState({name:'',description:''});
+function ProjectModal({onClose,onSaved,project}) {
+  const isEdit=!!project;
+  const [form,setForm]=useState({name:project?project.name:'',description:project?project.description||'':''});
   const [saving,setSaving]=useState(false);
   const [err,setErr]=useState('');
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
   async function save() {
     if (!form.name.trim()){setErr('Name required');return;}
     setSaving(true);
-    const {error}=await db.from('projects').insert([{name:form.name.trim(),description:form.description}]);
+    const {error}=isEdit?await db.from('projects').update({name:form.name.trim(),description:form.description}).eq('id',project.id):await db.from('projects').insert([{name:form.name.trim(),description:form.description}]);
     setSaving(false);
     if (error){setErr(error.message);return;}
     onSaved();
@@ -603,7 +607,7 @@ function ProjectModal({onClose,onSaved}) {
   return (
     <div className={'modal-overlay'} onClick={onClose}>
       <div className={'modal'} onClick={e=>e.stopPropagation()}>
-        <div className={'modal-header'}><h2>New Project</h2><button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={15}/></button></div>
+        <div className={'modal-header'}><h2>{isEdit?'Edit Project':'New Project'}</h2><button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={15}/></button></div>
         <div className={'modal-body'}>
           {err&&<div className={'err'}>{err}</div>}
           <div className={'form-group'}><label className={'form-label'}>Name *</label><input className={'form-input'} placeholder={'e.g. Brake Control Unit'} value={form.name} onChange={e=>set('name',e.target.value)} autoFocus/></div>
@@ -611,7 +615,7 @@ function ProjectModal({onClose,onSaved}) {
         </div>
         <div className={'modal-footer'}>
           <button className={'btn btn-ghost'} onClick={onClose}>Cancel</button>
-          <button className={'btn btn-primary'} onClick={save} disabled={saving}>{saving?'Creating…':'Create Project'}</button>
+          <button className={'btn btn-primary'} onClick={save} disabled={saving}>{saving?'Saving…':isEdit?'Save Changes':'Create Project'}</button>
         </div>
       </div>
     </div>
