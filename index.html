@@ -469,8 +469,23 @@ function Topbar({title, sub, actions, children}) {
           {showUser && (
             <div className={'user-dropdown'}>
               <div className={'ud-name'}>
-                <div className={'name'}>{profile?.full_name}</div>
-                <div className={'role'}><RoleBadge role={profile?.role}/></div>
+                {editingName?(
+                  <div>
+                    <input className={'form-input'} style={{fontSize:13,marginBottom:6}} value={newName} onChange={function(e){setNewName(e.target.value);}} autoFocus/>
+                    <div style={{display:'flex',gap:6}}>
+                      <button className={'btn btn-primary btn-sm'} disabled={savingName||!newName.trim()} onClick={async function(){setSavingName(true);await db.from('profiles').update({full_name:newName.trim()}).eq('id',profile.id);await loadProfile();setSavingName(false);setEditingName(false);}}>{savingName?'Saving...':'Save'}</button>
+                      <button className={'btn btn-ghost btn-sm'} onClick={function(){setEditingName(false);}}>Cancel</button>
+                    </div>
+                  </div>
+                ):(
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <div>
+                      <div className={'name'}>{profile?.full_name}</div>
+                      <div className={'role'}><RoleBadge role={profile?.role}/></div>
+                    </div>
+                    <button className={'btn btn-ghost btn-sm btn-icon'} onClick={function(){setNewName(profile?.full_name||'');setEditingName(true);}}><IEdit s={12}/></button>
+                  </div>
+                )}
               </div>
               <div className={'ud-item'} onClick={signOut}><IX s={13}/> Sign Out</div>
             </div>
