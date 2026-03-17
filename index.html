@@ -314,6 +314,19 @@ function App() {
 // ── WAITING SCREEN ──────────────────────────────────────────────────────────────────────────────
 function WaitingScreen({profile}) {
   async function signOut() { await db.auth.signOut(); }
+  async function changePw() {
+    setPwErr('');
+    if(!pw.current){setPwErr('Current password required');return;}
+    if(pw.next.length<8){setPwErr('New password must be at least 8 characters');return;}
+    if(pw.next!==pw.confirm){setPwErr('Passwords do not match');return;}
+    setPwSaving(true);
+    const {error}=await db.auth.updateUser({password:pw.next});
+    setPwSaving(false);
+    if(error){setPwErr(error.message);return;}
+    setPwOk(true);
+    setPw({current:'',next:'',confirm:''});
+    setTimeout(function(){setPwOk(false);setChangingPw(false);},1500);
+  }
   async function saveName() {
     if(!newName.trim()) return;
     setSavingName(true);
@@ -421,6 +434,11 @@ function Topbar({title, sub, actions, children}) {
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName]         = useState('');
   const [savingName, setSavingName]   = useState(false);
+  const [changingPw, setChangingPw]   = useState(false);
+  const [pw, setPw]                   = useState({current:'',next:'',confirm:''});
+  const [pwErr, setPwErr]             = useState('');
+  const [pwSaving, setPwSaving]       = useState(false);
+  const [pwOk, setPwOk]               = useState(false);
   const unread = notifications.filter(n=>!n.read).length;
   const notifRef = useRef(null);
   const userRef  = useRef(null);
@@ -440,6 +458,19 @@ function Topbar({title, sub, actions, children}) {
   }
 
   async function signOut() { await db.auth.signOut(); }
+  async function changePw() {
+    setPwErr('');
+    if(!pw.current){setPwErr('Current password required');return;}
+    if(pw.next.length<8){setPwErr('New password must be at least 8 characters');return;}
+    if(pw.next!==pw.confirm){setPwErr('Passwords do not match');return;}
+    setPwSaving(true);
+    const {error}=await db.auth.updateUser({password:pw.next});
+    setPwSaving(false);
+    if(error){setPwErr(error.message);return;}
+    setPwOk(true);
+    setPw({current:'',next:'',confirm:''});
+    setTimeout(function(){setPwOk(false);setChangingPw(false);},1500);
+  }
   async function saveName() {
     if(!newName.trim()) return;
     setSavingName(true);
@@ -508,12 +539,30 @@ function Topbar({title, sub, actions, children}) {
                   </div>
                 )}
               </div>
+              <div className={'ud-item'} onClick={function(){setChangingPw(true);setShowUser(false);}}>🔑 Change Password</div>
               <div className={'ud-item'} onClick={signOut}><IX s={13}/> Sign Out</div>
             </div>
           )}
         </div>
       </div>
     </div>
+    {changingPw&&(
+      <div className={'modal-overlay'} onClick={function(){setChangingPw(false);setPwErr('');setPw({current:'',next:'',confirm:''});}}>
+        <div className={'modal'} onClick={function(e){e.stopPropagation();}}>
+          <div className={'modal-header'}><h2>Change Password</h2><button className={'btn btn-ghost btn-icon'} onClick={function(){setChangingPw(false);setPwErr('');}}><IX s={15}/></button></div>
+          <div className={'modal-body'}>
+            {pwErr&&<div className={'err'}>{pwErr}</div>}
+            {pwOk&&<div style={{padding:'10px 14px',borderRadius:8,background:'rgba(26,122,74,.1)',border:'1px solid rgba(26,122,74,.28)',fontSize:13,color:'#1a7a4a',marginBottom:12}}>Password updated successfully.</div>}
+            <div className={'form-group'}><label className={'form-label'}>New Password</label><input className={'form-input'} type={'password'} value={pw.next} onChange={function(e){setPw(function(p){return {...p,next:e.target.value};});}} autoFocus/></div>
+            <div className={'form-group'}><label className={'form-label'}>Confirm New Password</label><input className={'form-input'} type={'password'} value={pw.confirm} onChange={function(e){setPw(function(p){return {...p,confirm:e.target.value};});}/></div>
+          </div>
+          <div className={'modal-footer'}>
+            <button className={'btn btn-ghost'} onClick={function(){setChangingPw(false);setPwErr('');setPw({current:'',next:'',confirm:''});}}>Cancel</button>
+            <button className={'btn btn-primary'} onClick={changePw} disabled={pwSaving}>{pwSaving?'Saving…':'Update Password'}</button>
+          </div>
+        </div>
+      </div>
+    )}
   );
 }
 
@@ -2538,8 +2587,13 @@ function AdminPanel({onBack}) {
           )}
         </div>
         <div style={{marginTop:16,padding:'14px 18px',background:'var(--panel)',borderRadius:10,border:'1px solid var(--border)',fontSize:13,color:'var(--text2)'}}>
-          <strong style={{color:'var(--text)'}}>Role permissions: </strong>
-          Designer — creates & edits requirements, submits for review · Reviewer — comments · Approver — approves or requests changes (when assigned) · Verifier — tracks verification · Admin — full access
+          <strong style={{color:'var(--text)',display:'block',marginBottom:8}}>Role permissions</strong>
+          {[['Designer','creates & edits requirements, submits for review'],['Reviewer','comments on requirements'],['Approver','approves or requests changes (when assigned)'],['Verifier','tracks verification activities'],['Admin','full access to all features']].map(function(r){return(
+            <div key={r[0]} style={{display:'flex',gap:8,marginBottom:4}}>
+              <span style={{fontWeight:600,color:'var(--text)',minWidth:80}}>{r[0]}</span>
+              <span>{r[1]}</span>
+            </div>
+          );})}
         </div>
       </div>
     </div>
