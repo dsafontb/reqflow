@@ -405,9 +405,12 @@ function AuthScreen() {
 
 // ── TOPBAR COMPONENT ──────────────────────────────────────────────────────────
 function Topbar({title, sub, actions, children}) {
-  const {profile, notifications, loadNotifications} = useApp();
-  const [showNotif, setShowNotif] = useState(false);
-  const [showUser, setShowUser]   = useState(false);
+  const {profile, notifications, loadNotifications, loadProfile} = useApp();
+  const [showNotif, setShowNotif]     = useState(false);
+  const [showUser, setShowUser]       = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName]         = useState('');
+  const [savingName, setSavingName]   = useState(false);
   const unread = notifications.filter(n=>!n.read).length;
   const notifRef = useRef(null);
   const userRef  = useRef(null);
