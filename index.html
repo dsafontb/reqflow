@@ -502,7 +502,7 @@ function Topbar({title, sub, actions, children}) {
                       <div className={'name'}>{profile?.full_name}</div>
                       <div className={'role'}><RoleBadge role={profile?.role}/></div>
                     </div>
-                    <button className={'btn btn-ghost btn-sm btn-icon'} onClick={function(){setNewName(profile?.full_name||'');setEditingName(true);}}><IEdit s={12}/></button>
+                    <button className={'btn btn-ghost btn-sm btn-icon'} style={{color:'var(--c1)',border:'1px solid var(--c1)'}} onClick={function(){setNewName(profile?.full_name||'');setEditingName(true);}}><IEdit s={12}/></button>
                   </div>
                 )}
               </div>
