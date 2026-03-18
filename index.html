@@ -1529,8 +1529,14 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   async function loadAssignments() {
     const {data}=await db.from('approver_assignments').select('*').eq('requirement_id',req.id);
     if(data)setAssignments(data);
-    const {data:pp}=await db.from('profiles').select('*').order('full_name');
-    if(pp)setAllProfiles(pp);
+    const {data:members}=await db.from('project_members').select('user_id,role').eq('project_id',req.project_id).in('role',['Approver','Admin']);
+    if(members&&members.length){
+      const ids=members.map(m=>m.user_id);
+      const {data:pp}=await db.from('profiles').select('*').in('id',ids).order('full_name');
+      if(pp)setAllProfiles(pp);
+    } else {
+      setAllProfiles([]);
+    }
   }
 
   async function loadEvidence() {
@@ -1605,7 +1611,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
 
   const actionColor={Comment:'var(--text3)',Submit:'var(--c3)',Approve:'var(--c2)',RequestChanges:'var(--c4)'};
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
-  const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
+  const approversInProject = allProfiles;
 
   const vh=req.version_history||[];const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:'Comments'+(comments.length?' ('+comments.length+')':'')},{id:'versions',label:'Versions'+(vh.length?' (v'+vh.length+')':'')}];
 
