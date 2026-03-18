@@ -507,6 +507,7 @@ function Topbar({title, sub, actions, children}) {
                   </div>
                 )}
               </div>
+              <div className={'ud-item'} onClick={function(){setShowPw(true);setShowUser(false);}}>Change Password</div>
               <div className={'ud-item'} onClick={signOut}><IX s={13}/> Sign Out</div>
             </div>
           )}
