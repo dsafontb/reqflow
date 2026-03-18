@@ -610,7 +610,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
     load();
   }
 
-  const isAdmin = profile?.role === 'System Admin' || profile?.myProjectRole === 'Project Admin';
+  const isAdmin = profile?.role === 'System Admin';
 
   return (
     <div style={{minHeight:'100vh'}}>
@@ -1556,7 +1556,6 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const isApprover  = pr==='Approver'||isProjAdmin||isAdmin;
   const isVerifier  = pr==='Verifier'||isProjAdmin||isAdmin;
   const isVersion0  = !(req.version_history&&req.version_history.length>0);
-  const isVersion0 = !(req.version_history&&req.version_history.length>0);
   const vs = req.verification_status||'Not Started';
   const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
@@ -2302,7 +2301,9 @@ function MembersModal({projectId, onClose}) {
 
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
-  const isPAdmin = isEdit;||req?.status==='Approved'||req?.status==='Rejected'||req?.status==='Obsolete');
+  const isSysAdmin = profile?.role==='System Admin';
+  const isProjAdminReq = req?.myProjectRole==='Project Admin';
+  const isLocked = isEdit && !isSysAdmin && !isProjAdminReq && (req?.status==='In Review'||req?.status==='Approved'||req?.status==='Rejected'||req?.status==='Obsolete');
   const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',stakeholder:'',requirement_type:'Functional',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
   const [form,setForm]=useState(init);
   const [tab,setTab]=useState('basic');
