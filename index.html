@@ -2536,8 +2536,14 @@ function AdminPanel({onBack}) {
           )}
         </div>
         <div style={{marginTop:16,padding:'14px 18px',background:'var(--panel)',borderRadius:10,border:'1px solid var(--border)',fontSize:13,color:'var(--text2)'}}>
-          <strong style={{color:'var(--text)'}}>Role permissions: </strong>
-          Designer — creates & edits requirements, submits for review · Reviewer — comments · Approver — approves or requests changes (when assigned) · Verifier — tracks verification · Admin — full access
+          <div style={{fontWeight:700,color:'var(--text)',marginBottom:10}}>Role permissions</div>
+          <div style={{display:'flex',flexDirection:'column',gap:6}}>
+            <div><span style={{fontWeight:600,color:'var(--text)',marginRight:6}}>Designer</span>creates &amp; edits requirements, submits for review</div>
+            <div><span style={{fontWeight:600,color:'var(--text)',marginRight:6}}>Reviewer</span>comments on requirements</div>
+            <div><span style={{fontWeight:600,color:'var(--text)',marginRight:6}}>Approver</span>approves or requests changes (when assigned)</div>
+            <div><span style={{fontWeight:600,color:'var(--text)',marginRight:6}}>Verifier</span>tracks verification activities</div>
+            <div><span style={{fontWeight:600,color:'var(--text)',marginRight:6}}>Admin</span>full access to all features</div>
+          </div>
         </div>
       </div>
     </div>
