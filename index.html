@@ -1550,16 +1550,16 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const pr          = req.myProjectRole||'';
   const isSysAdmin  = profile?.role==='System Admin';
   const isProjAdmin = pr==='Project Admin';
+  const isDesigner  = pr==='Designer'||isProjAdmin;
+  const isReviewer  = pr==='Reviewer'||isProjAdmin;
+  const isApprover  = pr==='Approver'||isProjAdmin;
+  const isVerifier  = pr==='Verifier'||isProjAdmin;
   const isAdmin     = isProjAdmin;
-  const isDesigner  = pr==='Designer'||isAdmin;
-  const isReviewer  = pr==='Reviewer'||isAdmin;
-  const isApprover  = pr==='Approver'||isAdmin;
-  const isVerifier  = pr==='Verifier'||isAdmin;
   const isVersion0  = !(req.version_history&&req.version_history.length>0);
   const vs = req.verification_status||'Not Started';
   const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
-  const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
+  const canApprove = isApprover && req.status==='In Review';
   const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
   const canRecall  = isDesigner && req.status==='In Review';
   const canComment = !isReadOnly;
@@ -1830,11 +1830,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           {!isReadOnly && <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {canSubmit&&<button className={'btn btn-warn'} onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
             {canRecall&&<button className={'btn btn-ghost btn-sm'} onClick={()=>addComment('Recall')} disabled={submitting}>↩ Recall</button>}
-            {canApprove&&<>
-              <button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
-              <button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
-            </>}
-            {isApprover&&req.status==='Approved'&&<button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>}
+            {canApprove&&<button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>}
+            {isApprover&&(req.status==='In Review'||req.status==='Approved')&&<button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>}
             {isApprover&&(req.status==='In Review'||req.status==='Approved')&&<button className={'btn btn-ghost btn-sm'} style={{color:'#8b2020'}} onClick={async function(){if(window.confirm('Reject this requirement?')){await db.from('requirements').update({status:'Rejected'}).eq('id',req.id);onStatusChanged();}}} disabled={submitting}>Reject</button>}
             {isAdmin&&req.status==='Approved'&&<button className={'btn btn-ghost btn-sm'} onClick={async function(){await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
           </div>}
