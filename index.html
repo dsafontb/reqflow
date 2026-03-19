@@ -342,11 +342,13 @@ function App() {
 
   return (
     <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications, isReadOnly:profile.role==='Unassigned'}}>
-      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')}/>}
+      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')} onDash={()=>setPage('dashboard')}/>}
       {page === 'project'  && <ProjectView project={project} onBack={()=>{setProject(null);setPage('projects')}}/>}
       {page === 'admin'    && profile.role==='System Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
       {page === 'options'   && profile.role==='System Admin' && <OptionsPage onBack={()=>setPage('projects')}/>}
-      {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>}
+      {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>
+      }
+      {page === 'dashboard' && <DashboardPage onBack={()=>setPage('projects')}/>}
     </AppContext.Provider>
   );
 }
@@ -563,7 +565,7 @@ function Topbar({title, sub, actions, children}) {
 }
 
 // ── PROJECT LIST ──────────────────────────────────────────────────────────────
-function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
+function ProjectList({onOpen, onAdmin, onQueue, onOptions, onDash}) {
   const {profile, isReadOnly} = useApp();
   const [projects, setProjects] = useState([]);
   const [counts, setCounts]     = useState({});
@@ -619,6 +621,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
       <Topbar actions={
         <>
           {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onQueue}><IList s={13}/> My Queue</button>}
+          {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onDash}>Dashboard</button>}
           {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onAdmin}><IUsers s={13}/> Users</button>}
           {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onOptions}><IShield s={13}/> Options</button>}
           {isAdmin && <button className={'btn btn-primary btn-sm'} onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
@@ -2736,6 +2739,419 @@ function StandardsPanel() {
   );
 }
 
+
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function DashboardPage({onBack}) {
+  const {profile} = useApp();
+  const [tab, setTab] = useState('status');
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState('all');
+  const [reqs, setReqs] = useState([]);
+  const [baselines, setBaselines] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(function(){loadData();},[]);
+
+  async function loadData() {
+    setLoading(true);
+    var isSysAdmin = profile.role === 'System Admin';
+    var projData = [];
+    if (isSysAdmin) {
+      var {data:pd} = await db.from('projects').select('*').order('created_at',{ascending:false});
+      projData = pd||[];
+    } else {
+      var {data:mem} = await db.from('project_members').select('project_id').eq('user_id',profile.id);
+      var ids = (mem||[]).map(function(m){return m.project_id;});
+      if (ids.length) {
+        var {data:pd2} = await db.from('projects').select('*').in('id',ids);
+        projData = pd2||[];
+      }
+    }
+    setProjects(projData);
+    var allIds = projData.map(function(p){return p.id;});
+    if (allIds.length) {
+      var {data:rr} = await db.from('requirements').select('*').in('project_id',allIds);
+      setReqs(rr||[]);
+      var {data:bb} = await db.from('project_baselines').select('*').in('project_id',allIds).order('created_at',{ascending:true});
+      setBaselines(bb||[]);
+      var reqIds = (rr||[]).map(function(r){return r.id;});
+      if (reqIds.length) {
+        var {data:aa} = await db.from('verification_activities').select('*').in('requirement_id',reqIds);
+        setActivities(aa||[]);
+      }
+    }
+    setLoading(false);
+  }
+
+  var filteredReqs = selectedProject==='all' ? reqs : reqs.filter(function(r){return r.project_id===selectedProject;});
+  var filteredBaselines = selectedProject==='all' ? baselines : baselines.filter(function(b){return b.project_id===selectedProject;});
+
+  var total = filteredReqs.length;
+  var byStatus = {};
+  STATUSES.forEach(function(s){byStatus[s]=filteredReqs.filter(function(r){return r.status===s;}).length;});
+  var approved = byStatus['Approved']||0;
+  var inReview = byStatus['In Review']||0;
+  var actMap = {};
+  activities.forEach(function(a){actMap[a.requirement_id]=a;});
+  var verified = filteredReqs.filter(function(r){return r.verification_status==='Verified';}).length;
+  var failed   = filteredReqs.filter(function(r){return r.verification_status==='Failed';}).length;
+  var vDefined = filteredReqs.filter(function(r){var a=actMap[r.id];return a&&a.activity_status!=='Not Defined';}).length;
+
+  var ST_COLORS = {
+    'Approved':'#1a7a4a','In Review':'#8a6a00','Changes Requested':'#b94000',
+    'Draft':'#5a7aaa','Obsolete':'#8aaad4','Rejected':'#8b2020'
+  };
+  var LEVELS_SHOWN = ['Stakeholder','System','Subsystem','Component'];
+
+  function pct(n,d){return d===0?0:Math.round(n/d*100);}
+
+  function MetricCard({label,value,sub,color}) {
+    return (
+      <div style={{background:'var(--raised)',borderRadius:10,padding:'12px 16px',minWidth:0}}>
+        <div style={{fontSize:11,color:'var(--text3)',marginBottom:4,textTransform:'uppercase',letterSpacing:.4,fontWeight:600}}>{label}</div>
+        <div style={{fontSize:26,fontWeight:800,color:color||'var(--text)',lineHeight:1}}>{value}</div>
+        {sub&&<div style={{fontSize:11,color:'var(--text3)',marginTop:4}}>{sub}</div>}
+      </div>
+    );
+  }
+
+  function StackBar({items,total:tot}) {
+    return (
+      <div style={{display:'flex',height:20,borderRadius:4,overflow:'hidden',background:'var(--raised)'}}>
+        {items.map(function(item){
+          var w = tot===0?0:item.count/tot*100;
+          if(w===0)return null;
+          return <div key={item.label} style={{width:w+'%',background:item.color,transition:'width .3s'}} title={item.label+': '+item.count}/>;
+        })}
+      </div>
+    );
+  }
+
+  if(loading) return (
+    <div style={{minHeight:'100vh'}}>
+      <Topbar sub={'Dashboard'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>}/>
+      <div className={'empty'}><div className={'empty-icon'}>⏳</div><h3>Loading…</h3></div>
+    </div>
+  );
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      <Topbar sub={'Dashboard'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>}/>
+      <div style={{padding:'24px',maxWidth:1100,margin:'0 auto',width:'100%'}}>
+
+        {/* Project selector + tabs */}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:10}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:12,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:.4}}>Project</span>
+            <select className={'form-select'} style={{width:'auto',fontSize:13}} value={selectedProject} onChange={function(e){setSelectedProject(e.target.value);}}>
+              <option value={'all'}>All projects</option>
+              {projects.map(function(p){return <option key={p.id} value={p.id}>{p.name}</option>;})}
+            </select>
+          </div>
+          <div style={{display:'flex',gap:4,background:'var(--raised)',padding:3,borderRadius:8}}>
+            {[['status','Status'],['vv','V&V Coverage'],['timeline','Timeline']].map(function(t){
+              return (
+                <button key={t[0]} onClick={function(){setTab(t[0]);}} style={{padding:'6px 14px',borderRadius:6,border:'none',cursor:'pointer',fontSize:13,fontWeight:tab===t[0]?700:400,background:tab===t[0]?'var(--surface)':'transparent',color:tab===t[0]?'var(--c1)':'var(--text2)',boxShadow:tab===t[0]?'0 1px 4px rgba(0,0,0,.08)':'none',transition:'all .15s'}}>
+                  {t[1]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── TAB A: STATUS ── */}
+        {tab==='status'&&(
+          <div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:12,marginBottom:20}}>
+              <MetricCard label={'Total reqs'} value={total} sub={'across all levels'}/>
+              <MetricCard label={'Approved'} value={approved} sub={pct(approved,total)+'% of total'} color={'#1a7a4a'}/>
+              <MetricCard label={'In review'} value={inReview} sub={pct(inReview,total)+'% of total'} color={'#8a6a00'}/>
+              <MetricCard label={'Draft'} value={byStatus['Draft']||0} sub={pct(byStatus['Draft']||0,total)+'% of total'} color={'#5a7aaa'}/>
+            </div>
+
+            <div className={'card'} style={{marginBottom:16}}>
+              <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Status breakdown by level</div>
+              {LEVELS_SHOWN.map(function(level){
+                var lr = filteredReqs.filter(function(r){return r.level===level;});
+                var lc = LEVEL_CLR[level]||'#64748b';
+                return (
+                  <div key={level} style={{marginBottom:10}}>
+                    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+                      <span style={{width:90,fontSize:12,color:lc,fontWeight:600,textAlign:'right',flexShrink:0}}>{level}</span>
+                      <div style={{flex:1}}>
+                        <StackBar total={lr.length} items={STATUSES.map(function(s){return {label:s,count:lr.filter(function(r){return r.status===s;}).length,color:ST_COLORS[s]};})}/>
+                      </div>
+                      <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{lr.length}</span>
+                    </div>
+                  </div>
+                );
+              })}
+              <div style={{display:'flex',flexWrap:'wrap',gap:10,marginTop:12,paddingTop:12,borderTop:'1px solid var(--border)'}}>
+                {STATUSES.map(function(s){return (
+                  <div key={s} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}>
+                    <div style={{width:10,height:10,borderRadius:2,background:ST_COLORS[s],flexShrink:0}}/>
+                    {s}
+                  </div>
+                );})}
+              </div>
+            </div>
+
+            {filteredBaselines.length>0&&(
+              <div className={'card'}>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Baseline comparison</div>
+                {filteredBaselines.map(function(b){
+                  var snap = b.snapshot||[];
+                  var bt = snap.length;
+                  return (
+                    <div key={b.id} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+                      <span style={{width:120,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</span>
+                      <div style={{flex:1}}>
+                        <StackBar total={bt} items={STATUSES.map(function(s){return {label:s,count:snap.filter(function(r){return r.status===s;}).length,color:ST_COLORS[s]};})}/>
+                      </div>
+                      <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{bt}</span>
+                    </div>
+                  );
+                })}
+                <div style={{display:'flex',alignItems:'center',gap:10,marginTop:4}}>
+                  <span style={{width:120,fontSize:11,color:'var(--c1)',textAlign:'right',flexShrink:0,fontWeight:700}}>Current</span>
+                  <div style={{flex:1}}>
+                    <StackBar total={total} items={STATUSES.map(function(s){return {label:s,count:byStatus[s]||0,color:ST_COLORS[s]};})}/>
+                  </div>
+                  <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{total}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB B: V&V ── */}
+        {tab==='vv'&&(
+          <div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:12,marginBottom:20}}>
+              <MetricCard label={'V coverage'} value={pct(vDefined,total)+'%'} sub={'activity defined'} color={'#005EB8'}/>
+              <MetricCard label={'Verified'} value={verified} sub={pct(verified,approved)+'% of approved'} color={'#1a7a4a'}/>
+              <MetricCard label={'Failed'} value={failed} sub={'need rework'} color={'#8b2020'}/>
+              <MetricCard label={'Not started'} value={approved-verified-failed} sub={'approved, no V outcome'} color={'#5a7aaa'}/>
+            </div>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
+              <div className={'card'}>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Verification activity status</div>
+                {['Not Defined','Defined','Planned','In Progress','Finished'].map(function(s){
+                  var cnt = filteredReqs.filter(function(r){
+                    var a=actMap[r.id];
+                    if(s==='Not Defined') return !a||a.activity_status==='Not Defined';
+                    return a&&a.activity_status===s;
+                  }).length;
+                  var ac = ACT_CLR[s]||ACT_CLR['Not Defined'];
+                  return (
+                    <div key={s} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                      <span style={{width:80,fontSize:11,color:'var(--text2)',textAlign:'right',flexShrink:0}}>{s}</span>
+                      <div style={{flex:1,height:14,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
+                        <div style={{width:pct(cnt,total)+'%',height:'100%',background:ac.text,transition:'width .3s'}}/>
+                      </div>
+                      <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right'}}>{cnt}</span>
+                    </div>
+                  );
+                })}
+                <div style={{borderTop:'1px solid var(--border)',marginTop:8,paddingTop:8}}>
+                  {['Verified','Failed'].map(function(s){
+                    var cnt = filteredReqs.filter(function(r){return r.verification_status===s;}).length;
+                    var col = s==='Verified'?'#1a7a4a':'#8b2020';
+                    return (
+                      <div key={s} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                        <span style={{width:80,fontSize:11,color:'var(--text2)',textAlign:'right',flexShrink:0}}>{s}</span>
+                        <div style={{flex:1,height:14,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
+                          <div style={{width:pct(cnt,total)+'%',height:'100%',background:col}}/>
+                        </div>
+                        <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right'}}>{cnt}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className={'card'}>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Verification method split</div>
+                {['Test','Analysis','Inspection','Demonstration'].map(function(m){
+                  var cnt = filteredReqs.filter(function(r){return r.verification_method===m;}).length;
+                  var colors = {Test:'#005EB8',Analysis:'#4a6aaa',Inspection:'#8a6a00',Demonstration:'#1a7a4a'};
+                  return (
+                    <div key={m} style={{marginBottom:12}}>
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:4}}>
+                        <span style={{color:'var(--text2)'}}>{m}</span>
+                        <span style={{fontWeight:700,color:'var(--text)'}}>{pct(cnt,total)}%</span>
+                      </div>
+                      <div style={{height:8,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
+                        <div style={{width:pct(cnt,total)+'%',height:'100%',background:colors[m],transition:'width .3s'}}/>
+                      </div>
+                    </div>
+                  );
+                })}
+                {filteredBaselines.length>0&&(
+                  <div style={{marginTop:14,padding:'10px 12px',background:'var(--raised)',borderRadius:8}}>
+                    <div style={{fontSize:11,color:'var(--text3)',marginBottom:4,fontWeight:600,textTransform:'uppercase',letterSpacing:.4}}>Latest baseline delta</div>
+                    <div style={{fontSize:12,color:'var(--text)'}}>
+                      {(function(){
+                        var last = filteredBaselines[filteredBaselines.length-1];
+                        var snap = last&&last.snapshot||[];
+                        var snapVerified = snap.filter(function(r){return r.verification_status==='Verified';}).length;
+                        var delta = verified - snapVerified;
+                        return (delta>=0?'+':'')+delta+' verified since '+last.name;
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={'card'}>
+              <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>V&V coverage by level</div>
+              {LEVELS_SHOWN.map(function(level){
+                var lr = filteredReqs.filter(function(r){return r.level===level;});
+                var lVerified = lr.filter(function(r){return r.verification_status==='Verified';}).length;
+                var lFailed   = lr.filter(function(r){return r.verification_status==='Failed';}).length;
+                var lDefined  = lr.filter(function(r){var a=actMap[r.id];return a&&a.activity_status!=='Not Defined';}).length;
+                var lc = LEVEL_CLR[level]||'#64748b';
+                return (
+                  <div key={level} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+                    <span style={{width:90,fontSize:12,color:lc,fontWeight:600,textAlign:'right',flexShrink:0}}>{level}</span>
+                    <div style={{flex:1,display:'flex',gap:4}}>
+                      <div style={{flex:1,height:16,background:'var(--raised)',borderRadius:3,overflow:'hidden',display:'flex'}}>
+                        <div style={{width:pct(lVerified,lr.length)+'%',background:'#1a7a4a'}} title={'Verified'}/>
+                        <div style={{width:pct(lDefined-lVerified-lFailed,lr.length)+'%',background:'#005EB8',opacity:.6}} title={'Activity defined'}/>
+                        <div style={{width:pct(lFailed,lr.length)+'%',background:'#8b2020'}} title={'Failed'}/>
+                      </div>
+                    </div>
+                    <span style={{fontSize:11,color:'var(--text3)',width:70,flexShrink:0}}>{lVerified}/{lr.length} verified</span>
+                  </div>
+                );
+              })}
+              <div style={{display:'flex',gap:12,marginTop:10,paddingTop:10,borderTop:'1px solid var(--border)'}}>
+                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}><div style={{width:10,height:10,borderRadius:2,background:'#1a7a4a'}}/>Verified</div>
+                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}><div style={{width:10,height:10,borderRadius:2,background:'#005EB8',opacity:.6}}/>Activity defined</div>
+                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}><div style={{width:10,height:10,borderRadius:2,background:'#8b2020'}}/>Failed</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB C: TIMELINE ── */}
+        {tab==='timeline'&&(
+          <div>
+            {filteredBaselines.length===0?(
+              <div className={'empty'}><div className={'empty-icon'}>📊</div><h3>No baselines yet</h3><p>Create baselines to track evolution over time</p></div>
+            ):(
+              <div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:12,marginBottom:20}}>
+                  <MetricCard label={'Baselines'} value={filteredBaselines.length} sub={'snapshots taken'}/>
+                  <MetricCard label={'Req growth'} value={(function(){
+                    var first=filteredBaselines[0];
+                    return '+'+(total-(first.snapshot||[]).length);
+                  })()} sub={'since first baseline'} color={'#1a7a4a'}/>
+                  <MetricCard label={'Approval delta'} value={(function(){
+                    var last=filteredBaselines[filteredBaselines.length-1];
+                    var snapApproved=(last.snapshot||[]).filter(function(r){return r.status==='Approved';}).length;
+                    var d=approved-snapApproved;
+                    return (d>=0?'+':'')+d;
+                  })()} sub={'approved since last baseline'} color={'#005EB8'}/>
+                </div>
+
+                <div className={'card'} style={{marginBottom:16}}>
+                  <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:16}}>Status composition per baseline</div>
+                  <div style={{overflowX:'auto'}}>
+                    <div style={{minWidth:Math.max(500,(filteredBaselines.length+1)*130)+'px'}}>
+                      <div style={{display:'flex',gap:8,alignItems:'flex-end',height:200,paddingBottom:24,borderBottom:'1px solid var(--border)'}}>
+                        {filteredBaselines.map(function(b){
+                          var snap=b.snapshot||[];
+                          var bt=snap.length||1;
+                          var maxH=160;
+                          return (
+                            <div key={b.id} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+                              <div style={{width:'100%',display:'flex',flexDirection:'column-reverse',height:maxH+'px',borderRadius:'4px 4px 0 0',overflow:'hidden',cursor:'default'}} title={b.name}>
+                                {STATUSES.map(function(s){
+                                  var cnt=snap.filter(function(r){return r.status===s;}).length;
+                                  var h=cnt/bt*maxH;
+                                  if(h===0)return null;
+                                  return <div key={s} style={{width:'100%',height:h+'px',background:ST_COLORS[s],flexShrink:0}}/>;
+                                })}
+                              </div>
+                              <div style={{fontSize:10,color:'var(--text3)',textAlign:'center',width:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',paddingTop:4}}>{b.name}</div>
+                              <div style={{fontSize:10,color:'var(--text3)'}}>{snap.length} reqs</div>
+                            </div>
+                          );
+                        })}
+                        <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+                          <div style={{width:'100%',display:'flex',flexDirection:'column-reverse',height:'160px',borderRadius:'4px 4px 0 0',overflow:'hidden',border:'2px solid var(--c1)',boxSizing:'border-box'}}>
+                            {STATUSES.map(function(s){
+                              var cnt=byStatus[s]||0;
+                              var t2=total||1;
+                              var h=cnt/t2*160;
+                              if(h===0)return null;
+                              return <div key={s} style={{width:'100%',height:h+'px',background:ST_COLORS[s],flexShrink:0}}/>;
+                            })}
+                          </div>
+                          <div style={{fontSize:10,color:'var(--c1)',fontWeight:700,textAlign:'center',paddingTop:4}}>Current</div>
+                          <div style={{fontSize:10,color:'var(--text3)'}}>{total} reqs</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:10,marginTop:12}}>
+                    {STATUSES.map(function(s){return (
+                      <div key={s} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}>
+                        <div style={{width:10,height:10,borderRadius:2,background:ST_COLORS[s],flexShrink:0}}/>
+                        {s}
+                      </div>
+                    );})}
+                  </div>
+                </div>
+
+                <div className={'card'}>
+                  <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Approval progress</div>
+                  <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                    {filteredBaselines.map(function(b){
+                      var snap=b.snapshot||[];
+                      var bApproved=snap.filter(function(r){return r.status==='Approved';}).length;
+                      var bTotal=snap.length||1;
+                      var dt=new Date(b.created_at);
+                      var ds=dt.toLocaleDateString('es-ES');
+                      return (
+                        <div key={b.id} style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:110,flexShrink:0}}>
+                            <div style={{fontSize:12,fontWeight:600,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</div>
+                            <div style={{fontSize:10,color:'var(--text3)'}}>{ds}</div>
+                          </div>
+                          <div style={{flex:1,height:12,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
+                            <div style={{width:pct(bApproved,bTotal)+'%',height:'100%',background:'#1a7a4a',opacity:.7,transition:'width .3s'}}/>
+                          </div>
+                          <span style={{width:55,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{bApproved}/{bTotal} ({pct(bApproved,bTotal)}%)</span>
+                        </div>
+                      );
+                    })}
+                    <div style={{display:'flex',alignItems:'center',gap:10}}>
+                      <div style={{width:110,flexShrink:0}}>
+                        <div style={{fontSize:12,fontWeight:700,color:'var(--c1)'}}>Current</div>
+                        <div style={{fontSize:10,color:'var(--text3)'}}>live</div>
+                      </div>
+                      <div style={{flex:1,height:12,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
+                        <div style={{width:pct(approved,total)+'%',height:'100%',background:'#1a7a4a',transition:'width .3s'}}/>
+                      </div>
+                      <span style={{width:55,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{approved}/{total} ({pct(approved,total)}%)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
