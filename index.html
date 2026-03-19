@@ -1833,7 +1833,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
             {canApprove&&<button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>}
             {(isApprover||isAssignedApprover)&&(req.status==='In Review'||req.status==='Approved')&&<button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>}
             {(isApprover||isAssignedApprover)&&(req.status==='In Review'||req.status==='Approved')&&<button className={'btn btn-ghost btn-sm'} style={{color:'#8b2020'}} onClick={async function(){if(window.confirm('Reject this requirement?')){await db.from('requirements').update({status:'Rejected'}).eq('id',req.id);onStatusChanged();}}} disabled={submitting}>Reject</button>}
-            {isAdmin&&req.status==='Approved'&&<button className={'btn btn-ghost btn-sm'} onClick={async function(){await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
+            {isAdmin&&req.status==='Approved'&&<button className={'btn btn-ghost btn-sm'} onClick={async function(){if(window.confirm('Reopen this requirement as Draft? This will create a new version when re-approved.')){await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}}>Reopen as Draft</button>}
           </div>}
         </>}
 
