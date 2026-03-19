@@ -1292,6 +1292,7 @@ function ProjectView({project,onBack}) {
   const [showBaselines,setShowBaselines] = useState(false);
   const [baselines,setBaselines] = useState([]);
   const [viewingBaseline,setViewingBaseline] = useState(null);
+  const [showDash,setShowDash] = useState(false);
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
@@ -1345,6 +1346,7 @@ function ProjectView({project,onBack}) {
 
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
+  if(showDash) return <DashboardPage onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
@@ -1353,6 +1355,7 @@ function ProjectView({project,onBack}) {
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
           {(myProjectRole==='Project Admin'||profile?.role==='System Admin') && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){setShowDash(true);}}>Dashboard</button>
           {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
@@ -2742,11 +2745,11 @@ function StandardsPanel() {
 
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function DashboardPage({onBack}) {
+function DashboardPage({onBack, projectId, projectName}) {
   const {profile} = useApp();
   const [tab, setTab] = useState('status');
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState('all');
+  const [selectedProject, setSelectedProject] = useState(projectId||'all');
   const [reqs, setReqs] = useState([]);
   const [baselines, setBaselines] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -2756,6 +2759,7 @@ function DashboardPage({onBack}) {
 
   async function loadData() {
     setLoading(true);
+    if(projectId){setProjects([{id:projectId,name:projectName||'Project'}]);var allIds=[projectId];var {data:rr}=await db.from('requirements').select('*').in('project_id',allIds);setReqs(rr||[]);var {data:bb}=await db.from('project_baselines').select('*').in('project_id',allIds).order('created_at',{ascending:true});setBaselines(bb||[]);var reqIds=(rr||[]).map(function(r){return r.id;});if(reqIds.length){var {data:aa}=await db.from('verification_activities').select('*').in('requirement_id',reqIds);setActivities(aa||[]);}setLoading(false);return;}
     var isSysAdmin = profile.role === 'System Admin';
     var projData = [];
     if (isSysAdmin) {
@@ -2844,11 +2848,12 @@ function DashboardPage({onBack}) {
         {/* Project selector + tabs */}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:10}}>
           <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <span style={{fontSize:12,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:.4}}>Project</span>
-            <select className={'form-select'} style={{width:'auto',fontSize:13}} value={selectedProject} onChange={function(e){setSelectedProject(e.target.value);}}>
+            {!projectId&&<span style={{fontSize:12,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:.4}}>Project</span>}
+            {!projectId&&<select className={'form-select'} style={{width:'auto',fontSize:13}} value={selectedProject} onChange={function(e){setSelectedProject(e.target.value);}}>
               <option value={'all'}>All projects</option>
               {projects.map(function(p){return <option key={p.id} value={p.id}>{p.name}</option>;})}
-            </select>
+            </select>}
+            {projectId&&<span style={{fontSize:16,fontWeight:800,color:'var(--text)'}}>{projectName}</span>}
           </div>
           <div style={{display:'flex',gap:4,background:'var(--raised)',padding:3,borderRadius:8}}>
             {[['status','Status'],['vv','V&V Coverage'],['timeline','Timeline']].map(function(t){
