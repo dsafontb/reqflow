@@ -38,8 +38,6 @@ body::before{content:'';position:fixed;inset:0;background-image:none;pointer-eve
 .user-dropdown{color:var(--text)}
 .user-dropdown .ud-item{color:var(--text)}
 .user-dropdown .ud-name .name{color:var(--text)}
-.user-dropdown .btn-ghost{color:var(--c1);border-color:transparent;background:transparent}
-.user-dropdown .btn-ghost:hover{color:var(--c1);background:var(--raised);border-color:var(--border)}
 .notif-panel{color:var(--text)}
 
 /* ── BUTTONS ── */
@@ -211,9 +209,9 @@ const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
 const SAFECAT  = ['Quality','Functional Safety','Security','Dependability','RAMS'];
 const REQ_TYPES = ['Functional','Performance','Interface','Safety','Reliability','Maintainability','Physical','Environmental','Operational'];
 const REGS_DEFAULT = ['EN 50126','EN 50128','EN 50129','EN 50155','ISO 22163','ISO 9001']; // fallback only
-const ROLES    = ['Unassigned','User','System Admin'];
-const PROJECT_ROLES = ['Designer','Reviewer','Approver','Verifier','Project Admin'];
-const ROLE_CLR = {Unassigned:'#8aaad4',Designer:'#005EB8',Reviewer:'#8a6a00',Approver:'#1a7a4a',Verifier:'#4a6aaa','Project Admin':'#b94000'};
+const ROLES    = ['Unassigned','User','Admin'];
+const PROJECT_ROLES = ['Designer','Reviewer','Approver','Verifier','Admin'];
+const ROLE_CLR = {Unassigned:'#8aaad4',Designer:'#005EB8',Reviewer:'#8a6a00',Approver:'#1a7a4a',Verifier:'#4a6aaa',Admin:'#b94000'};
 
 // ── ICONS ─────────────────────────────────────────────────────────────────────
 const Ic = ({d,s=14,c='currentColor'}) => (
@@ -260,46 +258,6 @@ function timeAgo(ts) {
 }
 
 // ── APP ROOT ──────────────────────────────────────────────────────────────────
-function ChangePasswordModal({onClose}) {
-  var [pwNext, setPwNext]       = React.useState('');
-  var [pwConfirm, setPwConfirm] = React.useState('');
-  var [pwErr, setPwErr]         = React.useState('');
-  var [pwSaving, setPwSaving]   = React.useState(false);
-  var [pwOk, setPwOk]           = React.useState(false);
-
-  async function doChange() {
-    setPwErr('');
-    var ok = pwNext.length >= 8;
-    if(!ok){setPwErr('Min 8 characters');return;}
-    if(pwNext!==pwConfirm){setPwErr('Passwords do not match');return;}
-    setPwSaving(true);
-    var res = await db.auth.updateUser({password:pwNext});
-    setPwSaving(false);
-    if(res.error){setPwErr(res.error.message);return;}
-    setPwOk(true);
-    setPwNext('');setPwConfirm('');
-    setTimeout(function(){onClose();},1500);
-  }
-
-  return (
-    <div className={'modal-overlay'} onClick={onClose}>
-      <div className={'modal'} onClick={function(e){e.stopPropagation();}}>
-        <div className={'modal-header'}><h2>Change Password</h2><button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={15}/></button></div>
-        <div className={'modal-body'}>
-          {pwErr&&<div className={'err'}>{pwErr}</div>}
-          {pwOk&&<div style={{color:'#1a7a4a',padding:'8px 0'}}>Password updated!</div>}
-          <div className={'form-group'}><label className={'form-label'}>New Password</label><input className={'form-input'} type={'password'} value={pwNext} onChange={function(e){setPwNext(e.target.value);}} autoFocus/></div>
-          <div className={'form-group'}><label className={'form-label'}>Confirm Password</label><input className={'form-input'} type={'password'} value={pwConfirm} onChange={function(e){setPwConfirm(e.target.value);}}/></div>
-        </div>
-        <div className={'modal-footer'}>
-          <button className={'btn btn-ghost'} onClick={onClose}>Cancel</button>
-          <button className={'btn btn-primary'} onClick={doChange} disabled={pwSaving}>{pwSaving?'Saving...':'Update Password'}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   const [session, setSession] = useState(undefined);
   const [profile, setProfile] = useState(null);
@@ -342,13 +300,11 @@ function App() {
 
   return (
     <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications, isReadOnly:profile.role==='Unassigned'}}>
-      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')} onDash={()=>setPage('dashboard')}/>}
+      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')}/>}
       {page === 'project'  && <ProjectView project={project} onBack={()=>{setProject(null);setPage('projects')}}/>}
-      {page === 'admin'    && profile.role==='System Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
-      {page === 'options'   && profile.role==='System Admin' && <OptionsPage onBack={()=>setPage('projects')}/>}
-      {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>
-      }
-      {page === 'dashboard' && <DashboardPage onBack={()=>setPage('projects')}/>}
+      {page === 'admin'    && profile.role==='Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
+      {page === 'options'   && profile.role==='Admin' && <OptionsPage onBack={()=>setPage('projects')}/>}
+      {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>}
     </AppContext.Provider>
   );
 }
@@ -463,7 +419,6 @@ function Topbar({title, sub, actions, children}) {
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName]         = useState('');
   const [savingName, setSavingName]   = useState(false);
-  const [showPw, setShowPw]           = useState(false);
   const unread = notifications.filter(n=>!n.read).length;
   const notifRef = useRef(null);
   const userRef  = useRef(null);
@@ -495,7 +450,6 @@ function Topbar({title, sub, actions, children}) {
   const ac = avatarColor(profile?.full_name);
 
   return (
-    <React.Fragment>
     <div className={'topbar'}>
       <div className={'logo'}>RF</div>
       <div className={'topbar-title'}>{title||'ReqFlow'}</div>
@@ -552,20 +506,17 @@ function Topbar({title, sub, actions, children}) {
                   </div>
                 )}
               </div>
-              <div className={'ud-item'} onClick={function(){setShowPw(true);setShowUser(false);}}>Change Password</div>
               <div className={'ud-item'} onClick={signOut}><IX s={13}/> Sign Out</div>
             </div>
           )}
         </div>
       </div>
     </div>
-    {showPw&&<ChangePasswordModal onClose={function(){setShowPw(false);}}></ChangePasswordModal>}
-    </React.Fragment>
   );
 }
 
 // ── PROJECT LIST ──────────────────────────────────────────────────────────────
-function ProjectList({onOpen, onAdmin, onQueue, onOptions, onDash}) {
+function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
   const {profile, isReadOnly} = useApp();
   const [projects, setProjects] = useState([]);
   const [counts, setCounts]     = useState({});
@@ -578,7 +529,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions, onDash}) {
   async function load() {
     setLoading(true);
     let projData = [];
-    if (profile.role === 'System Admin' || profile.role === 'Unassigned') {
+    if (profile.role === 'Admin' || profile.role === 'Unassigned') {
       const {data} = await db.from('projects').select('*').order('created_at',{ascending:false});
       projData = data || [];
     } else {
@@ -614,14 +565,13 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions, onDash}) {
     load();
   }
 
-  const isAdmin = profile?.role === 'System Admin';
+  const isAdmin = profile?.role === 'Admin';
 
   return (
     <div style={{minHeight:'100vh'}}>
       <Topbar actions={
         <>
           {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onQueue}><IList s={13}/> My Queue</button>}
-          {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onDash}>Dashboard</button>}
           {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onAdmin}><IUsers s={13}/> Users</button>}
           {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onOptions}><IShield s={13}/> Options</button>}
           {isAdmin && <button className={'btn btn-primary btn-sm'} onClick={()=>setShowNew(true)}><IPlus s={13}/> New Project</button>}
@@ -647,14 +597,14 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions, onDash}) {
             const myRole = myRoles[p.id];
             const rc = myRole ? (ROLE_CLR[myRole]||'#64748b') : null;
             return (
-              <div key={p.id} className={'card'} onClick={()=>onOpen({...p, myProjectRole: myRole||'Project Admin'})} style={{cursor:'pointer',transition:'all .2s'}}
+              <div key={p.id} className={'card'} onClick={()=>onOpen({...p, myProjectRole: myRole||'Admin'})} style={{cursor:'pointer',transition:'all .2s'}}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--border2)';e.currentTarget.style.transform='translateY(-2px)'}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='none'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                   <div style={{width:38,height:38,borderRadius:9,background:'rgba(0,94,184,.1)',border:'1px solid rgba(0,94,184,.2)',display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <IFolder s={16}/>
                   </div>
-                  {(isAdmin||(myRoles[p.id]==='Project Admin'))&&!isReadOnly&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>{e.stopPropagation();setEditProject(p);}}><IEdit s={12}/></button>}
+                  {(isAdmin||(myRoles[p.id]==='Admin'))&&!isReadOnly&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>{e.stopPropagation();setEditProject(p);}}><IEdit s={12}/></button>}
                    {isAdmin && !isReadOnly && <button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
                 </div>
                 <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
@@ -1018,9 +968,9 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
   var [editDesc,setEditDesc]     = React.useState('');
   var [editSaving,setEditSaving] = React.useState(false);
 
-  var isAdmin = profile&&false;
+  var isAdmin = profile&&(profile.role==='Admin');
   var myRole  = project&&project.myProjectRole;
-  var canManage = (profile&&profile.role==='System Admin') || myRole==='Project Admin';
+  var canManage = isAdmin || myRole==='Admin';
 
   async function saveEdit(id) {
     if(!editName.trim()) return;
@@ -1309,7 +1259,7 @@ function ProjectView({project,onBack}) {
     }
     setLoading(false);
   },[project.id]);
-  const myProjectRole = project.myProjectRole || (profile?.role==='System Admin'?'SysAdminGuest':'');
+  const myProjectRole = project.myProjectRole || (profile?.role==='Admin'?'Admin':'Designer');
 
   async function loadBaselines() {
     const {data}=await db.from('project_baselines').select('*').eq('project_id',project.id).order('created_at',{ascending:false});
@@ -1339,27 +1289,20 @@ function ProjectView({project,onBack}) {
   });
   const tree=buildTree(filtered);
 
-  const canEdit = !isReadOnly && (['Designer','Project Admin'].includes(myProjectRole));
+  const canEdit = !isReadOnly && (['Designer','Admin'].includes(myProjectRole)||profile?.role==='Admin');
   function openNew(pid=null){setDefParent(pid);setEditReq(null);setShowModal(true);}
   function openEdit(req,e){e?.stopPropagation();setEditReq({...req,myProjectRole});setDefParent(null);setShowModal(true);}
 
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
-  if(showDash) {
-    var dashPid = project.id;
-    var dashPname = project.name;
-    function onDashBack(){setShowDash(false);}
-    return <DashboardPage onBack={onDashBack} projectId={dashPid} projectName={dashPname}></DashboardPage>;
-  }
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
       <Topbar sub={project.name} actions={
         <>
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-          {(myProjectRole==='Project Admin'||profile?.role==='System Admin') && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
+          {(myProjectRole==='Admin'||profile?.role==='Admin') && !isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>
-            <button className={'btn btn-ghost btn-sm'} onClick={function(){setShowDash(true);}}>Dashboard</button>
           {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
@@ -1502,7 +1445,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
         {canEdit&&<div style={{display:'flex',gap:2,flexShrink:0,marginLeft:4}} onClick={e=>e.stopPropagation()}>
           <button className={'btn btn-ghost btn-sm btn-icon'} title={'Add child'} onClick={()=>onAddChild(node.id)} style={{opacity:.4}}><IPlus s={11}/></button>
           <button className={'btn btn-ghost btn-sm btn-icon'} title={'Edit'} onClick={e=>onEdit(node,e)} style={{opacity:.4}}><IEdit s={11}/></button>
-          {(node.status==='Draft'&&!(node.version_history&&node.version_history.length>0))&&<button className={'btn btn-ghost btn-sm btn-icon'} title={'Delete'} onClick={del} style={{opacity:.3,color:'var(--c4)'}}>×</button>}
+          <button className={'btn btn-ghost btn-sm btn-icon'} title={'Delete'} onClick={del} style={{opacity:.3,color:'var(--c4)'}}>×</button>
         </div>}
       </div>
       {hasKids&&isOpen&&node.children.map(c=><TreeNode key={c.id} node={c} depth={depth+1} expanded={expanded} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} onEdit={onEdit} onAddChild={onAddChild} onDeleted={onDeleted} canEdit={canEdit}/>)}
@@ -1541,14 +1484,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   async function loadAssignments() {
     const {data}=await db.from('approver_assignments').select('*').eq('requirement_id',req.id);
     if(data)setAssignments(data);
-    const {data:members}=await db.from('project_members').select('user_id,role').eq('project_id',req.project_id).in('role',['Approver','Project Admin']);
-    if(members&&members.length){
-      const ids=members.map(m=>m.user_id);
-      const {data:pp}=await db.from('profiles').select('*').in('id',ids).order('full_name');
-      if(pp)setAllProfiles(pp);
-    } else {
-      setAllProfiles([]);
-    }
+    const {data:pp}=await db.from('profiles').select('*').order('full_name');
+    if(pp)setAllProfiles(pp);
   }
 
   async function loadEvidence() {
@@ -1559,22 +1496,16 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   }
   useEffect(()=>{loadComments();loadAssignments();loadEvidence();},[req.id]);
 
-  const pr          = req.myProjectRole||'';
-  const isSysAdmin  = profile?.role==='System Admin';
-  const isProjAdmin = pr==='Project Admin';
-  const isDesigner  = pr==='Designer'||isProjAdmin;
-  const isReviewer  = pr==='Reviewer'||isProjAdmin;
-  const isApprover  = pr==='Approver'||isProjAdmin;
-  const isVerifier  = pr==='Verifier'||isProjAdmin;
-  const isAdmin     = isProjAdmin;
-  const isVersion0  = !(req.version_history&&req.version_history.length>0);
+  const pr = req.myProjectRole||'Designer';
+  const isAdmin = profile?.role==='Admin';
+  const isDesigner = pr==='Designer'||pr==='Admin'||isAdmin;
+  const isApprover = pr==='Approver'||pr==='Admin'||isAdmin;
+  const isVerifier = pr==='Verifier'||pr==='Admin'||isAdmin;
   const vs = req.verification_status||'Not Started';
   const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
-  const canApprove = (isApprover||isAssignedApprover) && req.status==='In Review';
+  const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
   const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
-  const canRecall  = isDesigner && req.status==='In Review';
-  const canComment = !isReadOnly;
 
   async function addComment(action='Comment') {
     if (!comment.trim()&&action==='Comment') return;
@@ -1586,7 +1517,6 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     if(action==='Approve') newStatus='Approved';
     if(action==='RequestChanges') newStatus='Changes Requested';
     if(action==='Submit') newStatus='In Review';
-    if(action==='Recall') newStatus='Draft';
     if(newStatus!==req.status) {
       if(action==='Approve') {
         const snap={v:(req.version_history||[]).length+1,req_id:req.req_id||'',title:req.title||'',description:req.description||'',rationale:req.rationale||'',level:req.level||'',requirement_type:req.requirement_type||'',verification_method:req.verification_method||'',owner:req.owner||'',stakeholder:req.stakeholder||'',safety_class:req.safety_class||'',sil_level:req.sil_level||'',safety_category:req.safety_category||'',regulatory_body:(req.regulatory_body||[]).join(', '),approved_by:profile.full_name,approved_at:new Date().toISOString()};
@@ -1627,15 +1557,10 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     await db.from('requirements').delete().eq('id',req.id);
     onDeleted();
   }
-  async function reopenAsDraft() {
-    if(!window.confirm('Reopen this requirement as Draft? This will create a new version when re-approved.'))return;
-    await db.from('requirements').update({status:'Draft'}).eq('id',req.id);
-    onStatusChanged();
-  }
 
   const actionColor={Comment:'var(--text3)',Submit:'var(--c3)',Approve:'var(--c2)',RequestChanges:'var(--c4)'};
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
-  const approversInProject = allProfiles;
+  const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
 
   const vh=req.version_history||[];const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:'Comments'+(comments.length?' ('+comments.length+')':'')},{id:'versions',label:'Versions'+(vh.length?' (v'+vh.length+')':'')}];
 
@@ -1654,8 +1579,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           <div style={{fontWeight:700,fontSize:15,lineHeight:1.3}}>{req.title}</div>
         </div>
         <div style={{display:'flex',gap:3,flexShrink:0}}>
-          {isDesigner&&(req.status==='Draft'||req.status==='Changes Requested'||isAdmin)&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>onEdit(req)}><IEdit s={12}/></button>}
-          {(isDesigner||isAdmin)&&req.status==='Draft'&&isVersion0&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={del} style={{color:'var(--c4)'}}><ITrash s={12}/></button>}
+          {isDesigner&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>onEdit(req)}><IEdit s={12}/></button>}
+          {isDesigner&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={del} style={{color:'var(--c4)'}}><ITrash s={12}/></button>}
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onClose}><IX s={12}/></button>
         </div>
       </div>
@@ -1824,7 +1749,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                     <div style={{fontSize:13,fontWeight:600}}>{p.full_name}</div>
                     <RoleBadge role={p.role}/>
                   </div>
-                  {(isDesigner)&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>assignApprover(p.id)}><IX s={11}/></button>}
+                  {(isDesigner||profile?.role==='Admin')&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>assignApprover(p.id)}><IX s={11}/></button>}
                 </div>
               );
             })}
@@ -1846,11 +1771,12 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           {/* Action buttons */}
           {!isReadOnly && <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {canSubmit&&<button className={'btn btn-warn'} onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
-            {canRecall&&<button className={'btn btn-ghost btn-sm'} onClick={()=>addComment('Recall')} disabled={submitting}>↩ Recall</button>}
-            {canApprove&&<button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>}
-            {(isApprover||isAssignedApprover)&&(req.status==='In Review'||req.status==='Approved')&&<button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>}
-            {(isApprover||isAssignedApprover)&&(req.status==='In Review'||req.status==='Approved')&&<button className={'btn btn-ghost btn-sm'} style={{color:'#8b2020'}} onClick={async function(){if(window.confirm('Reject this requirement?')){await db.from('requirements').update({status:'Rejected'}).eq('id',req.id);onStatusChanged();}}} disabled={submitting}>Reject</button>}
-            {isAdmin&&req.status==='Approved'&&<button className={'btn btn-ghost btn-sm'} onClick={reopenAsDraft}>Reopen as Draft</button>}
+            {canApprove&&<>
+              <button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
+              <button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
+            </>}
+            {req.status==='Approved'&&isDesigner&&<button className={'btn btn-ghost btn-sm'} onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
+            {req.status!=='Rejected'&&req.status!=='Obsolete'&&isDesigner&&<button className={'btn btn-ghost btn-sm'} style={{color:'#8b2020'}} onClick={async()=>{if(window.confirm('Mark this requirement as Rejected? This cannot be undone via the workflow.')){await db.from('requirements').update({status:'Rejected'}).eq('id',req.id);onStatusChanged();}}}>Mark as Rejected</button>}
           </div>}
         </>}
 
@@ -1875,7 +1801,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                       {isAction&&<span style={{fontSize:11,fontWeight:700,color:actionColor[c.action]}}>{actionLabel[c.action]}</span>}
                       {c.req_status&&<span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:ST_CLR[c.req_status]?.bg,color:ST_CLR[c.req_status]?.text,border:`1px solid ${ST_CLR[c.req_status]?.bd}`}}>{c.req_status}</span>}
                       <span className={'comment-time'}>{timeAgo(c.created_at)}</span>
-                      {(profile?.role==='System Admin')&&<button onClick={async()=>{if(!confirm('Delete this comment?'))return;await db.from('comments').delete().eq('id',c.id);loadComments();}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--c4)',opacity:.5,padding:'0 2px',fontSize:13,lineHeight:1}} title={'Delete comment'}>×</button>}
+                      {profile?.role==='Admin'&&<button onClick={async()=>{if(!confirm('Delete this comment?'))return;await db.from('comments').delete().eq('id',c.id);loadComments();}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--c4)',opacity:.5,padding:'0 2px',fontSize:13,lineHeight:1}} title={'Delete comment'}>×</button>}
                     </div>
                     <div className={'comment-text'}>{c.content}</div>
                   </div>
@@ -2315,8 +2241,7 @@ function MembersModal({projectId, onClose}) {
 
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
-  const isProjAdminReq = req?.myProjectRole==='Project Admin';
-  const isLocked = isEdit && !isProjAdminReq && (req?.status==='In Review'||req?.status==='Approved'||req?.status==='Rejected'||req?.status==='Obsolete');
+  const isLocked = isEdit && ['Approved','Verified'].includes(req?.status);
   const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',stakeholder:'',requirement_type:'Functional',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
   const [form,setForm]=useState(init);
   const [tab,setTab]=useState('basic');
@@ -2412,7 +2337,7 @@ function ApprovalQueue({onBack, onOpen}) {
   async function load() {
     setLoading(true);
     let reqs=[];
-    if(profile.role==='Approver'||profile.role==='System Admin'){
+    if(profile.role==='Approver'||profile.role==='Admin'){
       const {data:assignments}=await db.from('approver_assignments').select('requirement_id').eq('approver_id',profile.id);
       const ids=(assignments||[]).map(a=>a.requirement_id);
       if(ids.length){
@@ -2420,7 +2345,7 @@ function ApprovalQueue({onBack, onOpen}) {
         reqs=data||[];
       }
     }
-    if(profile.role==='Designer'||profile.role==='System Admin'){
+    if(profile.role==='Designer'||profile.role==='Admin'){
       const {data}=await db.from('requirements').select('*, projects(name)').in('status',['In Review','Changes Requested','Approved']);
       const mine=(data||[]).filter(r=>!reqs.find(x=>x.id===r.id));
       reqs=[...reqs,...mine];
@@ -2466,8 +2391,7 @@ function StandardsManager({onClose}) {
   const [standards, setStandards] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [newName, setNewName]     = useState('');
-  const [newVersion, setNewVersion] = useState('');
-  const [newFullName, setNewFullName] = useState('');
+  const [newDesc, setNewDesc]     = useState('');
   const [saving, setSaving]       = useState(false);
   const [err, setErr]             = useState('');
 
@@ -2481,12 +2405,12 @@ function StandardsManager({onClose}) {
   useEffect(()=>{load();},[]);
 
   async function add() {
-    if (!newName.trim()) { setErr('Code required'); return; }
+    if (!newName.trim()) { setErr('Name required'); return; }
     setSaving(true); setErr('');
     const maxOrder = standards.reduce((m,s)=>Math.max(m,s.sort_order||0),0);
-    const {error} = await db.from('standards').insert([{name:newName.trim(), version:newVersion.trim()||null, full_name:newFullName.trim()||null, sort_order:maxOrder+1}]);
+    const {error} = await db.from('standards').insert([{name:newName.trim(), description:newDesc.trim()||null, sort_order:maxOrder+1}]);
     if (error) { setErr(error.message); setSaving(false); return; }
-    setNewName(''); setNewVersion(''); setNewFullName('');
+    setNewName(''); setNewDesc('');
     setSaving(false);
     load();
   }
@@ -2508,36 +2432,34 @@ function StandardsManager({onClose}) {
         <div className={'modal-header'}><h2>Manage Standards</h2><button className={'btn btn-ghost btn-icon'} onClick={onClose}><IX s={15}/></button></div>
         <div className={'modal-body'}>
           {loading ? <div style={{textAlign:'center',padding:20,color:'var(--text3)'}}>Loading...</div> : <>
+            {/* Existing standards */}
             {standards.map(s=>(
-              <div key={s.id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',background:s.active?'var(--bg)':'var(--raised)',borderRadius:9,border:'1px solid var(--border)',marginBottom:6,opacity:s.active?1:.5}}>
+              <div key={s.id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',background:s.active?'var(--bg)':'var(--raised)',borderRadius:9,border:`1px solid ${s.active?'var(--border)':'transparent'}`,marginBottom:6,opacity:s.active?1:.5}}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:'flex',alignItems:'baseline',gap:7}}>
-                    <span style={{fontWeight:700,fontSize:13,fontFamily:'var(--mono)',color:s.active?'var(--c1)':'var(--text3)'}}>{s.name}</span>
-                    {s.version&&<span style={{fontSize:11,fontFamily:'var(--mono)',color:'var(--text3)'}}>{s.version}</span>}
-                  </div>
-                  {s.full_name&&<div style={{fontSize:12,color:'var(--text2)',marginTop:2}}>{s.full_name}</div>}
+                  <div style={{fontWeight:600,fontSize:13,fontFamily:'var(--mono)',color:s.active?'var(--c1)':'var(--text3)'}}>{s.name}</div>
+                  {s.description&&<div style={{fontSize:12,color:'var(--text2)',marginTop:2}}>{s.description}</div>}
                 </div>
-                <button className={`btn btn-sm ${s.active?'btn-ghost':'btn-success'}`} onClick={()=>toggleActive(s.id,s.active)}>{s.active?'Disable':'Enable'}</button>
+                <button className={`btn btn-sm ${s.active?'btn-ghost':'btn-success'}`} onClick={()=>toggleActive(s.id,s.active)}>
+                  {s.active?'Disable':'Enable'}
+                </button>
                 <button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>del(s.id)} style={{color:'var(--c4)',opacity:.6}}><ITrash s={11}/></button>
               </div>
             ))}
             {standards.length===0 && <div style={{color:'var(--text3)',fontSize:13,marginBottom:12}}>No standards yet.</div>}
+
+            {/* Add new */}
             <div style={{height:1,background:'var(--border)',margin:'16px 0'}}/>
             <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Add Standard</div>
             {err && <div className={'err'}>{err}</div>}
             <div className={'form-row'}>
-              <div className={'form-group'} style={{marginBottom:0,flex:'0 0 120px'}}>
-                <label className={'form-label'}>Code *</label>
-                <input className={'form-input'} placeholder={'EN 50155'} value={newName} onChange={e=>setNewName(e.target.value)}/>
+              <div className={'form-group'} style={{marginBottom:0}}>
+                <label className={'form-label'}>Name *</label>
+                <input className={'form-input'} placeholder={'e.g. EN 50159'} value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
               </div>
-              <div className={'form-group'} style={{marginBottom:0,flex:'0 0 90px'}}>
-                <label className={'form-label'}>Version</label>
-                <input className={'form-input'} placeholder={'2021'} value={newVersion} onChange={e=>setNewVersion(e.target.value)}/>
+              <div className={'form-group'} style={{marginBottom:0}}>
+                <label className={'form-label'}>Description (optional)</label>
+                <input className={'form-input'} placeholder={'Short description'} value={newDesc} onChange={e=>setNewDesc(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
               </div>
-            </div>
-            <div className={'form-group'}>
-              <label className={'form-label'}>Full Name</label>
-              <input className={'form-input'} placeholder={'Railway applications - Rolling stock - Electronic equipment'} value={newFullName} onChange={e=>setNewFullName(e.target.value)}/>
             </div>
           </>}
         </div>
@@ -2576,7 +2498,7 @@ function AdminPanel({onBack}) {
       <div style={{padding:'28px 24px',maxWidth:860,margin:'0 auto'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>User Management</h1>
-          <p style={{color:'var(--text2)',fontSize:13}}>Manage roles for all registered users. First user is always System Admin.</p>
+          <p style={{color:'var(--text2)',fontSize:13}}>Manage roles for all registered users. First user is always Admin.</p>
         </div>
         <div className={'card'} style={{padding:0,overflow:'hidden'}}>
           {loading?<div className={'empty'}><div className={'empty-icon'}>⏳</div><h3>Loading…</h3></div>:(
@@ -2601,7 +2523,7 @@ function AdminPanel({onBack}) {
                           <RoleBadge role={u.role}/>
                         ):(
                           <select className={'form-select'} style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={u.role} onChange={e=>changeRole(u.id,e.target.value)}>
-                            {['Unassigned','User','System Admin'].map(r=><option key={r}>{r}</option>)}
+                            {['Unassigned','User','Admin'].map(r=><option key={r}>{r}</option>)}
                           </select>
                         )}
                       </td>
@@ -2658,8 +2580,7 @@ function StandardsPanel() {
   const [standards, setStandards] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [newName, setNewName]     = useState('');
-  const [newVersion, setNewVersion] = useState('');
-  const [newFullName, setNewFullName] = useState('');
+  const [newDesc, setNewDesc]     = useState('');
   const [saving, setSaving]       = useState(false);
   const [err, setErr]             = useState('');
 
@@ -2672,12 +2593,12 @@ function StandardsPanel() {
   useEffect(()=>{load();},[]);
 
   async function add() {
-    if (!newName.trim()) { setErr('Code required'); return; }
+    if (!newName.trim()) { setErr('Name required'); return; }
     setSaving(true); setErr('');
     const maxOrder = standards.reduce((m,s)=>Math.max(m,s.sort_order||0),0);
-    const {error} = await db.from('standards').insert([{name:newName.trim(),version:newVersion.trim()||null,full_name:newFullName.trim()||null,sort_order:maxOrder+1}]);
+    const {error} = await db.from('standards').insert([{name:newName.trim(),description:newDesc.trim()||null,sort_order:maxOrder+1}]);
     if (error) { setErr(error.message); setSaving(false); return; }
-    setNewName(''); setNewVersion(''); setNewFullName('');
+    setNewName(''); setNewDesc('');
     setSaving(false); load();
   }
 
@@ -2699,13 +2620,12 @@ function StandardsPanel() {
       <div className={'card'} style={{padding:0,overflow:'hidden',marginBottom:16}}>
         {loading ? <div style={{padding:24,textAlign:'center',color:'var(--text3)'}}>Loading...</div> : (
           <table className={'admin-table'}>
-            <thead><tr><th>Code</th><th>Version</th><th>Full Name</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Name</th><th>Description</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {standards.map(s=>(
                 <tr key={s.id} style={{opacity:s.active?1:.45}}>
                   <td><span style={{fontFamily:'var(--mono)',fontSize:12,color:s.active?'var(--c1)':'var(--text3)',fontWeight:700}}>{s.name}</span></td>
-                  <td><span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{s.version||'—'}</span></td>
-                  <td style={{color:'var(--text2)',fontSize:12}}>{s.full_name||'—'}</td>
+                  <td style={{color:'var(--text2)'}}>{s.description||'—'}</td>
                   <td><span style={{fontFamily:'var(--mono)',fontSize:11,padding:'2px 8px',borderRadius:4,background:s.active?'rgba(127,255,107,.1)':'rgba(100,116,139,.1)',color:s.active?'var(--c2)':'var(--text3)',border:`1px solid ${s.active?'rgba(127,255,107,.2)':'rgba(100,116,139,.2)'}`}}>{s.active?'Active':'Disabled'}</span></td>
                   <td style={{textAlign:'right'}}>
                     <div style={{display:'flex',gap:6,justifyContent:'flex-end'}}>
@@ -2715,7 +2635,7 @@ function StandardsPanel() {
                   </td>
                 </tr>
               ))}
-              {standards.length===0&&<tr><td colSpan={5} style={{textAlign:'center',color:'var(--text3)',fontStyle:'italic'}}>No standards yet</td></tr>}
+              {standards.length===0&&<tr><td colSpan={4} style={{textAlign:'center',color:'var(--text3)',fontStyle:'italic'}}>No standards yet</td></tr>}
             </tbody>
           </table>
         )}
@@ -2725,18 +2645,14 @@ function StandardsPanel() {
         <div style={{fontSize:13,fontWeight:700,marginBottom:14}}>Add Standard</div>
         {err&&<div className={'err'}>{err}</div>}
         <div className={'form-row'}>
-          <div className={'form-group'} style={{marginBottom:0,flex:'0 0 120px'}}>
-            <label className={'form-label'}>Code *</label>
-            <input className={'form-input'} placeholder={'EN 50155'} value={newName} onChange={e=>setNewName(e.target.value)}/>
+          <div className={'form-group'} style={{marginBottom:0}}>
+            <label className={'form-label'}>Name *</label>
+            <input className={'form-input'} placeholder={'e.g. EN 50159'} value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
           </div>
-          <div className={'form-group'} style={{marginBottom:0,flex:'0 0 90px'}}>
-            <label className={'form-label'}>Version</label>
-            <input className={'form-input'} placeholder={'2021'} value={newVersion} onChange={e=>setNewVersion(e.target.value)}/>
+          <div className={'form-group'} style={{marginBottom:0}}>
+            <label className={'form-label'}>Description (optional)</label>
+            <input className={'form-input'} placeholder={'Short description'} value={newDesc} onChange={e=>setNewDesc(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
           </div>
-        </div>
-        <div className={'form-group'}>
-          <label className={'form-label'}>Full Name</label>
-          <input className={'form-input'} placeholder={'Railway applications - Rolling stock - Electronic equipment'} value={newFullName} onChange={e=>setNewFullName(e.target.value)}/>
         </div>
         <div style={{marginTop:12}}>
           <button className={'btn btn-primary'} onClick={add} disabled={saving||!newName.trim()}>{saving?'Adding...':'Add Standard'}</button>
@@ -2746,421 +2662,6 @@ function StandardsPanel() {
   );
 }
 
-
-
-// ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function DashboardPage({onBack, projectId, projectName}) {
-  const {profile} = useApp();
-  const [tab, setTab] = useState('status');
-  const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(projectId||'all');
-  const [reqs, setReqs] = useState([]);
-  const [baselines, setBaselines] = useState([]);
-  const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(function(){loadData();},[]);
-
-  async function loadData() {
-    setLoading(true);
-    if(projectId){setProjects([{id:projectId,name:projectName||'Project'}]);var allIds=[projectId];var {data:rr}=await db.from('requirements').select('*').in('project_id',allIds);setReqs(rr||[]);var {data:bb}=await db.from('project_baselines').select('*').in('project_id',allIds).order('created_at',{ascending:true});setBaselines(bb||[]);var reqIds=(rr||[]).map(function(r){return r.id;});if(reqIds.length){var {data:aa}=await db.from('verification_activities').select('*').in('requirement_id',reqIds);setActivities(aa||[]);}setLoading(false);return;}
-    var isSysAdmin = profile.role === 'System Admin';
-    var projData = [];
-    if (isSysAdmin) {
-      var {data:pd} = await db.from('projects').select('*').order('created_at',{ascending:false});
-      projData = pd||[];
-    } else {
-      var {data:mem} = await db.from('project_members').select('project_id').eq('user_id',profile.id);
-      var ids = (mem||[]).map(function(m){return m.project_id;});
-      if (ids.length) {
-        var {data:pd2} = await db.from('projects').select('*').in('id',ids);
-        projData = pd2||[];
-      }
-    }
-    setProjects(projData);
-    var allIds = projData.map(function(p){return p.id;});
-    if (allIds.length) {
-      var {data:rr} = await db.from('requirements').select('*').in('project_id',allIds);
-      setReqs(rr||[]);
-      var {data:bb} = await db.from('project_baselines').select('*').in('project_id',allIds).order('created_at',{ascending:true});
-      setBaselines(bb||[]);
-      var reqIds = (rr||[]).map(function(r){return r.id;});
-      if (reqIds.length) {
-        var {data:aa} = await db.from('verification_activities').select('*').in('requirement_id',reqIds);
-        setActivities(aa||[]);
-      }
-    }
-    setLoading(false);
-  }
-
-  var filteredReqs = selectedProject==='all' ? reqs : reqs.filter(function(r){return r.project_id===selectedProject;});
-  var filteredBaselines = selectedProject==='all' ? baselines : baselines.filter(function(b){return b.project_id===selectedProject;});
-
-  var total = filteredReqs.length;
-  var byStatus = {};
-  STATUSES.forEach(function(s){byStatus[s]=filteredReqs.filter(function(r){return r.status===s;}).length;});
-  var approved = byStatus['Approved']||0;
-  var inReview = byStatus['In Review']||0;
-  var actMap = {};
-  activities.forEach(function(a){actMap[a.requirement_id]=a;});
-  var verified = filteredReqs.filter(function(r){return r.verification_status==='Verified';}).length;
-  var failed   = filteredReqs.filter(function(r){return r.verification_status==='Failed';}).length;
-  var vDefined = filteredReqs.filter(function(r){var a=actMap[r.id];return a&&a.activity_status!=='Not Defined';}).length;
-
-  var ST_COLORS = {
-    'Approved':'#1a7a4a','In Review':'#8a6a00','Changes Requested':'#b94000',
-    'Draft':'#5a7aaa','Obsolete':'#8aaad4','Rejected':'#8b2020'
-  };
-  var LEVELS_SHOWN = ['Stakeholder','System','Subsystem','Component'];
-
-  function pct(n,d){return d===0?0:Math.round(n/d*100);}
-
-  function MetricCard({label,value,sub,color}) {
-    return (
-      <div style={{background:'var(--raised)',borderRadius:10,padding:'12px 16px',minWidth:0}}>
-        <div style={{fontSize:11,color:'var(--text3)',marginBottom:4,textTransform:'uppercase',letterSpacing:.4,fontWeight:600}}>{label}</div>
-        <div style={{fontSize:26,fontWeight:800,color:color||'var(--text)',lineHeight:1}}>{value}</div>
-        {sub&&<div style={{fontSize:11,color:'var(--text3)',marginTop:4}}>{sub}</div>}
-      </div>
-    );
-  }
-
-  function StackBar({items,total:tot}) {
-    return (
-      <div style={{display:'flex',height:20,borderRadius:4,overflow:'hidden',background:'var(--raised)'}}>
-        {items.map(function(item){
-          var w = tot===0?0:item.count/tot*100;
-          if(w===0)return null;
-          return <div key={item.label} style={{width:w+'%',background:item.color,transition:'width .3s'}} title={item.label+': '+item.count}/>;
-        })}
-      </div>
-    );
-  }
-
-  if(loading) return (
-    <div style={{minHeight:'100vh'}}>
-      <Topbar sub={'Dashboard'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>}/>
-      <div className={'empty'}><div className={'empty-icon'}>⏳</div><h3>Loading…</h3></div>
-    </div>
-  );
-
-  return (
-    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
-      <Topbar sub={'Dashboard'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>}/>
-      <div style={{padding:'24px',maxWidth:1100,margin:'0 auto',width:'100%'}}>
-
-        {/* Project selector + tabs */}
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:10}}>
-          <div style={{display:'flex',alignItems:'center',gap:10}}>
-            {!projectId&&<span style={{fontSize:12,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:.4}}>Project</span>}
-            {!projectId&&<select className={'form-select'} style={{width:'auto',fontSize:13}} value={selectedProject} onChange={function(e){setSelectedProject(e.target.value);}}>
-              <option value={'all'}>All projects</option>
-              {projects.map(function(p){return <option key={p.id} value={p.id}>{p.name}</option>;})}
-            </select>}
-            {projectId&&<span style={{fontSize:16,fontWeight:800,color:'var(--text)'}}>{projectName}</span>}
-          </div>
-          <div style={{display:'flex',gap:4,background:'var(--raised)',padding:3,borderRadius:8}}>
-            {[['status','Status'],['vv','V&V Coverage'],['timeline','Timeline']].map(function(t){
-              return (
-                <button key={t[0]} onClick={function(){setTab(t[0]);}} style={{padding:'6px 14px',borderRadius:6,border:'none',cursor:'pointer',fontSize:13,fontWeight:tab===t[0]?700:400,background:tab===t[0]?'var(--surface)':'transparent',color:tab===t[0]?'var(--c1)':'var(--text2)',boxShadow:tab===t[0]?'0 1px 4px rgba(0,0,0,.08)':'none',transition:'all .15s'}}>
-                  {t[1]}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── TAB A: STATUS ── */}
-        {tab==='status'&&(
-          <div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:12,marginBottom:20}}>
-              <MetricCard label={'Total reqs'} value={total} sub={'across all levels'}/>
-              <MetricCard label={'Approved'} value={approved} sub={pct(approved,total)+'% of total'} color={'#1a7a4a'}/>
-              <MetricCard label={'In review'} value={inReview} sub={pct(inReview,total)+'% of total'} color={'#8a6a00'}/>
-              <MetricCard label={'Draft'} value={byStatus['Draft']||0} sub={pct(byStatus['Draft']||0,total)+'% of total'} color={'#5a7aaa'}/>
-            </div>
-
-            <div className={'card'} style={{marginBottom:16}}>
-              <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Status breakdown by level</div>
-              {LEVELS_SHOWN.map(function(level){
-                var lr = filteredReqs.filter(function(r){return r.level===level;});
-                var lc = LEVEL_CLR[level]||'#64748b';
-                return (
-                  <div key={level} style={{marginBottom:10}}>
-                    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
-                      <span style={{width:90,fontSize:12,color:lc,fontWeight:600,textAlign:'right',flexShrink:0}}>{level}</span>
-                      <div style={{flex:1}}>
-                        <StackBar total={lr.length} items={STATUSES.map(function(s){return {label:s,count:lr.filter(function(r){return r.status===s;}).length,color:ST_COLORS[s]};})}/>
-                      </div>
-                      <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{lr.length}</span>
-                    </div>
-                  </div>
-                );
-              })}
-              <div style={{display:'flex',flexWrap:'wrap',gap:10,marginTop:12,paddingTop:12,borderTop:'1px solid var(--border)'}}>
-                {STATUSES.map(function(s){return (
-                  <div key={s} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}>
-                    <div style={{width:10,height:10,borderRadius:2,background:ST_COLORS[s],flexShrink:0}}/>
-                    {s}
-                  </div>
-                );})}
-              </div>
-            </div>
-
-            {filteredBaselines.length>0&&(
-              <div className={'card'}>
-                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Baseline comparison</div>
-                {filteredBaselines.map(function(b){
-                  var snap = b.snapshot||[];
-                  var bt = snap.length;
-                  return (
-                    <div key={b.id} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-                      <span style={{width:120,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</span>
-                      <div style={{flex:1}}>
-                        <StackBar total={bt} items={STATUSES.map(function(s){return {label:s,count:snap.filter(function(r){return r.status===s;}).length,color:ST_COLORS[s]};})}/>
-                      </div>
-                      <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{bt}</span>
-                    </div>
-                  );
-                })}
-                <div style={{display:'flex',alignItems:'center',gap:10,marginTop:4}}>
-                  <span style={{width:120,fontSize:11,color:'var(--c1)',textAlign:'right',flexShrink:0,fontWeight:700}}>Current</span>
-                  <div style={{flex:1}}>
-                    <StackBar total={total} items={STATUSES.map(function(s){return {label:s,count:byStatus[s]||0,color:ST_COLORS[s]};})}/>
-                  </div>
-                  <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{total}</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── TAB B: V&V ── */}
-        {tab==='vv'&&(
-          <div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:12,marginBottom:20}}>
-              <MetricCard label={'V coverage'} value={pct(vDefined,total)+'%'} sub={'activity defined'} color={'#005EB8'}/>
-              <MetricCard label={'Verified'} value={verified} sub={pct(verified,approved)+'% of approved'} color={'#1a7a4a'}/>
-              <MetricCard label={'Failed'} value={failed} sub={'need rework'} color={'#8b2020'}/>
-              <MetricCard label={'Not started'} value={approved-verified-failed} sub={'approved, no V outcome'} color={'#5a7aaa'}/>
-            </div>
-
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
-              <div className={'card'}>
-                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Verification activity status</div>
-                {['Not Defined','Defined','Planned','In Progress','Finished'].map(function(s){
-                  var cnt = filteredReqs.filter(function(r){
-                    var a=actMap[r.id];
-                    if(s==='Not Defined') return !a||a.activity_status==='Not Defined';
-                    return a&&a.activity_status===s;
-                  }).length;
-                  var ac = ACT_CLR[s]||ACT_CLR['Not Defined'];
-                  return (
-                    <div key={s} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                      <span style={{width:80,fontSize:11,color:'var(--text2)',textAlign:'right',flexShrink:0}}>{s}</span>
-                      <div style={{flex:1,height:14,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
-                        <div style={{width:pct(cnt,total)+'%',height:'100%',background:ac.text,transition:'width .3s'}}/>
-                      </div>
-                      <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right'}}>{cnt}</span>
-                    </div>
-                  );
-                })}
-                <div style={{borderTop:'1px solid var(--border)',marginTop:8,paddingTop:8}}>
-                  {['Verified','Failed'].map(function(s){
-                    var cnt = filteredReqs.filter(function(r){return r.verification_status===s;}).length;
-                    var col = s==='Verified'?'#1a7a4a':'#8b2020';
-                    return (
-                      <div key={s} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                        <span style={{width:80,fontSize:11,color:'var(--text2)',textAlign:'right',flexShrink:0}}>{s}</span>
-                        <div style={{flex:1,height:14,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
-                          <div style={{width:pct(cnt,total)+'%',height:'100%',background:col}}/>
-                        </div>
-                        <span style={{width:28,fontSize:11,color:'var(--text3)',textAlign:'right'}}>{cnt}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className={'card'}>
-                <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Verification method split</div>
-                {['Test','Analysis','Inspection','Demonstration'].map(function(m){
-                  var cnt = filteredReqs.filter(function(r){return r.verification_method===m;}).length;
-                  var colors = {Test:'#005EB8',Analysis:'#4a6aaa',Inspection:'#8a6a00',Demonstration:'#1a7a4a'};
-                  return (
-                    <div key={m} style={{marginBottom:12}}>
-                      <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:4}}>
-                        <span style={{color:'var(--text2)'}}>{m}</span>
-                        <span style={{fontWeight:700,color:'var(--text)'}}>{pct(cnt,total)}%</span>
-                      </div>
-                      <div style={{height:8,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
-                        <div style={{width:pct(cnt,total)+'%',height:'100%',background:colors[m],transition:'width .3s'}}/>
-                      </div>
-                    </div>
-                  );
-                })}
-                {filteredBaselines.length>0&&(
-                  <div style={{marginTop:14,padding:'10px 12px',background:'var(--raised)',borderRadius:8}}>
-                    <div style={{fontSize:11,color:'var(--text3)',marginBottom:4,fontWeight:600,textTransform:'uppercase',letterSpacing:.4}}>Latest baseline delta</div>
-                    <div style={{fontSize:12,color:'var(--text)'}}>
-                      {(function(){
-                        var last = filteredBaselines[filteredBaselines.length-1];
-                        var snap = last&&last.snapshot||[];
-                        var snapVerified = snap.filter(function(r){return r.verification_status==='Verified';}).length;
-                        var delta = verified - snapVerified;
-                        return (delta>=0?'+':'')+delta+' verified since '+last.name;
-                      })()}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className={'card'}>
-              <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>V&V coverage by level</div>
-              {LEVELS_SHOWN.map(function(level){
-                var lr = filteredReqs.filter(function(r){return r.level===level;});
-                var lVerified = lr.filter(function(r){return r.verification_status==='Verified';}).length;
-                var lFailed   = lr.filter(function(r){return r.verification_status==='Failed';}).length;
-                var lDefined  = lr.filter(function(r){var a=actMap[r.id];return a&&a.activity_status!=='Not Defined';}).length;
-                var lc = LEVEL_CLR[level]||'#64748b';
-                return (
-                  <div key={level} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-                    <span style={{width:90,fontSize:12,color:lc,fontWeight:600,textAlign:'right',flexShrink:0}}>{level}</span>
-                    <div style={{flex:1,display:'flex',gap:4}}>
-                      <div style={{flex:1,height:16,background:'var(--raised)',borderRadius:3,overflow:'hidden',display:'flex'}}>
-                        <div style={{width:pct(lVerified,lr.length)+'%',background:'#1a7a4a'}} title={'Verified'}/>
-                        <div style={{width:pct(lDefined-lVerified-lFailed,lr.length)+'%',background:'#005EB8',opacity:.6}} title={'Activity defined'}/>
-                        <div style={{width:pct(lFailed,lr.length)+'%',background:'#8b2020'}} title={'Failed'}/>
-                      </div>
-                    </div>
-                    <span style={{fontSize:11,color:'var(--text3)',width:70,flexShrink:0}}>{lVerified}/{lr.length} verified</span>
-                  </div>
-                );
-              })}
-              <div style={{display:'flex',gap:12,marginTop:10,paddingTop:10,borderTop:'1px solid var(--border)'}}>
-                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}><div style={{width:10,height:10,borderRadius:2,background:'#1a7a4a'}}/>Verified</div>
-                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}><div style={{width:10,height:10,borderRadius:2,background:'#005EB8',opacity:.6}}/>Activity defined</div>
-                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}><div style={{width:10,height:10,borderRadius:2,background:'#8b2020'}}/>Failed</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── TAB C: TIMELINE ── */}
-        {tab==='timeline'&&(
-          <div>
-            {filteredBaselines.length===0?(
-              <div className={'empty'}><div className={'empty-icon'}>📊</div><h3>No baselines yet</h3><p>Create baselines to track evolution over time</p></div>
-            ):(
-              <div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:12,marginBottom:20}}>
-                  <MetricCard label={'Baselines'} value={filteredBaselines.length} sub={'snapshots taken'}/>
-                  <MetricCard label={'Req growth'} value={(function(){
-                    var first=filteredBaselines[0];
-                    return '+'+(total-(first.snapshot||[]).length);
-                  })()} sub={'since first baseline'} color={'#1a7a4a'}/>
-                  <MetricCard label={'Approval delta'} value={(function(){
-                    var last=filteredBaselines[filteredBaselines.length-1];
-                    var snapApproved=(last.snapshot||[]).filter(function(r){return r.status==='Approved';}).length;
-                    var d=approved-snapApproved;
-                    return (d>=0?'+':'')+d;
-                  })()} sub={'approved since last baseline'} color={'#005EB8'}/>
-                </div>
-
-                <div className={'card'} style={{marginBottom:16}}>
-                  <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:16}}>Status composition per baseline</div>
-                  <div style={{overflowX:'auto'}}>
-                    <div style={{minWidth:Math.max(500,(filteredBaselines.length+1)*130)+'px'}}>
-                      <div style={{display:'flex',gap:8,alignItems:'flex-end',height:200,paddingBottom:24,borderBottom:'1px solid var(--border)'}}>
-                        {filteredBaselines.map(function(b){
-                          var snap=b.snapshot||[];
-                          var bt=snap.length||1;
-                          var maxH=160;
-                          return (
-                            <div key={b.id} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
-                              <div style={{width:'100%',display:'flex',flexDirection:'column-reverse',height:maxH+'px',borderRadius:'4px 4px 0 0',overflow:'hidden',cursor:'default'}} title={b.name}>
-                                {STATUSES.map(function(s){
-                                  var cnt=snap.filter(function(r){return r.status===s;}).length;
-                                  var h=cnt/bt*maxH;
-                                  if(h===0)return null;
-                                  return <div key={s} style={{width:'100%',height:h+'px',background:ST_COLORS[s],flexShrink:0}}/>;
-                                })}
-                              </div>
-                              <div style={{fontSize:10,color:'var(--text3)',textAlign:'center',width:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',paddingTop:4}}>{b.name}</div>
-                              <div style={{fontSize:10,color:'var(--text3)'}}>{snap.length} reqs</div>
-                            </div>
-                          );
-                        })}
-                        <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
-                          <div style={{width:'100%',display:'flex',flexDirection:'column-reverse',height:'160px',borderRadius:'4px 4px 0 0',overflow:'hidden',border:'2px solid var(--c1)',boxSizing:'border-box'}}>
-                            {STATUSES.map(function(s){
-                              var cnt=byStatus[s]||0;
-                              var t2=total||1;
-                              var h=cnt/t2*160;
-                              if(h===0)return null;
-                              return <div key={s} style={{width:'100%',height:h+'px',background:ST_COLORS[s],flexShrink:0}}/>;
-                            })}
-                          </div>
-                          <div style={{fontSize:10,color:'var(--c1)',fontWeight:700,textAlign:'center',paddingTop:4}}>Current</div>
-                          <div style={{fontSize:10,color:'var(--text3)'}}>{total} reqs</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{display:'flex',flexWrap:'wrap',gap:10,marginTop:12}}>
-                    {STATUSES.map(function(s){return (
-                      <div key={s} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text2)'}}>
-                        <div style={{width:10,height:10,borderRadius:2,background:ST_COLORS[s],flexShrink:0}}/>
-                        {s}
-                      </div>
-                    );})}
-                  </div>
-                </div>
-
-                <div className={'card'}>
-                  <div style={{fontSize:11,fontWeight:700,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.4,marginBottom:14}}>Approval progress</div>
-                  <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                    {filteredBaselines.map(function(b){
-                      var snap=b.snapshot||[];
-                      var bApproved=snap.filter(function(r){return r.status==='Approved';}).length;
-                      var bTotal=snap.length||1;
-                      var dt=new Date(b.created_at);
-                      var ds=dt.toLocaleDateString('es-ES');
-                      return (
-                        <div key={b.id} style={{display:'flex',alignItems:'center',gap:10}}>
-                          <div style={{width:110,flexShrink:0}}>
-                            <div style={{fontSize:12,fontWeight:600,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</div>
-                            <div style={{fontSize:10,color:'var(--text3)'}}>{ds}</div>
-                          </div>
-                          <div style={{flex:1,height:12,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
-                            <div style={{width:pct(bApproved,bTotal)+'%',height:'100%',background:'#1a7a4a',opacity:.7,transition:'width .3s'}}/>
-                          </div>
-                          <span style={{width:55,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{bApproved}/{bTotal} ({pct(bApproved,bTotal)}%)</span>
-                        </div>
-                      );
-                    })}
-                    <div style={{display:'flex',alignItems:'center',gap:10}}>
-                      <div style={{width:110,flexShrink:0}}>
-                        <div style={{fontSize:12,fontWeight:700,color:'var(--c1)'}}>Current</div>
-                        <div style={{fontSize:10,color:'var(--text3)'}}>live</div>
-                      </div>
-                      <div style={{flex:1,height:12,background:'var(--raised)',borderRadius:3,overflow:'hidden'}}>
-                        <div style={{width:pct(approved,total)+'%',height:'100%',background:'#1a7a4a',transition:'width .3s'}}/>
-                      </div>
-                      <span style={{width:55,fontSize:11,color:'var(--text3)',textAlign:'right',flexShrink:0}}>{approved}/{total} ({pct(approved,total)}%)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
-}
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
