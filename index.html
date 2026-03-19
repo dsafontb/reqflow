@@ -1013,7 +1013,7 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
   var [editDesc,setEditDesc]     = React.useState('');
   var [editSaving,setEditSaving] = React.useState(false);
 
-  var isAdmin = profile&&(profile.role==='System Admin'||profile.role==='Project Admin');
+  var isAdmin = profile&&false;
   var myRole  = project&&project.myProjectRole;
   var canManage = (profile&&profile.role==='System Admin') || myRole==='Project Admin';
 
@@ -1550,11 +1550,11 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   const pr          = req.myProjectRole||'';
   const isSysAdmin  = profile?.role==='System Admin';
   const isProjAdmin = pr==='Project Admin';
-  const isAdmin     = isSysAdmin||isProjAdmin;
-  const isDesigner  = pr==='Designer'||isProjAdmin||isAdmin;
-  const isReviewer  = pr==='Reviewer'||isProjAdmin||isAdmin;
-  const isApprover  = pr==='Approver'||isProjAdmin||isAdmin;
-  const isVerifier  = pr==='Verifier'||isProjAdmin||isAdmin;
+  const isAdmin     = isProjAdmin;
+  const isDesigner  = pr==='Designer'||isAdmin;
+  const isReviewer  = pr==='Reviewer'||isAdmin;
+  const isApprover  = pr==='Approver'||isAdmin;
+  const isVerifier  = pr==='Verifier'||isAdmin;
   const isVersion0  = !(req.version_history&&req.version_history.length>0);
   const vs = req.verification_status||'Not Started';
   const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
@@ -2301,9 +2301,8 @@ function MembersModal({projectId, onClose}) {
 
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
-  const isSysAdmin = profile?.role==='System Admin';
   const isProjAdminReq = req?.myProjectRole==='Project Admin';
-  const isLocked = isEdit && !isSysAdmin && !isProjAdminReq && (req?.status==='In Review'||req?.status==='Approved'||req?.status==='Rejected'||req?.status==='Obsolete');
+  const isLocked = isEdit && !isProjAdminReq && (req?.status==='In Review'||req?.status==='Approved'||req?.status==='Rejected'||req?.status==='Obsolete');
   const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',stakeholder:'',requirement_type:'Functional',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
   const [form,setForm]=useState(init);
   const [tab,setTab]=useState('basic');
