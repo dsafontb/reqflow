@@ -209,9 +209,9 @@ const SILS     = ['N/A','SIL 0','SIL 1','SIL 2','SIL 3','SIL 4'];
 const SAFECAT  = ['Quality','Functional Safety','Security','Dependability','RAMS'];
 const REQ_TYPES = ['Functional','Performance','Interface','Safety','Reliability','Maintainability','Physical','Environmental','Operational'];
 const REGS_DEFAULT = ['EN 50126','EN 50128','EN 50129','EN 50155','ISO 22163','ISO 9001']; // fallback only
-const ROLES    = ['Unassigned','User','Admin'];
-const PROJECT_ROLES = ['Designer','Reviewer','Approver','Verifier','Admin'];
-const ROLE_CLR = {Unassigned:'#8aaad4',Designer:'#005EB8',Reviewer:'#8a6a00',Approver:'#1a7a4a',Verifier:'#4a6aaa',Admin:'#b94000'};
+const ROLES    = ['Unassigned','User','System Admin'];
+const PROJECT_ROLES = ['Designer','Reviewer','Approver','Verifier','Project Admin'];
+const ROLE_CLR = {Unassigned:'#8aaad4',Designer:'#005EB8',Reviewer:'#8a6a00',Approver:'#1a7a4a',Verifier:'#4a6aaa','Project Admin':'#b94000'};
 
 // ── ICONS ─────────────────────────────────────────────────────────────────────
 const Ic = ({d,s=14,c='currentColor'}) => (
@@ -342,8 +342,8 @@ function App() {
     <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications, isReadOnly:profile.role==='Unassigned'}}>
       {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')}/>}
       {page === 'project'  && <ProjectView project={project} onBack={()=>{setProject(null);setPage('projects')}}/>}
-      {page === 'admin'    && profile.role==='Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
-      {page === 'options'   && profile.role==='Admin' && <OptionsPage onBack={()=>setPage('projects')}/>}
+      {page === 'admin'    && profile.role==='System Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
+      {page === 'options'   && profile.role==='System Admin' && <OptionsPage onBack={()=>setPage('projects')}/>}
       {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>}
     </AppContext.Provider>
   );
@@ -574,7 +574,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
   async function load() {
     setLoading(true);
     let projData = [];
-    if (profile.role === 'Admin' || profile.role === 'Unassigned') {
+    if (profile.role === 'System Admin' || profile.role === 'Unassigned') {
       const {data} = await db.from('projects').select('*').order('created_at',{ascending:false});
       projData = data || [];
     } else {
@@ -610,7 +610,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
     load();
   }
 
-  const isAdmin = profile?.role === 'Admin';
+  const isAdmin = profile?.role === 'System Admin';
 
   return (
     <div style={{minHeight:'100vh'}}>
@@ -642,14 +642,14 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions}) {
             const myRole = myRoles[p.id];
             const rc = myRole ? (ROLE_CLR[myRole]||'#64748b') : null;
             return (
-              <div key={p.id} className={'card'} onClick={()=>onOpen({...p, myProjectRole: myRole||'Admin'})} style={{cursor:'pointer',transition:'all .2s'}}
+              <div key={p.id} className={'card'} onClick={()=>onOpen({...p, myProjectRole: myRole||'Project Admin'})} style={{cursor:'pointer',transition:'all .2s'}}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--border2)';e.currentTarget.style.transform='translateY(-2px)'}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='none'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                   <div style={{width:38,height:38,borderRadius:9,background:'rgba(0,94,184,.1)',border:'1px solid rgba(0,94,184,.2)',display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <IFolder s={16}/>
                   </div>
-                  {(isAdmin||(myRoles[p.id]==='Admin'))&&!isReadOnly&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>{e.stopPropagation();setEditProject(p);}}><IEdit s={12}/></button>}
+                  {(isAdmin||(myRoles[p.id]==='Project Admin'))&&!isReadOnly&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>{e.stopPropagation();setEditProject(p);}}><IEdit s={12}/></button>}
                    {isAdmin && !isReadOnly && <button className={'btn btn-ghost btn-sm btn-icon'} onClick={e=>del(p.id,e)}><ITrash s={12}/></button>}
                 </div>
                 <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
@@ -1013,9 +1013,9 @@ function BaselinesPanel({project,reqs,baselines,profile,onClose,onCreated,onOpen
   var [editDesc,setEditDesc]     = React.useState('');
   var [editSaving,setEditSaving] = React.useState(false);
 
-  var isAdmin = profile&&(profile.role==='Admin');
+  var isAdmin = profile&&(profile.role==='System Admin'||profile.role==='Project Admin');
   var myRole  = project&&project.myProjectRole;
-  var canManage = isAdmin || myRole==='Admin';
+  var canManage = (profile&&profile.role==='System Admin') || myRole==='Project Admin';
 
   async function saveEdit(id) {
     if(!editName.trim()) return;
@@ -1304,7 +1304,7 @@ function ProjectView({project,onBack}) {
     }
     setLoading(false);
   },[project.id]);
-  const myProjectRole = project.myProjectRole || (profile?.role==='Admin'?'Admin':'Designer');
+  const myProjectRole = project.myProjectRole || (profile?.role==='System Admin'?'SysAdminGuest':'');
 
   async function loadBaselines() {
     const {data}=await db.from('project_baselines').select('*').eq('project_id',project.id).order('created_at',{ascending:false});
@@ -1334,7 +1334,7 @@ function ProjectView({project,onBack}) {
   });
   const tree=buildTree(filtered);
 
-  const canEdit = !isReadOnly && (['Designer','Admin'].includes(myProjectRole)||profile?.role==='Admin');
+  const canEdit = !isReadOnly && (['Designer','Project Admin'].includes(myProjectRole));
   function openNew(pid=null){setDefParent(pid);setEditReq(null);setShowModal(true);}
   function openEdit(req,e){e?.stopPropagation();setEditReq({...req,myProjectRole});setDefParent(null);setShowModal(true);}
 
@@ -1346,7 +1346,7 @@ function ProjectView({project,onBack}) {
       <Topbar sub={project.name} actions={
         <>
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-          {(myProjectRole==='Admin'||profile?.role==='Admin') && !isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
+          {(myProjectRole==='Project Admin'||profile?.role==='System Admin') && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>
           {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
@@ -1529,8 +1529,14 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   async function loadAssignments() {
     const {data}=await db.from('approver_assignments').select('*').eq('requirement_id',req.id);
     if(data)setAssignments(data);
-    const {data:pp}=await db.from('profiles').select('*').order('full_name');
-    if(pp)setAllProfiles(pp);
+    const {data:members}=await db.from('project_members').select('user_id,role').eq('project_id',req.project_id).in('role',['Approver','Project Admin']);
+    if(members&&members.length){
+      const ids=members.map(m=>m.user_id);
+      const {data:pp}=await db.from('profiles').select('*').in('id',ids).order('full_name');
+      if(pp)setAllProfiles(pp);
+    } else {
+      setAllProfiles([]);
+    }
   }
 
   async function loadEvidence() {
@@ -1541,16 +1547,22 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
   }
   useEffect(()=>{loadComments();loadAssignments();loadEvidence();},[req.id]);
 
-  const pr = req.myProjectRole||'Designer';
-  const isAdmin = profile?.role==='Admin';
-  const isDesigner = pr==='Designer'||pr==='Admin'||isAdmin;
-  const isApprover = pr==='Approver'||pr==='Admin'||isAdmin;
-  const isVerifier = pr==='Verifier'||pr==='Admin'||isAdmin;
+  const pr          = req.myProjectRole||'';
+  const isSysAdmin  = profile?.role==='System Admin';
+  const isProjAdmin = pr==='Project Admin';
+  const isAdmin     = isSysAdmin||isProjAdmin;
+  const isDesigner  = pr==='Designer'||isProjAdmin||isAdmin;
+  const isReviewer  = pr==='Reviewer'||isProjAdmin||isAdmin;
+  const isApprover  = pr==='Approver'||isProjAdmin||isAdmin;
+  const isVerifier  = pr==='Verifier'||isProjAdmin||isAdmin;
+  const isVersion0  = !(req.version_history&&req.version_history.length>0);
   const vs = req.verification_status||'Not Started';
   const vsc = VS_CLR[vs]||VS_CLR['Not Started'];
   const isAssignedApprover = assignments.some(a=>a.approver_id===profile?.id);
   const canApprove = isApprover && isAssignedApprover && req.status==='In Review';
   const canSubmit  = isDesigner && (req.status==='Draft'||req.status==='Changes Requested');
+  const canRecall  = isDesigner && req.status==='In Review';
+  const canComment = !isReadOnly;
 
   async function addComment(action='Comment') {
     if (!comment.trim()&&action==='Comment') return;
@@ -1562,6 +1574,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
     if(action==='Approve') newStatus='Approved';
     if(action==='RequestChanges') newStatus='Changes Requested';
     if(action==='Submit') newStatus='In Review';
+    if(action==='Recall') newStatus='Draft';
     if(newStatus!==req.status) {
       if(action==='Approve') {
         const snap={v:(req.version_history||[]).length+1,req_id:req.req_id||'',title:req.title||'',description:req.description||'',rationale:req.rationale||'',level:req.level||'',requirement_type:req.requirement_type||'',verification_method:req.verification_method||'',owner:req.owner||'',stakeholder:req.stakeholder||'',safety_class:req.safety_class||'',sil_level:req.sil_level||'',safety_category:req.safety_category||'',regulatory_body:(req.regulatory_body||[]).join(', '),approved_by:profile.full_name,approved_at:new Date().toISOString()};
@@ -1605,7 +1618,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
 
   const actionColor={Comment:'var(--text3)',Submit:'var(--c3)',Approve:'var(--c2)',RequestChanges:'var(--c4)'};
   const actionLabel={Comment:'💬 Comment','Submit':'📤 Submit','Approve':'✅ Approve','RequestChanges':'🔄 Changes'};
-  const approversInProject = allProfiles.filter(p=>p.role==='Approver'||p.role==='Admin');
+  const approversInProject = allProfiles;
 
   const vh=req.version_history||[];const TABS=[{id:'details',label:'Details'},{id:'workflow',label:'Status'},{id:'verification',label:'Verification'},{id:'comments',label:'Comments'+(comments.length?' ('+comments.length+')':'')},{id:'versions',label:'Versions'+(vh.length?' (v'+vh.length+')':'')}];
 
@@ -1624,8 +1637,8 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           <div style={{fontWeight:700,fontSize:15,lineHeight:1.3}}>{req.title}</div>
         </div>
         <div style={{display:'flex',gap:3,flexShrink:0}}>
-          {isDesigner&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>onEdit(req)}><IEdit s={12}/></button>}
-          {isDesigner&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={del} style={{color:'var(--c4)'}}><ITrash s={12}/></button>}
+          {isDesigner&&(req.status==='Draft'||req.status==='Changes Requested'||isAdmin)&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>onEdit(req)}><IEdit s={12}/></button>}
+          {(isDesigner||isAdmin)&&req.status==='Draft'&&isVersion0&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={del} style={{color:'var(--c4)'}}><ITrash s={12}/></button>}
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onClose}><IX s={12}/></button>
         </div>
       </div>
@@ -1794,7 +1807,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                     <div style={{fontSize:13,fontWeight:600}}>{p.full_name}</div>
                     <RoleBadge role={p.role}/>
                   </div>
-                  {(isDesigner||profile?.role==='Admin')&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>assignApprover(p.id)}><IX s={11}/></button>}
+                  {(isDesigner)&&<button className={'btn btn-ghost btn-sm btn-icon'} onClick={()=>assignApprover(p.id)}><IX s={11}/></button>}
                 </div>
               );
             })}
@@ -1816,12 +1829,14 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
           {/* Action buttons */}
           {!isReadOnly && <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {canSubmit&&<button className={'btn btn-warn'} onClick={()=>addComment('Submit')} disabled={submitting}>📤 Submit for Review</button>}
+            {canRecall&&<button className={'btn btn-ghost btn-sm'} onClick={()=>addComment('Recall')} disabled={submitting}>↩ Recall</button>}
             {canApprove&&<>
               <button className={'btn btn-success'} onClick={()=>addComment('Approve')} disabled={submitting}>✅ Approve</button>
               <button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>
             </>}
-            {req.status==='Approved'&&isDesigner&&<button className={'btn btn-ghost btn-sm'} onClick={async()=>{await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
-            {req.status!=='Rejected'&&req.status!=='Obsolete'&&isDesigner&&<button className={'btn btn-ghost btn-sm'} style={{color:'#8b2020'}} onClick={async()=>{if(window.confirm('Mark this requirement as Rejected? This cannot be undone via the workflow.')){await db.from('requirements').update({status:'Rejected'}).eq('id',req.id);onStatusChanged();}}}>Mark as Rejected</button>}
+            {isApprover&&req.status==='Approved'&&<button className={'btn btn-danger'} onClick={()=>addComment('RequestChanges')} disabled={submitting}>🔄 Request Changes</button>}
+            {isApprover&&(req.status==='In Review'||req.status==='Approved')&&<button className={'btn btn-ghost btn-sm'} style={{color:'#8b2020'}} onClick={async function(){if(window.confirm('Reject this requirement?')){await db.from('requirements').update({status:'Rejected'}).eq('id',req.id);onStatusChanged();}}} disabled={submitting}>Reject</button>}
+            {isAdmin&&req.status==='Approved'&&<button className={'btn btn-ghost btn-sm'} onClick={async function(){await db.from('requirements').update({status:'Draft'}).eq('id',req.id);onStatusChanged();}}>Reopen as Draft</button>}
           </div>}
         </>}
 
@@ -1846,7 +1861,7 @@ function DetailPanel({req,allReqs,onEdit,onClose,onDeleted,onStatusChanged}) {
                       {isAction&&<span style={{fontSize:11,fontWeight:700,color:actionColor[c.action]}}>{actionLabel[c.action]}</span>}
                       {c.req_status&&<span style={{fontFamily:'var(--mono)',fontSize:10,padding:'2px 7px',borderRadius:4,background:ST_CLR[c.req_status]?.bg,color:ST_CLR[c.req_status]?.text,border:`1px solid ${ST_CLR[c.req_status]?.bd}`}}>{c.req_status}</span>}
                       <span className={'comment-time'}>{timeAgo(c.created_at)}</span>
-                      {profile?.role==='Admin'&&<button onClick={async()=>{if(!confirm('Delete this comment?'))return;await db.from('comments').delete().eq('id',c.id);loadComments();}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--c4)',opacity:.5,padding:'0 2px',fontSize:13,lineHeight:1}} title={'Delete comment'}>×</button>}
+                      {(profile?.role==='System Admin')&&<button onClick={async()=>{if(!confirm('Delete this comment?'))return;await db.from('comments').delete().eq('id',c.id);loadComments();}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--c4)',opacity:.5,padding:'0 2px',fontSize:13,lineHeight:1}} title={'Delete comment'}>×</button>}
                     </div>
                     <div className={'comment-text'}>{c.content}</div>
                   </div>
@@ -2286,7 +2301,9 @@ function MembersModal({projectId, onClose}) {
 
 function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
   const isEdit=!!req;
-  const isLocked = isEdit && ['Approved','Verified'].includes(req?.status);
+  const isSysAdmin = profile?.role==='System Admin';
+  const isProjAdminReq = req?.myProjectRole==='Project Admin';
+  const isLocked = isEdit && !isSysAdmin && !isProjAdminReq && (req?.status==='In Review'||req?.status==='Approved'||req?.status==='Rejected'||req?.status==='Obsolete');
   const init={req_id:'',title:'',description:'',level:'System',status:'Draft',parent_id:defParentId||'',owner:'',stakeholder:'',requirement_type:'Functional',verification_method:'Test',safety_class:'None',sil_level:'N/A',safety_category:'Quality',regulatory_body:[],project_phase:'Development',source_document:'',rationale:''};
   const [form,setForm]=useState(init);
   const [tab,setTab]=useState('basic');
@@ -2382,7 +2399,7 @@ function ApprovalQueue({onBack, onOpen}) {
   async function load() {
     setLoading(true);
     let reqs=[];
-    if(profile.role==='Approver'||profile.role==='Admin'){
+    if(profile.role==='Approver'||profile.role==='System Admin'){
       const {data:assignments}=await db.from('approver_assignments').select('requirement_id').eq('approver_id',profile.id);
       const ids=(assignments||[]).map(a=>a.requirement_id);
       if(ids.length){
@@ -2390,7 +2407,7 @@ function ApprovalQueue({onBack, onOpen}) {
         reqs=data||[];
       }
     }
-    if(profile.role==='Designer'||profile.role==='Admin'){
+    if(profile.role==='Designer'||profile.role==='System Admin'){
       const {data}=await db.from('requirements').select('*, projects(name)').in('status',['In Review','Changes Requested','Approved']);
       const mine=(data||[]).filter(r=>!reqs.find(x=>x.id===r.id));
       reqs=[...reqs,...mine];
@@ -2543,7 +2560,7 @@ function AdminPanel({onBack}) {
       <div style={{padding:'28px 24px',maxWidth:860,margin:'0 auto'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>User Management</h1>
-          <p style={{color:'var(--text2)',fontSize:13}}>Manage roles for all registered users. First user is always Admin.</p>
+          <p style={{color:'var(--text2)',fontSize:13}}>Manage roles for all registered users. First user is always System Admin.</p>
         </div>
         <div className={'card'} style={{padding:0,overflow:'hidden'}}>
           {loading?<div className={'empty'}><div className={'empty-icon'}>⏳</div><h3>Loading…</h3></div>:(
@@ -2568,7 +2585,7 @@ function AdminPanel({onBack}) {
                           <RoleBadge role={u.role}/>
                         ):(
                           <select className={'form-select'} style={{width:'auto',fontSize:12,padding:'4px 8px'}} value={u.role} onChange={e=>changeRole(u.id,e.target.value)}>
-                            {['Unassigned','User','Admin'].map(r=><option key={r}>{r}</option>)}
+                            {['Unassigned','User','System Admin'].map(r=><option key={r}>{r}</option>)}
                           </select>
                         )}
                       </td>
