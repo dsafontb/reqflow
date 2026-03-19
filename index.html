@@ -1490,7 +1490,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
         {canEdit&&<div style={{display:'flex',gap:2,flexShrink:0,marginLeft:4}} onClick={e=>e.stopPropagation()}>
           <button className={'btn btn-ghost btn-sm btn-icon'} title={'Add child'} onClick={()=>onAddChild(node.id)} style={{opacity:.4}}><IPlus s={11}/></button>
           <button className={'btn btn-ghost btn-sm btn-icon'} title={'Edit'} onClick={e=>onEdit(node,e)} style={{opacity:.4}}><IEdit s={11}/></button>
-          <button className={'btn btn-ghost btn-sm btn-icon'} title={'Delete'} onClick={del} style={{opacity:.3,color:'var(--c4)'}}>×</button>
+          {(node.status==='Draft'&&!(node.version_history&&node.version_history.length>0))&&<button className={'btn btn-ghost btn-sm btn-icon'} title={'Delete'} onClick={del} style={{opacity:.3,color:'var(--c4)'}}>×</button>}
         </div>}
       </div>
       {hasKids&&isOpen&&node.children.map(c=><TreeNode key={c.id} node={c} depth={depth+1} expanded={expanded} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} onEdit={onEdit} onAddChild={onAddChild} onDeleted={onDeleted} canEdit={canEdit}/>)}
