@@ -1464,7 +1464,7 @@ function ProjectView({project,onBack}) {
         </div>
         {/* Detail panel */}
         {enrichedSelected && (
-          <div style={{flex:1,overflowY:'auto',background:'var(--surface)'}}>
+          <div style={{flex:1,overflowY:'auto',background:'var(--surface)',position:'sticky',top:0,alignSelf:'flex-start',height:'calc(100vh - 54px)'}}>
             <DetailPanel req={enrichedSelected} allReqs={reqs} onEdit={openEdit} onClose={()=>setSelected(null)} onDeleted={()=>{setSelected(null);load();}} onStatusChanged={load}/>
           </div>
         )}
