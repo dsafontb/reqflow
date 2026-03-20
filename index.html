@@ -1349,7 +1349,7 @@ function ProjectView({project,onBack}) {
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
   if(showDash) return <DashboardPage key={dashKey} onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
-  function selectReq(r){var el=document.getElementById('req-tree-scroll');var top=el?el.scrollTop:0;setSelected(function(s){return s&&s.id===r.id?null:r;});if(el){requestAnimationFrame(function(){el.scrollTop=top;});}}  
+  function selectReq(r){setSelected(function(s){return s&&s.id===r.id?null:r;});requestAnimationFrame(function(){var node=document.getElementById('tree-node-'+r.id);if(node){node.scrollIntoView({block:'nearest',behavior:'smooth'});}});}  
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
@@ -1486,7 +1486,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
   async function del(e){e.stopPropagation();if(!confirm('Delete?'))return;await db.from('requirements').delete().eq('id',node.id);onDeleted();}
   return (
     <div>
-      <div onClick={()=>onSelect(node)} style={{display:'flex',alignItems:'center',gap:4,padding:`5px 16px 5px ${16+depth*18}px`,cursor:'pointer',background:isSel?'rgba(0,212,255,.06)':'transparent',borderLeft:isSel?'2px solid var(--c1)':'2px solid transparent',transition:'all .1s'}}
+      <div id={'tree-node-'+node.id} onClick={()=>onSelect(node)} style={{display:'flex',alignItems:'center',gap:4,padding:`5px 16px 5px ${16+depth*18}px`,cursor:'pointer',background:isSel?'rgba(0,212,255,.06)':'transparent',borderLeft:isSel?'2px solid var(--c1)':'2px solid transparent',transition:'all .1s'}}
         onMouseEnter={e=>{if(!isSel)e.currentTarget.style.background='rgba(255,255,255,.02)'}}
         onMouseLeave={e=>{if(!isSel)e.currentTarget.style.background='transparent'}}>
         <div onClick={e=>{e.stopPropagation();hasKids&&onToggle(node.id)}} style={{width:14,height:14,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:'var(--text3)',cursor:hasKids?'pointer':'default'}}>
