@@ -305,6 +305,7 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [page, setPage]       = useState('projects');
   const [project, setProject] = useState(null);
+  const [dashKey, setDashKey] = useState(0);
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
@@ -342,13 +343,13 @@ function App() {
 
   return (
     <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications, isReadOnly:profile.role==='Unassigned'}}>
-      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')} onDash={()=>setPage('dashboard')}/>}
+      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')} onDash={()=>{setDashKey(function(k){return k+1;});setPage('dashboard');}}/>}
       {page === 'project'  && <ProjectView project={project} onBack={()=>{setProject(null);setPage('projects')}}/>}
       {page === 'admin'    && profile.role==='System Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
       {page === 'options'   && profile.role==='System Admin' && <OptionsPage onBack={()=>setPage('projects')}/>}
       {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>
       }
-      {page === 'dashboard' && <DashboardPage onBack={()=>setPage('projects')}/>}
+      {page === 'dashboard' && <DashboardPage key={dashKey} onBack={()=>setPage('projects')}/>}
     </AppContext.Provider>
   );
 }
@@ -1293,6 +1294,7 @@ function ProjectView({project,onBack}) {
   const [baselines,setBaselines] = useState([]);
   const [viewingBaseline,setViewingBaseline] = useState(null);
   const [showDash,setShowDash] = useState(false);
+  const [dashKey,setDashKey] = useState(0);
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
@@ -1346,7 +1348,7 @@ function ProjectView({project,onBack}) {
 
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
-  if(showDash) return <DashboardPage onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
+  if(showDash) return <DashboardPage key={dashKey} onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
@@ -1355,7 +1357,7 @@ function ProjectView({project,onBack}) {
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
           {(myProjectRole==='Project Admin'||profile?.role==='System Admin') && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>
-            <button className={'btn btn-ghost btn-sm'} onClick={function(){setShowDash(true);}}>Dashboard</button>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){setDashKey(function(k){return k+1;});setShowDash(true);}}>Dashboard</button>
           {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
