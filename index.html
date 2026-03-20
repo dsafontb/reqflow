@@ -2339,7 +2339,7 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
     if(!form.title.trim()){setErr('Title required');return;}
     if(!form.req_id.trim()){setErr('ID required');return;}
     setSaving(true);setErr('');
-    const {myProjectRole:_mpr, _actStatus:_as, ...formClean} = form;
+    const {myProjectRole:_mpr, _actStatus:_as, children:_ch, verification_status:_vs, ...formClean} = form;
     const payload={...formClean,project_id:projectId,parent_id:form.parent_id||null,title:form.title.trim(),req_id:form.req_id.trim()};
     const {error}=isEdit?await db.from('requirements').update(payload).eq('id',req.id):await db.from('requirements').insert([payload]);
     setSaving(false);
