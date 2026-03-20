@@ -752,7 +752,7 @@ function BaselineViewer({baseline,project,onBack}) {
           <span style={{fontSize:11,padding:'3px 10px',borderRadius:5,background:'rgba(255,255,255,.15)',border:'1px solid rgba(255,255,255,.25)'}}>READ-ONLY</span>
         </div>
         <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
-          <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden',flexShrink:0}}>
+          <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden',minHeight:0,flexShrink:0}}>
             <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',alignItems:'center',gap:12}}>
               <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{snap.length} requirements</span>
               {baseline.description&&<span style={{fontSize:12,color:'var(--text2)',fontStyle:'italic'}}>{baseline.description}</span>}
@@ -1352,7 +1352,7 @@ function ProjectView({project,onBack}) {
   function selectReq(r){setSelected(function(s){return s&&s.id===r.id?null:r;});}  
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
-    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+    <div style={{height:'100vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
       <Topbar sub={project.name} actions={
         <>
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
@@ -1362,9 +1362,9 @@ function ProjectView({project,onBack}) {
           {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
-      <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden',alignItems:'stretch'}}>
+      <div style={{display:'flex',flex:1,overflow:'hidden',alignItems:'stretch',minHeight:0}}>
         {/* Tree panel */}
-        <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden',flexShrink:0}}>
+        <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden',minHeight:0,flexShrink:0}}>
           {/* Stats */}
           <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
             {STATUSES.filter(s=>stats[s]>0).map(s=>(
@@ -1464,7 +1464,7 @@ function ProjectView({project,onBack}) {
         </div>
         {/* Detail panel */}
         {enrichedSelected && (
-          <div style={{flex:1,overflowY:'auto',background:'var(--surface)',height:'100%'}}>
+          <div style={{flex:1,overflowY:'auto',background:'var(--surface)',minHeight:0}}>
             <DetailPanel req={enrichedSelected} allReqs={reqs} onEdit={openEdit} onClose={()=>setSelected(null)} onDeleted={()=>{setSelected(null);load();}} onStatusChanged={load}/>
           </div>
         )}
