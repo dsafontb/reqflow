@@ -188,9 +188,9 @@ const SUPA_KEY = 'sb_publishable_QMOQAPb1nG4Zl22oPcRYVg_lZ2m_LQH';
 const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-const LEVELS   = ['Stakeholder','System','Subsystem','Component','Verification'];
-const PREFIXES = {Stakeholder:'STK',System:'SYS',Subsystem:'SUB',Component:'CMP',Verification:'VER'};
-const LEVEL_CLR= {Stakeholder:'#005EB8',System:'#1a7a4a',Subsystem:'#8a6a00',Component:'#b94000',Verification:'#4a6aaa'};
+const LEVELS   = ['Stakeholder','System','Subsystem','Component'];
+const PREFIXES = {Stakeholder:'STK',System:'SYS',Subsystem:'SUB',Component:'CMP'};
+const LEVEL_CLR= {Stakeholder:'#005EB8',System:'#1a7a4a',Subsystem:'#8a6a00',Component:'#b94000'};
 const STATUSES = ['Draft','In Review','Approved','Changes Requested','Obsolete','Rejected'];
 const ST_CLR   = {
   'Draft':              {bg:'rgba(138,170,212,.12)',text:'#5a7aaa',bd:'rgba(138,170,212,.28)'},
