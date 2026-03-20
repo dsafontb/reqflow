@@ -1327,7 +1327,7 @@ function ProjectView({project,onBack}) {
     return roots;
   }
 
-  const enrichReq = r => ({...r, myProjectRole});
+  const enrichReq = function(r){var {children:_c,...clean}=r;return {...clean,myProjectRole};};
   const enrichedSelected = selected ? enrichReq(reqs.find(r=>r.id===selected.id)||selected) : null;
   const hasActiveFilter = search||lvlF!=='All'||stF!=='All'||ownerF||stakeholderF||vsF!=='All'||wcVal;
   const filtered=reqs.filter(r=>{
@@ -1349,7 +1349,7 @@ function ProjectView({project,onBack}) {
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
   if(showDash) return <DashboardPage key={dashKey} onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
-  function selectReq(r){setSelected(function(s){return s&&s.id===r.id?null:r;});requestAnimationFrame(function(){var node=document.getElementById('tree-node-'+r.id);if(node){node.scrollIntoView({block:'nearest',behavior:'smooth'});}});}  
+  function selectReq(r){var rid=r.id;var container=document.getElementById('req-tree-scroll');var savedTop=container?container.scrollTop:0;setSelected(function(s){return s&&s.id===rid?null:r;});requestAnimationFrame(function(){if(container){container.scrollTop=savedTop;}});}  
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
