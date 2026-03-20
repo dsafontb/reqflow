@@ -2359,24 +2359,24 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
           {err&&<div className={'err'}>{err}</div>}
           {tab==='basic'&&<>
             <div className={'form-row'}>
-              <div className={'form-group'}><label className={'form-label'}>Level</label><select className={'form-select'} value={form.level} onChange={e=>onLvl(e.target.value)} disabled={isLocked}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>ID *</label><input className={'form-input'} value={form.req_id} onChange={e=>set('req_id',e.target.value)} disabled={isLocked}/></div>
+              <div className={'form-group'}><label className={'form-label'}>Level</label><select className={'form-select'} value={form.level} onChange={e=>onLvl(e.target.value)}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
+              <div className={'form-group'}><label className={'form-label'}>ID *</label><input className={'form-input'} value={form.req_id} onChange={e=>set('req_id',e.target.value)}/></div>
             </div>
-            <div className={'form-group'}><label className={'form-label'}>Title *</label><input className={'form-input'} value={form.title} onChange={e=>set('title',e.target.value)} autoFocus disabled={isLocked}/></div>
-            <div className={'form-group'}><label className={'form-label'}>Description (Shall Statement)</label><textarea className={'form-textarea'} value={form.description} onChange={e=>set('description',e.target.value)} placeholder={'The system shall…'} disabled={isLocked}/></div>
+            <div className={'form-group'}><label className={'form-label'}>Title *</label><input className={'form-input'} value={form.title} onChange={e=>set('title',e.target.value)} autoFocus/></div>
+            <div className={'form-group'}><label className={'form-label'}>Description (Shall Statement)</label><textarea className={'form-textarea'} value={form.description} onChange={e=>set('description',e.target.value)} placeholder={'The system shall…'}/></div>
             <div className={'form-row'}>
               <div className={'form-group'}><label className={'form-label'}>Status</label><select className={'form-select'} value={form.status} onChange={e=>set('status',e.target.value)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>Verification Method</label><select className={'form-select'} value={form.verification_method} onChange={e=>set('verification_method',e.target.value)} disabled={isLocked}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
+              <div className={'form-group'}><label className={'form-label'}>Verification Method</label><select className={'form-select'} value={form.verification_method} onChange={e=>set('verification_method',e.target.value)}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
             </div>
             <div className={'form-row'}>
               <div className={'form-group'}><label className={'form-label'}>Parent</label><select className={'form-select'} value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value={''}>— None —</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,34)}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>Owner</label><input className={'form-input'} value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder={'Name or role'} disabled={isLocked}/></div>
+              <div className={'form-group'}><label className={'form-label'}>Owner</label><input className={'form-input'} value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder={'Name or role'}/></div>
             </div>
             <div className={'form-row'}>
               <div className={'form-group'}><label className={'form-label'}>Stakeholder</label><input className={'form-input'} value={form.stakeholder||''} onChange={e=>set('stakeholder',e.target.value)} placeholder={'Name or org'}/></div>
               <div className={'form-group'}><label className={'form-label'}>Type</label><input className={'form-input'} list={'req-types-list'} value={form.requirement_type||''} onChange={e=>set('requirement_type',e.target.value)} placeholder={'e.g. Functional'}/><datalist id={'req-types-list'}>{[...new Set(allReqs.map(r=>r.requirement_type).filter(Boolean))].map(t=><option key={t} value={t}/>)}</datalist></div>
             </div>
-            <div className={'form-group'}><label className={'form-label'}>Rationale</label><textarea className={'form-textarea'} value={form.rationale} onChange={e=>set('rationale',e.target.value)} disabled={isLocked}/></div>
+            <div className={'form-group'}><label className={'form-label'}>Rationale</label><textarea className={'form-textarea'} value={form.rationale} onChange={e=>set('rationale',e.target.value)}/></div>
           </>}
           {tab==='safety'&&<>
             <div className={'form-row'}>
