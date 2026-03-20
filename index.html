@@ -752,7 +752,7 @@ function BaselineViewer({baseline,project,onBack}) {
           <span style={{fontSize:11,padding:'3px 10px',borderRadius:5,background:'rgba(255,255,255,.15)',border:'1px solid rgba(255,255,255,.25)'}}>READ-ONLY</span>
         </div>
         <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
-          <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',transition:'width .2s',overflow:'hidden'}}>
+          <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden'}}>
             <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',alignItems:'center',gap:12}}>
               <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{snap.length} requirements</span>
               {baseline.description&&<span style={{fontSize:12,color:'var(--text2)',fontStyle:'italic'}}>{baseline.description}</span>}
@@ -1353,14 +1353,14 @@ function ProjectView({project,onBack}) {
     var rid=r.id;
     var treeEl=document.getElementById('req-tree-scroll');
     var savedTop=treeEl?treeEl.scrollTop:0;
-    var rowEl=document.getElementById('tree-node-'+rid);
-    var rowVisibleOffset=rowEl&&treeEl?(rowEl.getBoundingClientRect().top-treeEl.getBoundingClientRect().top):0;
     setSelected(function(s){return s&&s.id===rid?null:r;});
-    requestAnimationFrame(function(){
-      if(treeEl){treeEl.scrollTop=savedTop;}
-      var detailEl=document.getElementById('req-detail-panel');
-      if(detailEl){detailEl.scrollTop=Math.max(0,rowVisibleOffset);}
-    });
+    function restoreScroll(){
+      var el=document.getElementById('req-tree-scroll');
+      if(el){el.scrollTop=savedTop;}
+    }
+    requestAnimationFrame(function(){restoreScroll();requestAnimationFrame(restoreScroll);});
+    setTimeout(restoreScroll,50);
+    setTimeout(restoreScroll,200);
   }  
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
@@ -1376,7 +1376,7 @@ function ProjectView({project,onBack}) {
       }/>
       <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
         {/* Tree panel */}
-        <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',transition:'width .2s',overflow:'hidden'}}>
+        <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden'}}>
           {/* Stats */}
           <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
             {STATUSES.filter(s=>stats[s]>0).map(s=>(
