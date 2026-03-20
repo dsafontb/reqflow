@@ -1349,6 +1349,7 @@ function ProjectView({project,onBack}) {
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
   if(showDash) return <DashboardPage key={dashKey} onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
+  function selectReq(r){var el=document.getElementById('req-tree-scroll');var top=el?el.scrollTop:0;setSelected(function(s){return s&&s.id===r.id?null:r;});if(el){requestAnimationFrame(function(){el.scrollTop=top;});}}  
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
@@ -1449,7 +1450,7 @@ function ProjectView({project,onBack}) {
             )}
           </div>
           {/* Tree */}
-          <div ref={treeScrollRef} style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
+          <div id={'req-tree-scroll'} style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
             {loading&&<div className={'empty'}><div className={'empty-icon'}>⏳</div><h3>Loading…</h3></div>}
             {!loading&&tree.length===0&&(
               <div className={'empty'}>
@@ -1458,7 +1459,7 @@ function ProjectView({project,onBack}) {
                 {canEdit&&!hasActiveFilter&&<button className={'btn btn-primary'} onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
               </div>
             )}
-            {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={r=>setSelected(s=>s?.id===r.id?null:r)} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
+            {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={selectReq} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
           </div>
         </div>
         {/* Detail panel */}
