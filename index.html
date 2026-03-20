@@ -1349,7 +1349,19 @@ function ProjectView({project,onBack}) {
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
   if(showDash) return <DashboardPage key={dashKey} onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
-  function selectReq(r){var rid=r.id;var container=document.getElementById('req-tree-scroll');var savedTop=container?container.scrollTop:0;setSelected(function(s){return s&&s.id===rid?null:r;});requestAnimationFrame(function(){if(container){container.scrollTop=savedTop;}});}  
+  function selectReq(r){
+    var rid=r.id;
+    var treeEl=document.getElementById('req-tree-scroll');
+    var savedTop=treeEl?treeEl.scrollTop:0;
+    var rowEl=document.getElementById('tree-node-'+rid);
+    var rowVisibleOffset=rowEl&&treeEl?(rowEl.getBoundingClientRect().top-treeEl.getBoundingClientRect().top):0;
+    setSelected(function(s){return s&&s.id===rid?null:r;});
+    requestAnimationFrame(function(){
+      if(treeEl){treeEl.scrollTop=savedTop;}
+      var detailEl=document.getElementById('req-detail-panel');
+      if(detailEl){detailEl.scrollTop=Math.max(0,rowVisibleOffset);}
+    });
+  }  
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
@@ -1464,7 +1476,7 @@ function ProjectView({project,onBack}) {
         </div>
         {/* Detail panel */}
         {enrichedSelected && (
-          <div style={{flex:1,overflowY:'auto',background:'var(--surface)'}}>
+          <div id={'req-detail-panel'} style={{flex:1,overflowY:'auto',background:'var(--surface)'}}>
             <DetailPanel req={enrichedSelected} allReqs={reqs} onEdit={openEdit} onClose={()=>setSelected(null)} onDeleted={()=>{setSelected(null);load();}} onStatusChanged={load}/>
           </div>
         )}
