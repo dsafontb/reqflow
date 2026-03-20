@@ -752,7 +752,7 @@ function BaselineViewer({baseline,project,onBack}) {
           <span style={{fontSize:11,padding:'3px 10px',borderRadius:5,background:'rgba(255,255,255,.15)',border:'1px solid rgba(255,255,255,.25)'}}>READ-ONLY</span>
         </div>
         <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
-          <div style={{width:'100%',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+          <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden'}}>
             <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',alignItems:'center',gap:12}}>
               <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{snap.length} requirements</span>
               {baseline.description&&<span style={{fontSize:12,color:'var(--text2)',fontStyle:'italic'}}>{baseline.description}</span>}
@@ -1294,7 +1294,6 @@ function ProjectView({project,onBack}) {
   const [baselines,setBaselines] = useState([]);
   const [viewingBaseline,setViewingBaseline] = useState(null);
   const [showDash,setShowDash] = useState(false);
-  const [selectedRowY,setSelectedRowY] = useState(0);
   const [dashKey,setDashKey] = useState(0);
 
   const load = useCallback(async()=>{
@@ -1350,18 +1349,7 @@ function ProjectView({project,onBack}) {
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
   if(showDash) return <DashboardPage key={dashKey} onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
-  function selectReq(r){
-    var rid=r.id;
-    var rowEl=document.getElementById('tree-node-'+rid);
-    var rowY=rowEl?rowEl.getBoundingClientRect().top:0;
-    var treeEl=document.getElementById('req-tree-scroll');
-    var savedTop=treeEl?treeEl.scrollTop:0;
-    setSelectedRowY(rowY);
-    setSelected(function(s){return s&&s.id===rid?null:r;});
-    function restoreScroll(){var el=document.getElementById('req-tree-scroll');if(el){el.scrollTop=savedTop;}}
-    requestAnimationFrame(function(){restoreScroll();requestAnimationFrame(restoreScroll);});
-    setTimeout(restoreScroll,50);
-  }  
+  function selectReq(r){setSelected(function(s){return s&&s.id===r.id?null:r;});}  
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
@@ -1376,7 +1364,7 @@ function ProjectView({project,onBack}) {
       }/>
       <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
         {/* Tree panel */}
-        <div style={{width:'100%',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden'}}>
           {/* Stats */}
           <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
             {STATUSES.filter(s=>stats[s]>0).map(s=>(
@@ -1476,7 +1464,7 @@ function ProjectView({project,onBack}) {
         </div>
         {/* Detail panel */}
         {enrichedSelected && (
-          <div id={'req-detail-panel'} style={{position:'fixed',top:selectedRowY+'px',right:0,width:'45%',bottom:0,overflowY:'auto',background:'var(--surface)',borderLeft:'1px solid var(--border)',boxShadow:'-4px 0 16px rgba(0,0,0,.08)',zIndex:50}}>
+          <div style={{flex:1,overflowY:'auto',background:'var(--surface)'}}>
             <DetailPanel req={enrichedSelected} allReqs={reqs} onEdit={openEdit} onClose={()=>setSelected(null)} onDeleted={()=>{setSelected(null);load();}} onStatusChanged={load}/>
           </div>
         )}
