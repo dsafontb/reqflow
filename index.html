@@ -188,9 +188,9 @@ const SUPA_KEY = 'sb_publishable_QMOQAPb1nG4Zl22oPcRYVg_lZ2m_LQH';
 const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-const LEVELS   = ['Stakeholder','System','Subsystem','Component','Verification'];
-const PREFIXES = {Stakeholder:'STK',System:'SYS',Subsystem:'SUB',Component:'CMP',Verification:'VER'};
-const LEVEL_CLR= {Stakeholder:'#005EB8',System:'#1a7a4a',Subsystem:'#8a6a00',Component:'#b94000',Verification:'#4a6aaa'};
+const LEVELS   = ['Stakeholder','System','Subsystem','Component'];
+const PREFIXES = {Stakeholder:'STK',System:'SYS',Subsystem:'SUB',Component:'CMP'};
+const LEVEL_CLR= {Stakeholder:'#005EB8',System:'#1a7a4a',Subsystem:'#8a6a00',Component:'#b94000'};
 const STATUSES = ['Draft','In Review','Approved','Changes Requested','Obsolete','Rejected'];
 const ST_CLR   = {
   'Draft':              {bg:'rgba(138,170,212,.12)',text:'#5a7aaa',bd:'rgba(138,170,212,.28)'},
@@ -300,14 +300,12 @@ function ChangePasswordModal({onClose}) {
   );
 }
 
-function openManual(){window.open('manual.html','_blank');}
-function openQuickRef(){window.open('quickref.html','_blank');}
-
 function App() {
   const [session, setSession] = useState(undefined);
   const [profile, setProfile] = useState(null);
   const [page, setPage]       = useState('projects');
   const [project, setProject] = useState(null);
+  const [dashKey, setDashKey] = useState(0);
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
@@ -345,13 +343,13 @@ function App() {
 
   return (
     <AppContext.Provider value={{session, profile, loadProfile, notifications, loadNotifications, isReadOnly:profile.role==='Unassigned'}}>
-      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')} onDash={()=>setPage('dashboard')}/>}
+      {page === 'projects' && <ProjectList onOpen={p=>{setProject(p);setPage('project')}} onAdmin={()=>setPage('admin')} onQueue={()=>setPage('queue')} onOptions={()=>setPage('options')} onDash={()=>{setDashKey(function(k){return k+1;});setPage('dashboard');}}/>}
       {page === 'project'  && <ProjectView project={project} onBack={()=>{setProject(null);setPage('projects')}}/>}
       {page === 'admin'    && profile.role==='System Admin' && <AdminPanel onBack={()=>setPage('projects')}/>}
       {page === 'options'   && profile.role==='System Admin' && <OptionsPage onBack={()=>setPage('projects')}/>}
       {page === 'queue'    && <ApprovalQueue onBack={()=>setPage('projects')} onOpen={p=>{setProject(p);setPage('project')}}/>
       }
-      {page === 'dashboard' && <DashboardPage onBack={()=>setPage('projects')}/>}
+      {page === 'dashboard' && <DashboardPage key={dashKey} onBack={()=>setPage('projects')}/>}
     </AppContext.Provider>
   );
 }
@@ -624,7 +622,6 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions, onDash}) {
       <Topbar actions={
         <>
           {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onQueue}><IList s={13}/> My Queue</button>}
-          <button className={'btn btn-ghost btn-sm'} onClick={openManual}>? Help</button>
           {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onDash}>Dashboard</button>}
           {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onAdmin}><IUsers s={13}/> Users</button>}
           {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onOptions}><IShield s={13}/> Options</button>}
@@ -755,7 +752,7 @@ function BaselineViewer({baseline,project,onBack}) {
           <span style={{fontSize:11,padding:'3px 10px',borderRadius:5,background:'rgba(255,255,255,.15)',border:'1px solid rgba(255,255,255,.25)'}}>READ-ONLY</span>
         </div>
         <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
-          <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',transition:'width .2s',overflow:'hidden'}}>
+          <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden',minHeight:0,flexShrink:0}}>
             <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',alignItems:'center',gap:12}}>
               <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{snap.length} requirements</span>
               {baseline.description&&<span style={{fontSize:12,color:'var(--text2)',fontStyle:'italic'}}>{baseline.description}</span>}
@@ -1296,6 +1293,8 @@ function ProjectView({project,onBack}) {
   const [showBaselines,setShowBaselines] = useState(false);
   const [baselines,setBaselines] = useState([]);
   const [viewingBaseline,setViewingBaseline] = useState(null);
+  const [showDash,setShowDash] = useState(false);
+  const [dashKey,setDashKey] = useState(0);
 
   const load = useCallback(async()=>{
     const {data}=await db.from('requirements').select('*').eq('project_id',project.id).order('sort_order').order('created_at');
@@ -1328,7 +1327,7 @@ function ProjectView({project,onBack}) {
     return roots;
   }
 
-  const enrichReq = r => ({...r, myProjectRole});
+  const enrichReq = function(r){var {children:_c,...clean}=r;return {...clean,myProjectRole};};
   const enrichedSelected = selected ? enrichReq(reqs.find(r=>r.id===selected.id)||selected) : null;
   const hasActiveFilter = search||lvlF!=='All'||stF!=='All'||ownerF||stakeholderF||vsF!=='All'||wcVal;
   const filtered=reqs.filter(r=>{
@@ -1349,21 +1348,23 @@ function ProjectView({project,onBack}) {
 
   const stats=STATUSES.reduce((a,s)=>{a[s]=reqs.filter(r=>r.status===s).length;return a;},{});
 
+  if(showDash) return <DashboardPage key={dashKey} onBack={function(){setShowDash(false);}} projectId={project.id} projectName={project.name}></DashboardPage>
+  function selectReq(r){setSelected(function(s){return s&&s.id===r.id?null:r;});}  
   if(viewingBaseline) return <BaselineViewer baseline={viewingBaseline} project={project} onBack={function(){setViewingBaseline(null);setShowBaselines(true);}}/>;
   return (
-    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+    <div style={{height:'100vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
       <Topbar sub={project.name} actions={
         <>
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-          <button className={'btn btn-ghost btn-sm'} onClick={openQuickRef}>Quick Ref</button>
           {(myProjectRole==='Project Admin'||profile?.role==='System Admin') && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){setDashKey(function(k){return k+1;});setShowDash(true);}}>Dashboard</button>
           {canEdit && <button className={'btn btn-primary btn-sm'} onClick={()=>openNew()}><IPlus s={12}/> Add Requirement</button>}
         </>
       }/>
-      <div style={{display:'flex',flex:1,height:'calc(100vh - 54px)',overflow:'hidden'}}>
+      <div style={{display:'flex',flex:1,overflow:'hidden',alignItems:'stretch',minHeight:0}}>
         {/* Tree panel */}
-        <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',transition:'width .2s',overflow:'hidden'}}>
+        <div style={{width:selected?'55%':'100%',display:'flex',flexDirection:'column',borderRight:selected?'1px solid var(--border)':'none',overflow:'hidden',minHeight:0,flexShrink:0}}>
           {/* Stats */}
           <div style={{padding:'9px 18px',borderBottom:'1px solid var(--border)',background:'var(--surface)',display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
             {STATUSES.filter(s=>stats[s]>0).map(s=>(
@@ -1449,7 +1450,7 @@ function ProjectView({project,onBack}) {
             )}
           </div>
           {/* Tree */}
-          <div style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
+          <div id={'req-tree-scroll'} style={{flex:1,overflowY:'auto',padding:'8px 0'}}>
             {loading&&<div className={'empty'}><div className={'empty-icon'}>⏳</div><h3>Loading…</h3></div>}
             {!loading&&tree.length===0&&(
               <div className={'empty'}>
@@ -1458,12 +1459,12 @@ function ProjectView({project,onBack}) {
                 {canEdit&&!hasActiveFilter&&<button className={'btn btn-primary'} onClick={()=>openNew()}><IPlus s={13}/> Add Requirement</button>}
               </div>
             )}
-            {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={r=>setSelected(s=>s?.id===r.id?null:r)} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
+            {tree.map(n=><TreeNode key={n.id} node={n} depth={0} expanded={expanded} onToggle={id=>setExpanded(e=>({...e,[id]:!e[id]}))} selectedId={selected?.id} onSelect={selectReq} onEdit={openEdit} onAddChild={openNew} onDeleted={()=>{setSelected(null);load();}} canEdit={canEdit}/>)}
           </div>
         </div>
         {/* Detail panel */}
         {enrichedSelected && (
-          <div style={{flex:1,overflowY:'auto',background:'var(--surface)'}}>
+          <div style={{flex:1,overflowY:'auto',background:'var(--surface)',minHeight:0}}>
             <DetailPanel req={enrichedSelected} allReqs={reqs} onEdit={openEdit} onClose={()=>setSelected(null)} onDeleted={()=>{setSelected(null);load();}} onStatusChanged={load}/>
           </div>
         )}
@@ -1485,7 +1486,7 @@ function TreeNode({node,depth,expanded,onToggle,selectedId,onSelect,onEdit,onAdd
   async function del(e){e.stopPropagation();if(!confirm('Delete?'))return;await db.from('requirements').delete().eq('id',node.id);onDeleted();}
   return (
     <div>
-      <div onClick={()=>onSelect(node)} style={{display:'flex',alignItems:'center',gap:4,padding:`5px 16px 5px ${16+depth*18}px`,cursor:'pointer',background:isSel?'rgba(0,212,255,.06)':'transparent',borderLeft:isSel?'2px solid var(--c1)':'2px solid transparent',transition:'all .1s'}}
+      <div id={'tree-node-'+node.id} onClick={()=>onSelect(node)} style={{display:'flex',alignItems:'center',gap:4,padding:`5px 16px 5px ${16+depth*18}px`,cursor:'pointer',background:isSel?'rgba(0,212,255,.06)':'transparent',borderLeft:isSel?'2px solid var(--c1)':'2px solid transparent',transition:'all .1s'}}
         onMouseEnter={e=>{if(!isSel)e.currentTarget.style.background='rgba(255,255,255,.02)'}}
         onMouseLeave={e=>{if(!isSel)e.currentTarget.style.background='transparent'}}>
         <div onClick={e=>{e.stopPropagation();hasKids&&onToggle(node.id)}} style={{width:14,height:14,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:'var(--text3)',cursor:hasKids?'pointer':'default'}}>
@@ -2341,7 +2342,7 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
     if(!form.title.trim()){setErr('Title required');return;}
     if(!form.req_id.trim()){setErr('ID required');return;}
     setSaving(true);setErr('');
-    const {myProjectRole:_mpr, _actStatus:_as, ...formClean} = form;
+    const {myProjectRole:_mpr, _actStatus:_as, children:_ch, verification_status:_vs, ...formClean} = form;
     const payload={...formClean,project_id:projectId,parent_id:form.parent_id||null,title:form.title.trim(),req_id:form.req_id.trim()};
     const {error}=isEdit?await db.from('requirements').update(payload).eq('id',req.id):await db.from('requirements').insert([payload]);
     setSaving(false);
@@ -2361,24 +2362,24 @@ function ReqModal({projectId,req,defParentId,allReqs,onClose,onSaved}) {
           {err&&<div className={'err'}>{err}</div>}
           {tab==='basic'&&<>
             <div className={'form-row'}>
-              <div className={'form-group'}><label className={'form-label'}>Level</label><select className={'form-select'} value={form.level} onChange={e=>onLvl(e.target.value)} disabled={isLocked}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>ID *</label><input className={'form-input'} value={form.req_id} onChange={e=>set('req_id',e.target.value)} disabled={isLocked}/></div>
+              <div className={'form-group'}><label className={'form-label'}>Level</label><select className={'form-select'} value={form.level} onChange={e=>onLvl(e.target.value)}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></div>
+              <div className={'form-group'}><label className={'form-label'}>ID *</label><input className={'form-input'} value={form.req_id} onChange={e=>set('req_id',e.target.value)}/></div>
             </div>
-            <div className={'form-group'}><label className={'form-label'}>Title *</label><input className={'form-input'} value={form.title} onChange={e=>set('title',e.target.value)} autoFocus disabled={isLocked}/></div>
-            <div className={'form-group'}><label className={'form-label'}>Description (Shall Statement)</label><textarea className={'form-textarea'} value={form.description} onChange={e=>set('description',e.target.value)} placeholder={'The system shall…'} disabled={isLocked}/></div>
+            <div className={'form-group'}><label className={'form-label'}>Title *</label><input className={'form-input'} value={form.title} onChange={e=>set('title',e.target.value)} autoFocus/></div>
+            <div className={'form-group'}><label className={'form-label'}>Description (Shall Statement)</label><textarea className={'form-textarea'} value={form.description} onChange={e=>set('description',e.target.value)} placeholder={'The system shall…'}/></div>
             <div className={'form-row'}>
               <div className={'form-group'}><label className={'form-label'}>Status</label><select className={'form-select'} value={form.status} onChange={e=>set('status',e.target.value)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>Verification Method</label><select className={'form-select'} value={form.verification_method} onChange={e=>set('verification_method',e.target.value)} disabled={isLocked}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
+              <div className={'form-group'}><label className={'form-label'}>Verification Method</label><select className={'form-select'} value={form.verification_method} onChange={e=>set('verification_method',e.target.value)}>{VERIFY.map(v=><option key={v}>{v}</option>)}</select></div>
             </div>
             <div className={'form-row'}>
               <div className={'form-group'}><label className={'form-label'}>Parent</label><select className={'form-select'} value={form.parent_id} onChange={e=>set('parent_id',e.target.value)}><option value={''}>— None —</option>{parents.map(r=><option key={r.id} value={r.id}>{r.req_id} — {r.title.slice(0,34)}</option>)}</select></div>
-              <div className={'form-group'}><label className={'form-label'}>Owner</label><input className={'form-input'} value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder={'Name or role'} disabled={isLocked}/></div>
+              <div className={'form-group'}><label className={'form-label'}>Owner</label><input className={'form-input'} value={form.owner} onChange={e=>set('owner',e.target.value)} placeholder={'Name or role'}/></div>
             </div>
             <div className={'form-row'}>
               <div className={'form-group'}><label className={'form-label'}>Stakeholder</label><input className={'form-input'} value={form.stakeholder||''} onChange={e=>set('stakeholder',e.target.value)} placeholder={'Name or org'}/></div>
               <div className={'form-group'}><label className={'form-label'}>Type</label><input className={'form-input'} list={'req-types-list'} value={form.requirement_type||''} onChange={e=>set('requirement_type',e.target.value)} placeholder={'e.g. Functional'}/><datalist id={'req-types-list'}>{[...new Set(allReqs.map(r=>r.requirement_type).filter(Boolean))].map(t=><option key={t} value={t}/>)}</datalist></div>
             </div>
-            <div className={'form-group'}><label className={'form-label'}>Rationale</label><textarea className={'form-textarea'} value={form.rationale} onChange={e=>set('rationale',e.target.value)} disabled={isLocked}/></div>
+            <div className={'form-group'}><label className={'form-label'}>Rationale</label><textarea className={'form-textarea'} value={form.rationale} onChange={e=>set('rationale',e.target.value)}/></div>
           </>}
           {tab==='safety'&&<>
             <div className={'form-row'}>
@@ -2747,11 +2748,11 @@ function StandardsPanel() {
 
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function DashboardPage({onBack}) {
+function DashboardPage({onBack, projectId, projectName}) {
   const {profile} = useApp();
   const [tab, setTab] = useState('status');
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState('all');
+  const [selectedProject, setSelectedProject] = useState(projectId||'all');
   const [reqs, setReqs] = useState([]);
   const [baselines, setBaselines] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -2761,6 +2762,7 @@ function DashboardPage({onBack}) {
 
   async function loadData() {
     setLoading(true);
+    if(projectId){setProjects([{id:projectId,name:projectName||'Project'}]);var allIds=[projectId];var {data:rr}=await db.from('requirements').select('*').in('project_id',allIds);setReqs(rr||[]);var {data:bb}=await db.from('project_baselines').select('*').in('project_id',allIds).order('created_at',{ascending:true});setBaselines(bb||[]);var reqIds=(rr||[]).map(function(r){return r.id;});if(reqIds.length){var {data:aa}=await db.from('verification_activities').select('*').in('requirement_id',reqIds);setActivities(aa||[]);}setLoading(false);return;}
     var isSysAdmin = profile.role === 'System Admin';
     var projData = [];
     if (isSysAdmin) {
@@ -2849,11 +2851,12 @@ function DashboardPage({onBack}) {
         {/* Project selector + tabs */}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:10}}>
           <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <span style={{fontSize:12,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:.4}}>Project</span>
-            <select className={'form-select'} style={{width:'auto',fontSize:13}} value={selectedProject} onChange={function(e){setSelectedProject(e.target.value);}}>
+            {!projectId&&<span style={{fontSize:12,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:.4}}>Project</span>}
+            {!projectId&&<select className={'form-select'} style={{width:'auto',fontSize:13}} value={selectedProject} onChange={function(e){setSelectedProject(e.target.value);}}>
               <option value={'all'}>All projects</option>
               {projects.map(function(p){return <option key={p.id} value={p.id}>{p.name}</option>;})}
-            </select>
+            </select>}
+            {projectId&&<span style={{fontSize:16,fontWeight:800,color:'var(--text)'}}>{projectName}</span>}
           </div>
           <div style={{display:'flex',gap:4,background:'var(--raised)',padding:3,borderRadius:8}}>
             {[['status','Status'],['vv','V&V Coverage'],['timeline','Timeline']].map(function(t){
