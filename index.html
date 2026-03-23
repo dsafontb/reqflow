@@ -465,6 +465,7 @@ function Topbar({title, sub, actions, children}) {
   const [newName, setNewName]         = useState('');
   const [savingName, setSavingName]   = useState(false);
   const [showPw, setShowPw]           = useState(false);
+  const [showHelp, setShowHelp]       = useState(false);
   const unread = notifications.filter(n=>!n.read).length;
   const notifRef = useRef(null);
   const userRef  = useRef(null);
@@ -527,7 +528,9 @@ function Topbar({title, sub, actions, children}) {
             </div>
           )}
         </div>
-        {/* User avatar */}
+        {/* User button */}
+        <button className={'btn btn-ghost btn-sm'} style={{color:'#fff',opacity:.75,marginRight:4,fontWeight:700}} onClick={function(){setShowHelp(function(v){return !v;});}}>?</button>
+     {/* User avatar */}
         <div className={'user-menu-wrap'} ref={userRef}>
           <div className={'user-avatar'} style={{background:ac}} onClick={()=>{setShowUser(v=>!v);setShowNotif(false)}}>
             {initials(profile?.full_name)}
@@ -561,6 +564,7 @@ function Topbar({title, sub, actions, children}) {
       </div>
     </div>
     {showPw&&<ChangePasswordModal onClose={function(){setShowPw(false);}}></ChangePasswordModal>}
+    {showHelp&&<HelpPanel onClose={function(){setShowHelp(false);}}></HelpPanel>}
     </React.Fragment>
   );
 }
@@ -3160,6 +3164,264 @@ function DashboardPage({onBack, projectId, projectName}) {
     </div>
   );
 }
+
+// ── HELP PANEL ────────────────────────────────────────────────────────────────
+function HelpPanel({onClose}) {
+  var [section, setSection] = useState('overview');
+  var sections = [
+    {id:'overview',     label:'What is ReqFlow?'},
+    {id:'firstlogin',   label:'First login'},
+    {id:'roles',        label:'Roles & permissions'},
+    {id:'projects',     label:'Projects'},
+    {id:'requirements', label:'Requirements'},
+    {id:'workflow',     label:'Approval workflow'},
+    {id:'verification', label:'Verification'},
+    {id:'baselines',    label:'Baselines'},
+    {id:'dashboard',    label:'Dashboard'},
+    {id:'account',      label:'Your account'},
+    {id:'faq',          label:'FAQ'}
+  ];
+
+  var content = {
+    overview: (
+      <div>
+        <p style={{marginBottom:12,color:'var(--text2)'}}>ReqFlow is a requirements management tool for railway and safety-critical engineering projects. It supports the full requirements lifecycle from authoring through approval, verification, and baseline release.</p>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+          {[['Requirements authoring','Hierarchical tree: Stakeholder, System, Subsystem, Component.'],
+            ['Approval workflow','Submit, assign approvers, track status with full audit trail.'],
+            ['Verification tracking','Record activities and track progress to Verified or Failed.'],
+            ['Baselines','Freeze requirements at formal milestones (PDR, CDR) for configuration management.'],
+            ['Dashboard','Visual summary of status, V&V coverage, and progress across baselines.'],
+            ['Version history','Every approval saves a snapshot showing what changed between cycles.']
+          ].map(function(item){return(
+            <div key={item[0]} style={{background:'var(--raised)',borderRadius:8,padding:'10px 12px'}}>
+              <div style={{fontWeight:700,fontSize:12,color:'var(--c1)',marginBottom:4}}>{item[0]}</div>
+              <div style={{fontSize:12,color:'var(--text2)'}}>{item[1]}</div>
+            </div>
+          );})}
+        </div>
+      </div>
+    ),
+    firstlogin: (
+      <div>
+        {[['1','Register your account','On the login screen click Register, enter your full name, work email, and a password of at least 8 characters.'],
+          ['2','Wait for role assignment','After registering your account is Unassigned until a System Admin assigns your global role.'],
+          ['3','Receive your project role','Once a Project Admin adds you to a project with a project role you can open that project.'],
+          ['4','Change your password','Click your avatar initials top-right then Change Password at any time.']
+        ].map(function(s){return(
+          <div key={s[0]} style={{display:'flex',gap:12,marginBottom:14,alignItems:'flex-start'}}>
+            <div style={{width:24,height:24,borderRadius:'50%',background:'var(--c1)',color:'#fff',fontSize:12,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{s[0]}</div>
+            <div><strong style={{fontSize:13}}>{s[1]}</strong><p style={{fontSize:12,color:'var(--text2)',marginTop:2}}>{s[2]}</p></div>
+          </div>
+        );})}
+        <div style={{background:'rgba(0,56,130,.07)',borderLeft:'3px solid var(--c1)',borderRadius:6,padding:'10px 14px',fontSize:12}}>
+          <strong style={{display:'block',marginBottom:4,color:'var(--c1)'}}>Note</strong>
+          Two role levels exist: global role (User or System Admin) and project role (Designer, Reviewer, Approver, Verifier, Project Admin). Both must be set before you can act on a project.
+        </div>
+      </div>
+    ),
+    roles: (
+      <div>
+        <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>Global roles</div>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:12,marginBottom:16}}>
+          <thead><tr style={{background:'var(--c1)',color:'#fff'}}><th style={{padding:'7px 10px',textAlign:'left'}}>Role</th><th style={{padding:'7px 10px',textAlign:'left'}}>Can do</th></tr></thead>
+          <tbody>
+            {[['System Admin','Manage all users and global roles. Access Options. View any project.'],
+              ['User','Can be added to projects with a project role.'],
+              ['Unassigned','Read-only until a System Admin assigns a role.']
+            ].map(function(r){return(<tr key={r[0]} style={{borderBottom:'1px solid var(--border)'}}><td style={{padding:'7px 10px',fontWeight:600}}>{r[0]}</td><td style={{padding:'7px 10px',color:'var(--text2)'}}>{r[1]}</td></tr>);})}
+          </tbody>
+        </table>
+        <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>Project role permissions</div>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
+          <thead><tr style={{background:'var(--c1)',color:'#fff'}}>{['Action','Des','Rev','App','Ver','PA'].map(function(h){return <th key={h} style={{padding:'6px 8px',textAlign:h==='Action'?'left':'center'}}>{h}</th>;})}</tr></thead>
+          <tbody>
+            {[['Create req','✓','—','—','—','✓'],
+              ['Edit (Draft/CR)','✓','—','—','—','✓*'],
+              ['Submit / Recall','✓','—','—','—','✓'],
+              ['Approve / Reject','—','—','✓','—','✓'],
+              ['Verification','—','—','—','✓','✓'],
+              ['Comment','✓','✓','✓','✓','✓'],
+              ['Baselines','—','—','—','—','✓'],
+              ['Members','—','—','—','—','✓']
+            ].map(function(row){return(
+              <tr key={row[0]} style={{borderBottom:'1px solid var(--border)'}}>
+                {row.map(function(cell,ci){return(
+                  <td key={ci} style={{padding:'5px 8px',textAlign:ci===0?'left':'center',color:cell==='✓'?'var(--c2)':cell==='—'?'var(--text3)':'var(--text)',fontWeight:cell==='✓'?700:400}}>{cell}</td>
+                );})}
+              </tr>
+            );})}
+          </tbody>
+        </table>
+        <p style={{fontSize:11,color:'var(--text3)',marginTop:6}}>Des=Designer Rev=Reviewer App=Approver Ver=Verifier PA=Project Admin * PA can edit any status</p>
+      </div>
+    ),
+    projects: (
+      <div style={{fontSize:13}}>
+        <p style={{marginBottom:10,color:'var(--text2)'}}>The project list is the home screen. Each card shows the project name, requirement count, and your role on that project.</p>
+        <div style={{fontWeight:700,marginBottom:6}}>Creating a project</div>
+        <p style={{marginBottom:10,color:'var(--text2)'}}>Only System Admins can create projects. Click <strong>+ New Project</strong>, enter a name and description, then click Create.</p>
+        <div style={{fontWeight:700,marginBottom:6}}>Project members</div>
+        <p style={{marginBottom:10,color:'var(--text2)'}}>Project Admins click <strong>Members</strong> in the project topbar to add users and assign project roles.</p>
+        <div style={{background:'rgba(138,106,0,.08)',borderLeft:'3px solid var(--c3)',borderRadius:6,padding:'10px 14px',fontSize:12}}>
+          <strong style={{display:'block',marginBottom:4,color:'var(--c3)'}}>Important</strong>
+          Role changes take effect when the user navigates back to the project list and re-opens the project.
+        </div>
+      </div>
+    ),
+    requirements: (
+      <div style={{fontSize:13}}>
+        <div style={{display:'grid',gridTemplateColumns:'60px 1fr',gap:'6px 12px',marginBottom:16,alignItems:'center'}}>
+          {[['STK','#005EB8','Stakeholder — high-level needs'],['SYS','#1a7a4a','System — what the system shall do'],['SUB','#8a6a00','Subsystem — allocated to functional blocks'],['CMP','#b94000','Component — detailed item requirements']].map(function(r){return(
+            <React.Fragment key={r[0]}>
+              <span style={{fontFamily:'var(--mono)',fontWeight:700,color:r[1],fontSize:13}}>{r[0]}</span>
+              <span style={{color:'var(--text2)'}}>{r[2]}</span>
+            </React.Fragment>
+          );})}
+        </div>
+        <div style={{fontWeight:700,marginBottom:6}}>Creating a requirement</div>
+        <p style={{color:'var(--text2)',marginBottom:10}}>Click <strong>+ Add Requirement</strong> in the topbar or the + icon next to an existing requirement. Fill in the Basic tab (Level, ID, Title, Description, Verification Method, Owner, Stakeholder, Type) and optionally the Safety tab.</p>
+        <div style={{fontWeight:700,marginBottom:6}}>Searching and filtering</div>
+        <p style={{color:'var(--text2)'}}>Use the search bar to filter by title or ID. Click <strong>Filters</strong> to filter by Level, Status, Owner, Stakeholder, or V&V Activity Status.</p>
+      </div>
+    ),
+    workflow: (
+      <div style={{fontSize:13}}>
+        <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap',marginBottom:14}}>
+          {[['Draft','rgba(138,170,212,.12)','#5a7aaa','rgba(138,170,212,.28)'],null,['In Review','rgba(138,106,0,.1)','#8a6a00','rgba(138,106,0,.28)'],null,['Approved','rgba(26,122,74,.1)','#1a7a4a','rgba(26,122,74,.28)']].map(function(s,i){
+            if(!s) return <span key={i} style={{color:'var(--text3)',fontSize:16}}>›</span>;
+            return <span key={i} style={{padding:'3px 10px',borderRadius:5,background:s[1],color:s[2],border:'1px solid '+s[3],fontFamily:'var(--mono)',fontSize:11,fontWeight:600}}>{s[0]}</span>;
+          })}
+        </div>
+        <p style={{marginBottom:12,color:'var(--text2)'}}>Approvers can also Request Changes (returns to editable state) or Reject (terminal — cannot re-enter workflow).</p>
+        <div style={{fontWeight:700,marginBottom:8}}>Submitting a requirement</div>
+        {['Open the requirement and go to the Status tab',
+          'Add assigned approver(s) from the project Approver members',
+          'Click Submit for Review — approvers receive a notification',
+          'Approver clicks Approve, Request Changes, or Reject',
+          'If changes requested — edit and re-submit',
+          'On approval a version snapshot is saved automatically'
+        ].map(function(step,i){return(
+          <div key={i} style={{display:'flex',gap:10,marginBottom:8,alignItems:'flex-start'}}>
+            <div style={{width:20,height:20,borderRadius:'50%',background:'var(--c1)',color:'#fff',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</div>
+            <span style={{color:'var(--text2)',fontSize:12,paddingTop:2}}>{step}</span>
+          </div>
+        );})}
+      </div>
+    ),
+    verification: (
+      <div style={{fontSize:13}}>
+        <div style={{background:'rgba(0,56,130,.07)',borderLeft:'3px solid var(--c1)',borderRadius:6,padding:'10px 14px',fontSize:12,marginBottom:14}}>
+          <strong style={{display:'block',marginBottom:4,color:'var(--c1)'}}>Prerequisite</strong>
+          A requirement must be Approved before a Verified or Failed outcome can be recorded.
+        </div>
+        <div style={{fontWeight:700,marginBottom:8}}>Methods</div>
+        {[['Test','Execute and measure. Strongest evidence.'],['Analysis','Calculation, simulation, FMEA.'],['Inspection','Visual or document review.'],['Demonstration','Qualitative pass/fail show.']].map(function(m){return(
+          <div key={m[0]} style={{marginBottom:7}}><strong>{m[0]}</strong><span style={{color:'var(--text2)',marginLeft:8}}>{m[1]}</span></div>
+        );})}
+        <div style={{fontWeight:700,margin:'14px 0 8px'}}>Steps</div>
+        {['Open the requirement — Verification tab',
+          'Click Define Activity — enter description and method',
+          'Click Plan Activity and set a forecast date',
+          'Mark In Progress when execution begins',
+          'Mark Finished when complete',
+          'Record Verified or Failed with evidence link'
+        ].map(function(step,i){return(
+          <div key={i} style={{display:'flex',gap:10,marginBottom:7,alignItems:'flex-start'}}>
+            <div style={{width:20,height:20,borderRadius:'50%',background:'var(--c5)',color:'#fff',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</div>
+            <span style={{color:'var(--text2)',fontSize:12,paddingTop:2}}>{step}</span>
+          </div>
+        );})}
+      </div>
+    ),
+    baselines: (
+      <div style={{fontSize:13}}>
+        <p style={{marginBottom:12,color:'var(--text2)'}}>A baseline is a named frozen snapshot of the requirements set at a formal milestone — PDR, CDR, Issue 1.0. It is the primary configuration management mechanism in ReqFlow.</p>
+        {['Click Baselines in the project topbar',
+          'Click Create Baseline, enter a name (e.g. v1.0 PDR) and optional description',
+          'Click Create Baseline — all current requirements are captured'
+        ].map(function(step,i){return(
+          <div key={i} style={{display:'flex',gap:10,marginBottom:8,alignItems:'flex-start'}}>
+            <div style={{width:20,height:20,borderRadius:'50%',background:'var(--c1)',color:'#fff',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</div>
+            <span style={{color:'var(--text2)',fontSize:12,paddingTop:2}}>{step}</span>
+          </div>
+        );})}
+        <div style={{background:'rgba(138,106,0,.08)',borderLeft:'3px solid var(--c3)',borderRadius:6,padding:'10px 14px',fontSize:12,marginTop:10}}>
+          <strong style={{display:'block',marginBottom:4,color:'var(--c3)'}}>Important</strong>
+          Only Project Admins can create, rename, or delete baselines. All roles can view and export them.
+        </div>
+      </div>
+    ),
+    dashboard: (
+      <div style={{fontSize:13}}>
+        <p style={{marginBottom:12,color:'var(--text2)'}}>Accessible from the projects home screen (all projects) or from within a project (that project only). Refreshes every time you open it.</p>
+        {[['Status tab','Total requirements and status breakdown per level. Baseline comparison strips show how the distribution evolved.'],
+          ['V&V Coverage tab','Activity status breakdown, Verified/Failed counts, method split, and per-level coverage bars.'],
+          ['Timeline tab','Stacked bar chart per baseline showing status composition evolution plus approval progress tracker.']
+        ].map(function(t){return(
+          <div key={t[0]} style={{marginBottom:10,background:'var(--raised)',borderRadius:8,padding:'10px 12px'}}>
+            <div style={{fontWeight:700,color:'var(--c1)',marginBottom:4}}>{t[0]}</div>
+            <div style={{color:'var(--text2)',fontSize:12}}>{t[1]}</div>
+          </div>
+        );})}
+      </div>
+    ),
+    account: (
+      <div style={{fontSize:13}}>
+        {[['Change display name','Click your avatar initials top-right. Click the pencil icon next to your name, type the new name, and click Save.'],
+          ['Change password','Click your avatar initials then Change Password. Enter and confirm the new password (min 8 characters).'],
+          ['Sign out','Click your avatar initials then Sign Out.']
+        ].map(function(item){return(
+          <div key={item[0]} style={{marginBottom:14}}>
+            <div style={{fontWeight:700,marginBottom:4}}>{item[0]}</div>
+            <p style={{color:'var(--text2)'}}>{item[1]}</p>
+          </div>
+        );})}
+      </div>
+    ),
+    faq: (
+      <div style={{fontSize:13}}>
+        {[["I registered but can't access any projects.","Contact a System Admin for your global role (User), then ask the Project Admin to add you to the project."],
+          ["Edit button is visible but fields are locked.","The requirement status cannot be edited by your role. Only Project Admins can edit any status."],
+          ["Verification tab says requirement must be Approved first.","Verified/Failed outcomes require Approved status. Activity can be defined and planned beforehand."],
+          ["I changed a team member's role but they see old permissions.","Role changes take effect when the user re-opens the project."],
+          ["Can I recover a Rejected requirement?","Rejected is terminal. Create a new requirement to address the same need."],
+          ["What does a baseline capture?","All requirements in the project at that moment regardless of status."]
+        ].map(function(qa){return(
+          <div key={qa[0]} style={{marginBottom:14,paddingBottom:14,borderBottom:'1px solid var(--border)'}}>
+            <div style={{fontWeight:700,marginBottom:4}}>{qa[0]}</div>
+            <p style={{color:'var(--text2)',margin:0}}>{qa[1]}</p>
+          </div>
+        );})}
+      </div>
+    )
+  };
+
+  return (
+    <div style={{position:'fixed',top:0,right:0,bottom:0,width:520,background:'var(--surface)',borderLeft:'1px solid var(--border)',boxShadow:'-4px 0 24px rgba(0,0,0,.12)',zIndex:1000,display:'flex',flexDirection:'column'}}>
+      <div style={{background:'var(--c1)',color:'#fff',padding:'0 20px',height:54,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+        <span style={{fontWeight:700,fontSize:15}}>ReqFlow Help</span>
+        <button className={'btn btn-ghost btn-sm btn-icon'} style={{color:'#fff',opacity:.8}} onClick={onClose}><IX s={16}></IX></button>
+      </div>
+      <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
+        <div style={{width:170,background:'var(--raised)',borderRight:'1px solid var(--border)',overflowY:'auto',flexShrink:0,paddingTop:8}}>
+          {sections.map(function(s){return(
+            <div key={s.id} onClick={function(){setSection(s.id);}} style={{padding:'8px 14px',fontSize:12,cursor:'pointer',fontWeight:section===s.id?700:400,color:section===s.id?'var(--c1)':'var(--text2)',background:section===s.id?'rgba(0,56,130,.07)':'transparent',borderLeft:section===s.id?'3px solid var(--c1)':'3px solid transparent'}}>
+              {s.label}
+            </div>
+          );})}
+        </div>
+        <div style={{flex:1,overflowY:'auto',padding:'20px 22px',minHeight:0}}>
+          <div style={{fontSize:16,fontWeight:800,color:'var(--c1)',marginBottom:16}}>
+            {sections.find(function(s){return s.id===section;}).label}
+          </div>
+          {content[section]||null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
