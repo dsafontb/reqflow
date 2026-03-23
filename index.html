@@ -622,7 +622,7 @@ function ProjectList({onOpen, onAdmin, onQueue, onOptions, onDash}) {
       <Topbar actions={
         <>
           {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onQueue}><IList s={13}/> My Queue</button>}
-          <a href={'manual.html'} target={'_blank'} rel={'noopener noreferrer'} className={'btn btn-ghost btn-sm'} style={{textDecoration:'none'}}>? Help</a>
+          <button className={'btn btn-ghost btn-sm'} onClick={function(){window.open('manual.html','_blank');}}>? Help</button>
           {!isReadOnly && <button className={'btn btn-ghost btn-sm'} onClick={onDash}>Dashboard</button>}
           {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onAdmin}><IUsers s={13}/> Users</button>}
           {isAdmin && <button className={'btn btn-ghost btn-sm'} onClick={onOptions}><IShield s={13}/> Options</button>}
@@ -1357,7 +1357,7 @@ function ProjectView({project,onBack}) {
       <Topbar sub={project.name} actions={
         <>
           <button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-            <a href={'quickref.html'} target={'_blank'} rel={'noopener noreferrer'} className={'btn btn-ghost btn-sm'} style={{textDecoration:'none'}}>Quick Ref</a>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){window.open('quickref.html','_blank');}}>Quick Ref</button>
           {(myProjectRole==='Project Admin'||profile?.role==='System Admin') && <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowMembers(true)}><IUsers s={13}/> Members</button>}
           <button className={'btn btn-ghost btn-sm'} onClick={()=>setShowBaselines(true)}>Baselines{baselines.length>0?' ('+baselines.length+')':''}</button>
             <button className={'btn btn-ghost btn-sm'} onClick={function(){setDashKey(function(k){return k+1;});setShowDash(true);}}>Dashboard</button>
@@ -2433,7 +2433,7 @@ function ApprovalQueue({onBack, onOpen}) {
   return (
     <div style={{minHeight:'100vh'}}>
       <Topbar sub={'My Queue'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-            <a href={'quickref.html'} target={'_blank'} rel={'noopener noreferrer'} className={'btn btn-ghost btn-sm'} style={{textDecoration:'none'}}>Quick Ref</a>}/>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){window.open('quickref.html','_blank');}}>Quick Ref</button>}/>
       <div style={{padding:'28px 24px',maxWidth:760,margin:'0 auto'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>My Queue</h1>
@@ -2575,7 +2575,7 @@ function AdminPanel({onBack}) {
   return(
     <div style={{minHeight:'100vh'}}>
       <Topbar sub={'User Management'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-            <a href={'quickref.html'} target={'_blank'} rel={'noopener noreferrer'} className={'btn btn-ghost btn-sm'} style={{textDecoration:'none'}}>Quick Ref</a>}/>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){window.open('quickref.html','_blank');}}>Quick Ref</button>}/>
       <div style={{padding:'28px 24px',maxWidth:860,margin:'0 auto'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>User Management</h1>
@@ -2633,7 +2633,7 @@ function OptionsPage({onBack}) {
   return (
     <div style={{minHeight:'100vh'}}>
       <Topbar sub={'Options'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-            <a href={'quickref.html'} target={'_blank'} rel={'noopener noreferrer'} className={'btn btn-ghost btn-sm'} style={{textDecoration:'none'}}>Quick Ref</a>}/>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){window.open('quickref.html','_blank');}}>Quick Ref</button>}/>
       <div style={{maxWidth:860,margin:'0 auto',padding:'28px 24px'}}>
         <div style={{marginBottom:24}}>
           <h1 style={{fontSize:22,fontWeight:800,marginBottom:4}}>Options</h1>
@@ -2844,7 +2844,7 @@ function DashboardPage({onBack, projectId, projectName}) {
   if(loading) return (
     <div style={{minHeight:'100vh'}}>
       <Topbar sub={'Dashboard'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-            <a href={'quickref.html'} target={'_blank'} rel={'noopener noreferrer'} className={'btn btn-ghost btn-sm'} style={{textDecoration:'none'}}>Quick Ref</a>}/>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){window.open('quickref.html','_blank');}}>Quick Ref</button>}/>
       <div className={'empty'}><div className={'empty-icon'}>⏳</div><h3>Loading…</h3></div>
     </div>
   );
@@ -2852,7 +2852,7 @@ function DashboardPage({onBack, projectId, projectName}) {
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
       <Topbar sub={'Dashboard'} actions={<button className={'btn btn-ghost btn-sm btn-icon'} onClick={onBack}><IBack s={15}/></button>
-            <a href={'quickref.html'} target={'_blank'} rel={'noopener noreferrer'} className={'btn btn-ghost btn-sm'} style={{textDecoration:'none'}}>Quick Ref</a>}/>
+            <button className={'btn btn-ghost btn-sm'} onClick={function(){window.open('quickref.html','_blank');}}>Quick Ref</button>}/>
       <div style={{padding:'24px',maxWidth:1100,margin:'0 auto',width:'100%'}}>
 
         {/* Project selector + tabs */}
